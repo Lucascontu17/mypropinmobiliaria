@@ -2,6 +2,21 @@
 CHANGELOG MYPROPINMOBILIARIAS (PANEL ADMINISTRATIVO)
 ================================================================================
 
+[v0.3.0] - ACTOR MANAGEMENT & DIGITAL FILE IMPLEMENTATION
+Fecha: 2026-03-31
+Rama: dev (Testing)
+
+Gestión Integral de Propietarios e Inquilinos (CRUD):
+- Creación de las vistas `/propietarios` e `/inquilinos` basadas en DataTables nativas de Shadcn (tipografía Inter en tablas/form).
+- Integración de formularios (React Hook Form) modal-centric para Alta/Edición.
+
+Control de Integridad de Datos (Zod) y El Búnker:
+- Esquematización estricta: DNI requerido, Email nativo, y Teléfono bajo formato E.164 (soporte Twilio futuro).
+- Prohibición de montos de liquidación o balance en negativo.
+- Estrategia *Stale-while-revalidate* implementada con SWR para refrescos síncronos optimizados del listado al invocar la mypropAPI v1.6.0.
+- Aislamiento en cliente: inyección forzosa del `inmobiliaria_id` dentro del scope local de cada request CRUD, suprimiéndolo deliberadamente del endpoint UI.
+- Placeholders `dni_url` y `contrato_url` resueltos estáticamente como string (pre-Storage).
+
 [v0.2.0] - STATELESS AUTH & RBAC IMPLEMENTATION
 Fecha: 2026-03-31
 Rama: dev (Testing)

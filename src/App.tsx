@@ -5,6 +5,8 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { PropietariosPage } from '@/pages/actores/PropietariosPage';
+import { InquilinosPage } from '@/pages/actores/InquilinosPage';
 
 /**
  * App — Root component del Panel Administrativo MyProp.
@@ -32,7 +34,26 @@ function App() {
             }
           >
             <Route path="/" element={<DashboardPage />} />
-            {/* Etapa 2+: Agregar rutas adicionales aquí evaluando allowedRoles en sus propios ProtectedRoutes */}
+            
+            {/* Actores: Múltiples Roles evaluados localmente */}
+            <Route 
+              path="/propietarios" 
+              element={
+                <ProtectedRoute allowedRoles={['superadmin', 'admin', 'vendedor']}>
+                  <PropietariosPage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/inquilinos" 
+              element={
+                <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
+                  <InquilinosPage />
+                </ProtectedRoute>
+              } 
+            />
+            
           </Route>
         </Routes>
       </BrowserRouter>

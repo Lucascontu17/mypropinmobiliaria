@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Gem,
+  UserCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInmobiliaria, type UserRole } from '@/hooks/useInmobiliaria';
@@ -26,6 +27,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
+  { label: 'Propietarios', href: '/propietarios', icon: UserCheck, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
   { label: 'Propiedades', href: '/propiedades', icon: Building2, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
   { label: 'Inquilinos', href: '/inquilinos', icon: Users, allowedRoles: ['superadmin', 'admin'] },
   { label: 'Cobranzas', href: '/cobranzas', icon: Wallet, allowedRoles: ['superadmin', 'admin'] },
