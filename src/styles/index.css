@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   MYPROP ADMIN — DESIGN SYSTEM (Luxury Minimalist)
+   Paleta: Renta520 | Tipografías: Jakarta, Inter, Playfair
+   ============================================================================ */
+
+@theme {
+  /* ── Renta520 Color Palette ── */
+  --color-renta-50: #f5f8f8;
+  --color-renta-100: #e2f0ef;
+  --color-renta-200: #c2e1df;
+  --color-renta-300: #93cac7;
+  --color-renta-400: #5ea8a6;
+  --color-renta-500: #428c8a;
+  --color-renta-600: #34706f;
+  --color-renta-700: #2b5a59;
+  --color-renta-800: #254949;
+  --color-renta-900: #213d3d;
+  --color-renta-950: #102324;
+
+  /* ── Admin-specific semantic colors ── */
+  --color-admin-surface: #ffffff;
+  --color-admin-surface-hover: #f8fafa;
+  --color-admin-border: #e2e8f0;
+  --color-admin-border-subtle: #f1f5f9;
+
+  /* ── Typography ── */
+  --font-jakarta: "Plus Jakarta Sans", sans-serif;
+  --font-inter: "Inter", sans-serif;
+  --font-playfair: "Playfair Display", serif;
+
+  /* ── Animations ── */
+  --animate-fade-in-up: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-fade-in: fade-in 0.4s ease-out forwards;
+  --animate-slide-in-left: slide-in-left 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slide-in-left {
+    from {
+      opacity: 0;
+      transform: translateX(-12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+}
+
+/* ── Base Layer ── */
+@layer base {
+  body {
+    @apply font-inter bg-renta-50 text-renta-900 antialiased selection:bg-renta-200 selection:text-renta-900;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-jakarta font-semibold tracking-tight;
+  }
+}
+
+/* ── Utility Layer ── */
+@layer utilities {
+  .luxury-glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+
+  .emphasis-text {
+    @apply font-playfair italic;
+  }
+
+  .admin-card {
+    @apply bg-admin-surface rounded-2xl border border-admin-border shadow-sm
+           transition-all duration-300 ease-out
+           hover:shadow-md hover:border-renta-200;
+  }
+
+  .admin-card-interactive {
+    @apply bg-admin-surface rounded-2xl border border-admin-border shadow-sm
+           transition-all duration-300 ease-out cursor-pointer
+           hover:translate-y-[-2px] hover:shadow-lg hover:border-renta-200;
+  }
+
+  .admin-sidebar {
+    @apply bg-renta-950 text-white/90;
+  }
+
+  .admin-stat-value {
+    @apply font-jakarta text-3xl font-bold tracking-tight text-renta-950;
+  }
+
+  .admin-stat-label {
+    @apply text-sm font-medium text-renta-600 uppercase tracking-wider;
+  }
+
+  .admin-gradient-text {
+    @apply bg-gradient-to-r from-renta-600 to-renta-400 bg-clip-text text-transparent;
+  }
+
+  .admin-topbar {
+    @apply bg-white/80 backdrop-blur-lg border-b border-admin-border;
+  }
+}
