@@ -2,6 +2,21 @@
 CHANGELOG MYPROPINMOBILIARIAS (PANEL ADMINISTRATIVO)
 ================================================================================
 
+[v0.2.0] - STATELESS AUTH & RBAC IMPLEMENTATION
+Fecha: 2026-03-31
+Rama: dev (Testing)
+
+Seguridad Stateless (Clerk):
+- Implementación del Provider centralizado con soporte en español y Appearance minimalista base (Renta520).
+- Diseño TypeSafe de los roles en runtime: 'superadmin' | 'admin' | 'vendedor'.
+- Middlewares de Frontend: `<ProtectedRoute>` verifica el `inmobiliaria_id` y valida jerarquías por acceso en UI sin tocar la base de datos local ni latencias API.
+
+Pantallas de Autenticación:
+- Modo B2B (Centered Modal Window) para SignUp / SignIn enrutados, garantizando aislamiento de la SPA principal.
+
+Reglas del Master Filter Refinadas:
+- `useInmobiliaria()` expone `hasPermission(allowedRoles[])` posibilitando la ocultación dinámica de los botones y de los submenúes laterales de navegación garantizando el principio "Zero Leaks".
+
 [v0.1.0] - REPOSITORY INITIALIZATION
 Fecha: 2026-03-31
 Rama: dev (Testing / Staging)

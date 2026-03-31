@@ -8,6 +8,7 @@ import {
   Activity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 
 /**
  * DashboardPage — Vista principal del Panel Administrativo.
@@ -87,6 +88,15 @@ const STATS: Omit<StatCardProps, 'delay'>[] = [
 ];
 
 export function DashboardPage() {
+  const { role, hasPermission } = useInmobiliaria();
+
+  // Vendedores no ven finanzas / cobranza
+  const visibleStats = STATS.filter(stat => {
+    if (stat.label === 'Cobranza del Mes' && !hasPermission(['superadmin', 'admin'])) return false;
+    if (stat.label === 'Tasa de Ocupación' && !hasPermission(['superadmin', 'admin'])) return false;
+    return true;
+  });
+
   return (
     <div className="space-y-8">
       {/* ── Page Header ── */}
@@ -97,14 +107,14 @@ export function DashboardPage() {
         <p className="mt-1 text-sm text-renta-600">
           Resumen general de tu inmobiliaria.{' '}
           <span className="emphasis-text text-renta-400">
-            Conecta con El Búnker para ver datos en tiempo real.
+             Logueado como {role.toUpperCase()}
           </span>
         </p>
       </div>
 
       {/* ── Stats Grid ── */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {STATS.map((stat, index) => (
+        {visibleStats.map((stat, index) => (
           <StatCard key={stat.label} {...stat} delay={100 + index * 80} />
         ))}
       </div>
@@ -127,9 +137,11 @@ export function DashboardPage() {
           inmobiliaria.
         </p>
         <div className="mt-6 flex gap-3">
-          <button className="rounded-xl bg-renta-950 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-renta-950/20 transition-all hover:bg-renta-800 hover:shadow-xl hover:shadow-renta-900/25">
-            Configurar Conexión
-          </button>
+          {hasPermission(['superadmin', 'admin']) && (
+            <button className="rounded-xl bg-renta-950 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-renta-950/20 transition-all hover:bg-renta-800 hover:shadow-xl hover:shadow-renta-900/25">
+              Configurar Conexión
+            </button>
+          )}
           <button className="rounded-xl border border-admin-border bg-white px-5 py-2.5 text-sm font-semibold text-renta-700 transition-all hover:bg-renta-50 hover:shadow-sm">
             Ver Documentación
           </button>

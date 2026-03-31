@@ -2,26 +2,39 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ClerkProvider } from '@/providers/ClerkProvider';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { LoginPage } from '@/pages/auth/LoginPage';
+import { RegisterPage } from '@/pages/auth/RegisterPage';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 /**
  * App — Root component del Panel Administrativo MyProp.
  *
  * Estructura:
- * ClerkProvider → BrowserRouter → AdminLayout → Routes
- *
- * Las rutas de etapas 2-7 se agregarán aquí progresivamente:
- * /propiedades, /inquilinos, /cobranzas, /configuracion
+ * ClerkProvider → BrowserRouter → Routes
+ * -- Rutas Publicas (Auth)
+ * -- Rutas Protegidas (Dashboard, etc.)
  */
 function App() {
   return (
     <ClerkProvider>
       <BrowserRouter>
-        <AdminLayout>
-          <Routes>
+        <Routes>
+          {/* ── Auth Routes (Standalone) ── */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/registro" element={<RegisterPage />} />
+
+          {/* ── Búnker Routes (Protected & Layouted) ── */}
+          <Route 
+            element={
+              <ProtectedRoute>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route path="/" element={<DashboardPage />} />
-            {/* Etapa 2+: Agregar rutas aquí */}
-          </Routes>
-        </AdminLayout>
+            {/* Etapa 2+: Agregar rutas adicionales aquí evaluando allowedRoles en sus propios ProtectedRoutes */}
+          </Route>
+        </Routes>
       </BrowserRouter>
     </ClerkProvider>
   );

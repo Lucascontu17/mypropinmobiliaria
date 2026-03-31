@@ -10,18 +10,26 @@ import {
   Gem,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useInmobiliaria, type UserRole } from '@/hooks/useInmobiliaria';
 
 interface SidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
 }
 
-const NAV_ITEMS = [
-  { label: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { label: 'Propiedades', href: '/propiedades', icon: Building2 },
-  { label: 'Inquilinos', href: '/inquilinos', icon: Users },
-  { label: 'Cobranzas', href: '/cobranzas', icon: Wallet },
-  { label: 'Configuración', href: '/configuracion', icon: Settings },
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ElementType;
+  allowedRoles: UserRole[];
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Dashboard', href: '/', icon: LayoutDashboard, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
+  { label: 'Propiedades', href: '/propiedades', icon: Building2, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
+  { label: 'Inquilinos', href: '/inquilinos', icon: Users, allowedRoles: ['superadmin', 'admin'] },
+  { label: 'Cobranzas', href: '/cobranzas', icon: Wallet, allowedRoles: ['superadmin', 'admin'] },
+  { label: 'Configuración', href: '/configuracion', icon: Settings, allowedRoles: ['superadmin'] },
 ];
 
 /**
@@ -30,6 +38,10 @@ const NAV_ITEMS = [
  */
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const location = useLocation();
+  const { hasPermission, role } = useInmobiliaria();
+
+  // Filter items based on user role
+  const visibleNavItems = NAV_ITEMS.filter(item => hasPermission(item.allowedRoles));
 
   return (
     <aside
@@ -57,7 +69,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
       {/* ── Navigation ── */}
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {NAV_ITEMS.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive = location.pathname === item.href;
           const Icon = item.icon;
           return (

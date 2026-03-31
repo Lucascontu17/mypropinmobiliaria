@@ -1,31 +1,49 @@
 import { useUser } from '@clerk/clerk-react';
 
-interface InmobiliariaMetadata {
+export type UserRole = 'superadmin' | 'admin' | 'vendedor';
+
+export interface InmobiliariaMetadata {
   inmobiliaria_id: string;
   nombre: string;
-  role: 'admin' | 'agent' | 'viewer';
+  role: UserRole;
 }
 
 /**
- * useInmobiliaria — Hook que extrae el Master Filter del usuario autenticado.
+ * useInmobiliaria — Hook que extrae el Master Filter y los Roles de Clerk metadata.
  * 
- * El inmobiliaria_id se almacena en Clerk publicMetadata y es la clave
- * que garantiza el aislamiento de datos multi-tenant en todas las queries
- * hacia el Búnker (mypropAPI).
+ * Este hook es la pieza central de la arquitectura "Zero Leaks"
+ * aislando los datos tenant. Su metadata NUNCA debe loggearse globalmente.
  * 
- * @returns { inmobiliaria_id, nombre, role, isLoaded, isSignedIn }
+ * @returns { inmobiliaria_id, nombre, role, isLoaded, isSignedIn, hasPermission }
  */
 export function useInmobiliaria() {
   const { user, isLoaded, isSignedIn } = useUser();
 
   const metadata = (user?.publicMetadata ?? {}) as Partial<InmobiliariaMetadata>;
 
+  const role = metadata.role ?? 'vendedor';
+
+  /**
+   * Valida jerarquías de roles contra la UI para componentes que necesitan ocultarse o 
+   * mostrarse de manera condicional (Middlewares Frontend).
+   * 
+   * @param allowedRoles Lista de jerarquías permitidas para visualizar o accionar.
+   * @returns boolean
+   */
+  const hasPermission = (allowedRoles: UserRole[]): boolean => {
+    // Para simplificar la validación en caso de que un rol pueda acceder a ciertos recursos específicos
+    // o para componentes que requieran permisos de "read|write" de la etapa 2.
+    if (!isSignedIn) return false;
+    return allowedRoles.includes(role);
+  };
+
   return {
     inmobiliaria_id: metadata.inmobiliaria_id ?? null,
     nombre: metadata.nombre ?? 'Mi Inmobiliaria',
-    role: metadata.role ?? 'viewer',
+    role,
     isLoaded,
     isSignedIn: isSignedIn ?? false,
-    user,
+    hasPermission,
+    // Note: User property omitida intencionalmente fuera de "hasPermission" check para evitar Zero Leaks accidentales del tenant
   };
 }
