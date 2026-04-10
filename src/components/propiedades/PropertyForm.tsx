@@ -1,0 +1,334 @@
+import { FormProvider, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { propertySchema, type PropertyFormData } from '@/types/property';
+import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { Save, X, Home, Map, Zap, DollarSign, Loader2, CheckCircle2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { GalleryUploader } from './GalleryUploader';
+import { MapPicker } from './MapPicker';
+import { eden } from '@/services/eden';
+import { toast } from 'sonner';
+
+interface ProveedorOpcion {
+  uid_propietario: string;
+  nombre: string;
+}
+
+interface PropertyFormProps {
+  initialData?: Partial<PropertyFormData>;
+  owners: ProveedorOpcion[];
+  onSubmitSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }: PropertyFormProps) {
+  const { inmobiliaria_id } = useInmobiliaria();
+
+  const methods = useForm<PropertyFormData>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(propertySchema) as any,
+    defaultValues: initialData || {
+      owner_id: '',
+      direccion: '',
+      status: 'DISPONIBLE',
+      valor_alquiler: '0',
+      imagenes: [],
+      // Detalles Técnicos (v1.9.0)
+      mts2: '0',
+      habitaciones: 0,
+      ambientes: 1,
+      banos: 0,
+      antiguedad: 0,
+      cocheras: 0,
+      // 1:1 Parity Columns
+      has_luz: false,
+      has_gas: false,
+      has_agua: false,
+      has_expensas: false,
+      has_abl: false
+    }
+  });
+
+  const { register, handleSubmit, formState: { errors, isSubmitting }, watch } = methods;
+
+  const onSubmit = async (data: PropertyFormData) => {
+    try {
+      // 🚨 MUX SECURITY (ZERO LEAKS): Force inmobiliaria_id
+      const payload = {
+        ...data,
+        inmobiliaria_id
+      };
+
+      // 🛠️ PERSISTENCIA EN EL BÚNKERA (v3.4.5 protocol)
+      const formData = new FormData();
+      
+      // Separamos imágenes del payload JSON
+      const { imagenes, ...rest } = payload;
+      formData.append('data', JSON.stringify(rest));
+      
+      // Adjuntamos binarios
+      if (Array.isArray(imagenes)) {
+        imagenes.forEach(file => formData.append('imagenes', file));
+      }
+
+      // @ts-ignore - Eden Treaty types might not match exactly due to backend import
+      const { data: response, error } = await eden.propiedades.post(formData);
+
+      if (error) {
+        toast.error("Error al persistir en El Búnker: " + (error.value as string));
+        return;
+      }
+
+      toast.success("Propiedad ingresada correctamente al inventario.", {
+        icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+      });
+
+      if (onSubmitSuccess) onSubmitSuccess();
+    } catch (error) {
+      toast.error("Error de conectividad con el servidor.");
+      console.error('Error al guardar propiedad:', error);
+    }
+  };
+
+  const currentStatus = watch('status');
+
+  return (
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 rounded-2xl border border-admin-border shadow-sm max-w-5xl mx-auto">
+        <div className="flex justify-between items-center border-b border-admin-border-subtle pb-4">
+          <h2 className="text-xl font-bold font-jakarta text-renta-950 flex items-center gap-2">
+            <Home className="h-5 w-5 text-renta-600" />
+            {initialData ? 'Editar Ficha Técnica' : 'Alta de Inventario Patrimonial'}
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Columna Izquierda: Datos Básicos y Geografía */}
+          <div className="space-y-6">
+            <div className="bg-renta-50/30 p-5 rounded-2xl border border-admin-border space-y-4">
+              <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-3">
+                <DollarSign className="h-4 w-4" /> Datos Comerciales
+              </h3>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-renta-900">Propietario Vinculado <span className="text-red-500">*</span></label>
+                <select 
+                  {...register('owner_id')}
+                  className={cn(
+                    "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950",
+                    errors.owner_id ? "border-red-400" : "border-admin-border"
+                  )}
+                >
+                  <option value="">-- Seleccionar Propietario Vidu --</option>
+                  {owners.map(owner => (
+                    <option key={owner.uid_propietario} value={owner.uid_propietario}>
+                      {owner.nombre}
+                    </option>
+                  ))}
+                </select>
+                {errors.owner_id && <p className="text-xs text-red-500 font-medium">{errors.owner_id.message}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-renta-900">Valor Alquiler</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-renta-500 font-semibold">$</span>
+                    <input
+                      {...register('valor_alquiler')}
+                      type="text"
+                      className={cn(
+                        "w-full rounded-xl border bg-white pl-8 pr-4 py-2 text-sm focus:outline-none focus:ring-1 text-renta-950",
+                        errors.valor_alquiler ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                      )}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  {errors.valor_alquiler && <p className="text-xs text-red-500 font-medium">{errors.valor_alquiler.message}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-renta-900">Estado</label>
+                  <select 
+                    {...register('status')}
+                    className={cn(
+                      "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none font-semibold focus:ring-1",
+                      currentStatus === 'DISPONIBLE' && "text-green-700 bg-green-50 border-green-200",
+                      currentStatus === 'ALQUILADA' && "text-blue-700 bg-blue-50 border-blue-200",
+                      ["VENTA","RESERVADA","VENDIDA"].includes(currentStatus) && "text-renta-700 bg-renta-50 border-renta-200"
+                    )}
+                  >
+                    <option value="DISPONIBLE">🟢 Disponible</option>
+                    <option value="ALQUILADA">🔵 Alquilada</option>
+                    <option value="VENTA">🟠 En Venta</option>
+                    <option value="RESERVADA">🟡 Reservada</option>
+                    <option value="VENDIDA">⚫ Vendida</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-renta-50/30 p-5 rounded-2xl border border-admin-border space-y-4">
+              <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-3">
+                <Map className="h-4 w-4" /> Geoespacial
+              </h3>
+              
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-renta-900">Dirección Exacta <span className="text-red-500">*</span></label>
+                <input
+                  {...register('direccion')}
+                  className={cn(
+                    "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
+                    errors.direccion ? "border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                  )}
+                  placeholder="Ej: Av. Callao 1234, CABA"
+                />
+                {errors.direccion && <p className="text-xs text-red-500 font-medium">{errors.direccion.message}</p>}
+              </div>
+
+              <MapPicker />
+            </div>
+
+            {/* Nueva Sección: Detalles Técnicos (Luxury Minimalist) */}
+            <div className="bg-white p-5 rounded-2xl border border-admin-border space-y-4 shadow-sm">
+              <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-3 tracking-tight">
+                <div className="bg-renta-100 p-1 rounded-md">
+                   <Home className="h-4 w-4 text-renta-600" />
+                </div>
+                Especificaciones Técnicas
+              </h3>
+
+              <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Superficie Total (m²)</label>
+                  <input
+                    {...register('mts2')}
+                    type="text"
+                    className={cn(
+                      "w-full rounded-xl border bg-admin-surface px-4 py-2 text-sm font-inter focus:ring-1 focus:ring-renta-200 transition-all text-renta-950",
+                      errors.mts2 ? "border-red-400" : "border-admin-border focus:border-renta-300"
+                    )}
+                    placeholder="0.00"
+                  />
+                  {errors.mts2 && <p className="text-[10px] text-red-500 font-medium">{errors.mts2.message}</p>}
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 col-span-2">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Ambientes</label>
+                    <input
+                      {...register('ambientes')}
+                      type="number"
+                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Habitaciones</label>
+                    <input
+                      {...register('habitaciones')}
+                      type="number"
+                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                    />
+                  </div>
+                   <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Baños</label>
+                    <input
+                      {...register('banos')}
+                      type="number"
+                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 col-span-2">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Cocheras</label>
+                    <input
+                      {...register('cocheras')}
+                      type="number"
+                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Antigüedad</label>
+                    <div className="relative">
+                       <input
+                        {...register('antiguedad')}
+                        type="number"
+                        className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      />
+                      <span className="absolute right-3 top-2 text-[10px] text-renta-400 font-bold">AÑOS</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Columna Derecha: Multimedia y Servicios */}
+          <div className="space-y-6">
+            <div className="bg-renta-50/30 p-5 rounded-2xl border border-admin-border">
+               <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-4">
+                  <Zap className="h-4 w-4" /> Configuración de Servicios
+               </h3>
+               
+               <div className="space-y-3">
+                 {[
+                   { key: 'has_luz', label: 'Energía Eléctrica (Luz)' },
+                   { key: 'has_gas', label: 'Gas Natural' },
+                   { key: 'has_agua', label: 'Agua Corriente' },
+                   { key: 'has_expensas', label: 'Expensas Comunes' },
+                   { key: 'has_abl', label: 'Impuesto ABL / Municipal' }
+                 ].map((servicio) => (
+                    <label key={servicio.key} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-admin-border-subtle cursor-pointer hover:bg-renta-50 transition-colors">
+                      <input 
+                        type="checkbox"
+                        {...register(servicio.key as keyof PropertyFormData)}
+                        className="w-4 h-4 text-renta-600 rounded border-gray-300 focus:ring-renta-500"
+                      />
+                      <span className="text-sm font-semibold text-renta-900">{servicio.label}</span>
+                    </label>
+                 ))}
+               </div>
+            </div>
+
+            <div className="bg-renta-50/30 p-5 rounded-2xl border border-admin-border">
+              <GalleryUploader name="imagenes" />
+            </div>
+          </div>
+
+        </div>
+
+        {/* Footer Actions */}
+        <div className="flex items-center justify-end gap-3 pt-5 border-t border-admin-border-subtle mt-4">
+          {onCancel && (
+            <button 
+              type="button" 
+              onClick={onCancel}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl border border-admin-border bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
+            >
+              <X className="h-4 w-4" /> Cancelar
+            </button>
+          )}
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-renta-950 text-white text-sm font-semibold hover:bg-renta-800 disabled:opacity-50 transition-colors shadow-lg shadow-renta-950/20"
+          >
+            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} 
+            {initialData ? 'Guardar Cambios' : 'Ingresar Propiedad'}
+          </button>
+        </div>
+
+        {/* Debug UI feedback for User Architect */}
+        {Object.keys(errors).length > 0 && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
+             Corrija los campos en rojo para poder guardar el inventario.
+          </div>
+        )}
+
+      </form>
+    </FormProvider>
+  );
+}

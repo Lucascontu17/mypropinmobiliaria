@@ -2,7 +2,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { tenantSchema, type TenantFormValues } from '@/lib/validations/actores';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
-import { Save, X } from 'lucide-react';
+import { eden } from '@/services/eden';
+import { toast } from 'sonner';
+import { Save, X, AlertTriangle, Search, Link as LinkIcon, UserCheck } from 'lucide-react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface InquilinoFormProps {
@@ -16,11 +19,20 @@ interface InquilinoFormProps {
  * Incluye campos string temporales para DNI URL y Contrato URL.
  */
 export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFormProps) {
-  const { inmobiliaria_id } = useInmobiliaria();
+  const { inmobiliaria_id, country_code } = useInmobiliaria();
+
+  // 🛡️ BÚNKER GUARD (GRACEFUL DEGRADATION)
+  // Bloquea el componente si no hay country_code, previniendo corrupción regional.
+  const isRegionMissing = !country_code;
+
+  const [isLinking, setIsLinking] = useState(false);
+  const [foundClient, setFoundClient] = useState<any>(null);
+  const [clientSearch, setClientSearch] = useState('');
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting }
   } = useForm<TenantFormValues>({
     resolver: zodResolver(tenantSchema),
@@ -34,12 +46,77 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
     }
   });
 
-  const onSubmit = async (data: TenantFormValues) => {
+  const handleLookupClient = async () => {
+    if (!clientSearch) return;
+    setIsLinking(true);
     try {
-      const payload = { ...data, inmobiliaria_id };
-      console.log('Enviando Tenant -> ', JSON.stringify(payload));
+      // @ts-ignore
+      const { data, error } = await eden.clients.lookup[clientSearch].get();
+      
+      if (error) throw new Error('Cliente no encontrado en la plataforma global');
+
+      setFoundClient(data);
+      setValue('nombre', data.nombre);
+      setValue('email', data.email || '');
+      setValue('celular', data.celular || '');
+      if (data.dni) setValue('dni', data.dni);
+
+      toast.success('Cliente Localizado', {
+        description: `Se han cargado los datos de ${data.nombre} vinculados al ID #${data.client_number}`
+      });
+    } catch (err: any) {
+      toast.error('Error de Búsqueda', { description: err.message });
+    } finally {
+      setIsLinking(false);
+    }
+  };
+
+  const onSubmit = async (data: TenantFormValues) => {
+    if (isRegionMissing) {
+      toast.error('Error Regional', {
+        description: 'La inmobiliaria no tiene un país asignado. Contacte a soporte.'
+      });
+      return;
+    }
+
+    try {
+      if (foundClient) {
+        // 🚀 LINKING FLOW: Promocionar Cliente Global a Inquilino Activo
+        // @ts-ignore
+        const { error } = await eden.clients.activate[foundClient.id].patch({
+          inmobiliaria_id: inmobiliaria_id!,
+          dni: data.dni
+        });
+
+        if (error) throw new Error('No se pudo vincular el cliente global.');
+
+        toast.success('Cliente Vinculado', {
+          description: `${data.nombre} ahora es inquilino activo de tu inmobiliaria.`
+        });
+      } else {
+        // 🚨 STANDARD FLOW: Crear inquilino desde cero
+        const payload = {
+          ...data,
+          inmobiliaria_id: inmobiliaria_id!,
+          country_code: country_code!,
+          role: 'inquilino' as const
+        };
+
+        // @ts-ignore
+        const { error } = await eden.actors.create.post(payload);
+
+        if (error) throw new Error(error.value?.message || 'Error al crear inquilino');
+
+        toast.success('Inquilino Guardado', {
+          description: `${data.nombre} ha sido registrado con éxito.`
+        });
+      }
+
       if (onSuccess) onSuccess();
     } catch (error) {
+      toast.error('Error de Guardado', {
+        description: error instanceof Error ? error.message : 'No se pudo procesar la solicitud.'
+      });
       console.error('Error: ', error);
     }
   };
@@ -50,10 +127,45 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
         <h2 className="text-xl font-bold font-jakarta text-renta-950">
           {initialData ? 'Editar Inquilino' : 'Nuevo Inquilino'}
         </h2>
-        <p className="text-xs font-semibold text-renta-500 bg-renta-50 px-2.5 py-1 rounded-full border border-renta-200">
-          * DNI Requerido Obligatorio
-        </p>
+        <div className="flex gap-2">
+          {foundClient && (
+            <span className="text-[10px] font-black text-white bg-emerald-600 px-2 py-1 rounded shadow-sm flex items-center gap-1 uppercase">
+              <UserCheck className="w-3 h-3" /> Vinculado a #{foundClient.client_number}
+            </span>
+          )}
+          <p className="text-xs font-semibold text-renta-500 bg-renta-50 px-2.5 py-1 rounded-full border border-renta-200">
+            * DNI Requerido Obligatorio
+          </p>
+        </div>
       </div>
+
+      {/* Zonatia Global Lookup */}
+      {!initialData && (
+        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+          <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+             <LinkIcon className="w-3 h-3" /> Vincular desde Plataforma Zonatia
+          </label>
+          <div className="flex gap-2">
+            <input 
+              type="text"
+              value={clientSearch}
+              onChange={(e) => setClientSearch(e.target.value)}
+              placeholder="Ej: 001"
+              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-renta-500"
+            />
+            <button 
+              type="button"
+              onClick={handleLookupClient}
+              disabled={isLinking}
+              className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2"
+            >
+              {isLinking ? <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> : <Search className="w-4 h-4" />}
+              Buscar
+            </button>
+          </div>
+          <p className="text-[10px] text-slate-400">Si el inquilino ya se registró en la landing page, ingrese su número de cliente para importar sus datos.</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
         
@@ -157,10 +269,23 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
         )}
         <button 
           type="submit" 
-          disabled={isSubmitting}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-renta-950 text-white text-sm font-semibold hover:bg-renta-800 disabled:opacity-50 transition-colors shadow-lg shadow-renta-950/20"
+          disabled={isSubmitting || isRegionMissing}
+          className={cn(
+            "flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold transition-colors shadow-lg overflow-hidden relative",
+            isRegionMissing 
+              ? "bg-amber-500 hover:bg-amber-600 shadow-amber-950/20" 
+              : "bg-renta-950 hover:bg-renta-800 shadow-renta-950/20 disabled:opacity-50"
+          )}
         >
-          <Save className="h-4 w-4" /> Guardar Inquilino
+          {isRegionMissing ? (
+            <>
+              <AlertTriangle className="h-4 w-4" /> Bloqueado por Región
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4" /> Guardar Inquilino
+            </>
+          )}
         </button>
       </div>
     </form>

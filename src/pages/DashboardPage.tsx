@@ -9,10 +9,12 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { useRegion } from '@/hooks/useRegion';
 
 /**
  * DashboardPage — Vista principal del Panel Administrativo.
  * Muestra KPIs de resumen con diseño Luxury Minimalist y animaciones escalonadas.
+ * Todos los textos localizados via useRegion().t() desde archivos de dialectos .md.
  */
 
 interface StatCardProps {
@@ -56,44 +58,62 @@ function StatCard({ label, value, change, trend, icon: Icon, delay }: StatCardPr
   );
 }
 
-const STATS: Omit<StatCardProps, 'delay'>[] = [
+interface StatDef {
+  dialectKey: string;
+  fallbackLabel: string;
+  value: string;
+  change: string;
+  trend: 'up' | 'down' | 'neutral';
+  icon: React.ElementType;
+  requiresAdmin: boolean;
+}
+
+const STAT_DEFS: StatDef[] = [
   {
-    label: 'Propiedades Activas',
+    dialectKey: 'kpi_propiedades',
+    fallbackLabel: 'Propiedades Activas',
     value: '—',
     change: 'Sin datos',
     trend: 'neutral',
     icon: Building2,
+    requiresAdmin: false,
   },
   {
-    label: 'Inquilinos Registrados',
+    dialectKey: 'kpi_inquilinos',
+    fallbackLabel: 'Inquilinos Registrados',
     value: '—',
     change: 'Sin datos',
     trend: 'neutral',
     icon: Users,
+    requiresAdmin: false,
   },
   {
-    label: 'Cobranza del Mes',
+    dialectKey: 'kpi_cobranza',
+    fallbackLabel: 'Cobranza del Mes',
     value: '—',
     change: 'Sin datos',
     trend: 'neutral',
     icon: Wallet,
+    requiresAdmin: true,
   },
   {
-    label: 'Tasa de Ocupación',
+    dialectKey: 'kpi_ocupacion',
+    fallbackLabel: 'Tasa de Ocupación',
     value: '—',
     change: 'Sin datos',
     trend: 'neutral',
     icon: TrendingUp,
+    requiresAdmin: true,
   },
 ];
 
 export function DashboardPage() {
   const { role, hasPermission } = useInmobiliaria();
+  const { t } = useRegion();
 
   // Vendedores no ven finanzas / cobranza
-  const visibleStats = STATS.filter(stat => {
-    if (stat.label === 'Cobranza del Mes' && !hasPermission(['superadmin', 'admin'])) return false;
-    if (stat.label === 'Tasa de Ocupación' && !hasPermission(['superadmin', 'admin'])) return false;
+  const visibleStats = STAT_DEFS.filter(stat => {
+    if (stat.requiresAdmin && !hasPermission(['superadmin', 'admin'])) return false;
     return true;
   });
 
@@ -102,20 +122,30 @@ export function DashboardPage() {
       {/* ── Page Header ── */}
       <div className="opacity-0 animate-fade-in-up">
         <h1 className="text-2xl font-bold text-renta-950 lg:text-3xl">
-          Panel de Control
+          {t('panel_titulo', 'Panel de Control')}
         </h1>
         <p className="mt-1 text-sm text-renta-600">
-          Resumen general de tu inmobiliaria.{' '}
+          {t('panel_subtitulo', 'Resumen general de tu inmobiliaria.')}{' '}
           <span className="emphasis-text text-renta-400">
-             Logueado como {role.toUpperCase()}
+             {t('rol_label', 'Logueado como')} {role.toUpperCase()}
           </span>
         </p>
       </div>
 
       {/* ── Stats Grid ── */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div 
+        data-joyride="kpi-grid"
+        className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {visibleStats.map((stat, index) => (
-          <StatCard key={stat.label} {...stat} delay={100 + index * 80} />
+          <StatCard
+            key={stat.dialectKey}
+            label={t(stat.dialectKey, stat.fallbackLabel)}
+            value={stat.value}
+            change={stat.change}
+            trend={stat.trend}
+            icon={stat.icon}
+            delay={100 + index * 80}
+          />
         ))}
       </div>
 
@@ -128,22 +158,19 @@ export function DashboardPage() {
           <Activity className="h-8 w-8 text-renta-600" />
         </div>
         <h3 className="mt-5 text-lg font-semibold text-renta-900">
-          Bienvenido al Panel MyProp
+          {t('bienvenida_titulo', 'Bienvenido al Panel MyProp')}
         </h3>
         <p className="mt-2 max-w-md text-sm text-renta-500 leading-relaxed">
-          Este es tu centro de comando. Una vez configurada la conexión con{' '}
-          <span className="font-semibold text-renta-700">El Búnker</span>, aquí
-          verás el resumen completo de propiedades, inquilinos y cobranzas de tu
-          inmobiliaria.
+          {t('bienvenida_descripcion', 'Este es tu centro de comando. Una vez configurada la conexión con El Búnker, aquí verás el resumen completo de propiedades, inquilinos y cobranzas de tu inmobiliaria.')}
         </p>
         <div className="mt-6 flex gap-3">
           {hasPermission(['superadmin', 'admin']) && (
             <button className="rounded-xl bg-renta-950 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-renta-950/20 transition-all hover:bg-renta-800 hover:shadow-xl hover:shadow-renta-900/25">
-              Configurar Conexión
+              {t('boton_configurar', 'Configurar Conexión')}
             </button>
           )}
           <button className="rounded-xl border border-admin-border bg-white px-5 py-2.5 text-sm font-semibold text-renta-700 transition-all hover:bg-renta-50 hover:shadow-sm">
-            Ver Documentación
+            {t('boton_documentacion', 'Ver Documentación')}
           </button>
         </div>
       </div>

@@ -9,9 +9,12 @@ import {
   ChevronRight,
   Gem,
   UserCheck,
+  Handshake,
+  Store,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInmobiliaria, type UserRole } from '@/hooks/useInmobiliaria';
+import { useRegion } from '@/hooks/useRegion';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -19,28 +22,35 @@ interface SidebarProps {
 }
 
 interface NavItem {
-  label: string;
+  /** Key del dialecto .md para el label */
+  dialectKey: string;
+  /** Fallback si el dialecto no tiene la key */
+  fallbackLabel: string;
   href: string;
   icon: React.ElementType;
   allowedRoles: UserRole[];
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/', icon: LayoutDashboard, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
-  { label: 'Propietarios', href: '/propietarios', icon: UserCheck, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
-  { label: 'Propiedades', href: '/propiedades', icon: Building2, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
-  { label: 'Inquilinos', href: '/inquilinos', icon: Users, allowedRoles: ['superadmin', 'admin'] },
-  { label: 'Cobranzas', href: '/cobranzas', icon: Wallet, allowedRoles: ['superadmin', 'admin'] },
-  { label: 'Configuración', href: '/configuracion', icon: Settings, allowedRoles: ['superadmin'] },
+  { dialectKey: 'nav_dashboard', fallbackLabel: 'Dashboard', href: '/', icon: LayoutDashboard, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
+  { dialectKey: 'nav_propietarios', fallbackLabel: 'Propietarios', href: '/propietarios', icon: UserCheck, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
+  { dialectKey: 'nav_propiedades', fallbackLabel: 'Propiedades', href: '/propiedades', icon: Building2, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
+  { dialectKey: 'nav_contratos', fallbackLabel: 'Contratos', href: '/contratos', icon: Handshake, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
+  { dialectKey: 'nav_inquilinos', fallbackLabel: 'Inquilinos', href: '/inquilinos', icon: Users, allowedRoles: ['superadmin', 'admin'] },
+  { dialectKey: 'nav_cobranzas', fallbackLabel: 'Cobranzas', href: '/cobranzas', icon: Wallet, allowedRoles: ['superadmin', 'admin'] },
+  { dialectKey: 'nav_marketplace', fallbackLabel: 'Marketplace', href: '/marketplace', icon: Store, allowedRoles: ['superadmin', 'admin'] },
+  { dialectKey: 'nav_configuracion', fallbackLabel: 'Configuración', href: '/configuracion', icon: Settings, allowedRoles: ['superadmin'] },
 ];
 
 /**
  * Sidebar — Navegación principal del Panel Administrativo.
  * Diseño Luxury Minimalist con fondo renta-950 y transiciones suaves.
+ * Labels localizados via useRegion().t() desde archivos de dialectos .md.
  */
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const location = useLocation();
-  const { hasPermission, role } = useInmobiliaria();
+  const { hasPermission } = useInmobiliaria();
+  const { t, flag, country_code, isAuditOverride } = useRegion();
 
   // Filter items based on user role
   const visibleNavItems = NAV_ITEMS.filter(item => hasPermission(item.allowedRoles));
@@ -60,7 +70,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         {!isCollapsed && (
           <div className="animate-fade-in overflow-hidden">
             <h1 className="text-base font-bold tracking-tight text-white">
-              MyProp
+              Zonatia
             </h1>
             <p className="text-[10px] font-medium uppercase tracking-widest text-renta-400">
               Admin Panel
@@ -74,17 +84,19 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         {visibleNavItems.map((item) => {
           const isActive = location.pathname === item.href;
           const Icon = item.icon;
+          const label = t(item.dialectKey, item.fallbackLabel);
           return (
             <Link
               key={item.href}
               to={item.href}
+              data-joyride={`nav-${item.dialectKey.replace('nav_', '')}`}
               className={cn(
                 'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
                 isActive
                   ? 'bg-white/10 text-white shadow-sm'
                   : 'text-white/60 hover:bg-white/5 hover:text-white/90'
               )}
-              title={isCollapsed ? item.label : undefined}
+              title={isCollapsed ? label : undefined}
             >
               <Icon
                 className={cn(
@@ -93,7 +105,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 )}
               />
               {!isCollapsed && (
-                <span className="animate-fade-in truncate">{item.label}</span>
+                <span className="animate-fade-in truncate">{label}</span>
               )}
               {isActive && !isCollapsed && (
                 <div className="ml-auto h-1.5 w-1.5 rounded-full bg-renta-400 shadow-sm shadow-renta-400/50" />
@@ -103,11 +115,22 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         })}
       </nav>
 
-      {/* ── Version Badge ── */}
+      {/* ── Region Badge + Version ── */}
       {!isCollapsed && (
-        <div className="animate-fade-in border-t border-white/10 px-4 py-3">
+        <div className="animate-fade-in border-t border-white/10 px-4 py-3 space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm" aria-label={`Región: ${country_code}`}>{flag}</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">
+              {country_code}
+            </span>
+            {isAuditOverride && (
+              <span className="text-[8px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded-full">
+                AUDIT
+              </span>
+            )}
+          </div>
           <p className="text-[10px] font-medium uppercase tracking-widest text-white/30">
-            Búnker v0.1.0
+            Búnker v2.0.0
           </p>
         </div>
       )}

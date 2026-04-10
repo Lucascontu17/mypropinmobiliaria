@@ -1,19 +1,22 @@
 import { useState } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { useRegion } from '@/hooks/useRegion';
 import { Plus, Search, Users, Edit2, Trash2, FileText, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { InquilinoForm } from '@/components/actores/InquilinoForm';
 
 // Mock Data para SWR preview
 const MOCK_INQUILILOS = [
-  { id: '1', nombre: 'Andres Gomez', dni: '45678912', celular: '+5491144445555', email: 'andresg@example.com', dni_url: 'https://storage...', contrato_url: '' },
+  { id: '1', client_number: '001', nombre: 'Andres Gomez', dni: '45678912', celular: '+5491144445555', email: 'andresg@example.com', dni_url: 'https://storage...', contrato_url: '', status: 'ACTIVE' },
+  { id: '2', client_number: '002', nombre: 'Mariana Sosa', dni: '32456789', celular: '+525512345678', email: 'mariana@prospect.com', dni_url: '', contrato_url: '', status: 'CLIENT' },
 ];
 
 export function InquilinosPage() {
   const { hasPermission } = useInmobiliaria();
+  const { t } = useRegion();
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingData, setEditingData] = useState<any>(null);
+  const [editingData, setEditingData] = useState<typeof MOCK_INQUILILOS[0] | null>(null);
   
   const inquilinos = MOCK_INQUILILOS.filter(p => 
     p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || p.dni.includes(searchTerm)
@@ -24,9 +27,9 @@ export function InquilinosPage() {
       {/* ── Header ── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
         <div>
-          <h1 className="text-2xl font-bold text-renta-950 font-jakarta">Inquilinos</h1>
+          <h1 className="text-2xl font-bold text-renta-950 font-jakarta">{t('nav_inquilinos', 'Inquilinos')}</h1>
           <p className="text-sm text-renta-600 font-inter mt-1">
-            Gestión de locatarios y acceso a documentación digital.
+            {t('inquilinos_subtitulo', 'Gestión de locatarios y acceso a documentación digital.')}
           </p>
         </div>
         
@@ -36,7 +39,7 @@ export function InquilinosPage() {
             className="flex items-center gap-2 rounded-xl bg-renta-950 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-renta-950/20 transition-all hover:bg-renta-800"
           >
             <Plus className="h-4 w-4" />
-            Nuevo Inquilino
+            {t('inquilinos_nuevo', 'Nuevo Inquilino')}
           </button>
         )}
       </div>
@@ -47,7 +50,7 @@ export function InquilinosPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-renta-400" />
           <input
             type="text"
-            placeholder="Buscar por nombre o DNI..."
+            placeholder={t('inquilinos_buscar', 'Buscar por nombre o DNI...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-xl border border-admin-border bg-white pl-10 pr-4 py-2 text-sm text-renta-900 placeholder:text-renta-400 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all"
@@ -61,11 +64,11 @@ export function InquilinosPage() {
           <table className="w-full text-left text-sm font-inter">
             <thead className="bg-renta-50/50 text-renta-600 border-b border-admin-border">
               <tr>
-                <th className="px-6 py-4 font-semibold">Inquilino</th>
-                <th className="px-6 py-4 font-semibold">DNI</th>
-                <th className="px-6 py-4 font-semibold">Contacto (E.164)</th>
-                <th className="px-6 py-4 font-semibold">Documentación</th>
-                <th className="px-6 py-4 font-semibold text-right">Acciones</th>
+                <th className="px-6 py-4 font-semibold">{t('inquilinos_th_id', 'ID Plataforma')}</th>
+                <th className="px-6 py-4 font-semibold">{t('inquilinos_th_nombre', 'Inquilino')}</th>
+                <th className="px-6 py-4 font-semibold">{t('inquilinos_th_dni', 'DNI')}</th>
+                <th className="px-6 py-4 font-semibold">{t('inquilinos_th_contacto', 'Contacto (E.164)')}</th>
+                <th className="px-6 py-4 font-semibold text-right">{t('inquilinos_th_acciones', 'Acciones')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-admin-border-subtle">
@@ -73,27 +76,30 @@ export function InquilinosPage() {
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-renta-500">
                     <Users className="mx-auto h-8 w-8 text-renta-200 mb-3" />
-                    No se encontraron inquilinos.
+                    {t('inquilinos_vacio', 'No se encontraron inquilinos.')}
                   </td>
                 </tr>
               ) : (
                 inquilinos.map((t) => (
                   <tr key={t.id} className="hover:bg-admin-surface-hover transition-colors">
-                    <td className="px-6 py-4 font-medium text-renta-950">{t.nombre}</td>
-                    <td className="px-6 py-4 text-renta-600">{t.dni}</td>
+                    <td className="px-6 py-4">
+                      <span className="font-mono font-bold text-renta-950 bg-slate-100 px-2 py-1 rounded text-xs border border-slate-200">
+                        #{t.client_number}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-renta-950">{t.nombre}</span>
+                        {t.status === 'CLIENT' && (
+                          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">Potencial Inquilino</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-renta-600">{t.dni || '-'}</td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
                         <span className="text-renta-900 font-medium">{t.celular}</span>
                         <span className="text-xs text-renta-500">{t.email}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        {t.dni_url ? (
-                           <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
-                             <FileText className="h-3 w-3" /> DNI
-                           </span>
-                        ) : <span className="text-xs text-renta-300">-</span>}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">

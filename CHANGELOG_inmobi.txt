@@ -1,0 +1,284 @@
+================================================================================
+CHANGELOG MYPROPINMOBILIARIAS (PANEL ADMINISTRATIVO)
+================================================================================
+## [1.9.1] (Sync with mypropAPI v1.9.0 — snake_case & 1:1 Parity)
+Fecha: 2026-04-08
+Rama: dev
+
+### 🔄 Changed
+- **Paridad 1:1 de Servicios**: Refactorización a campos booleanos planos (`has_luz`, `has_gas`, etc.) eliminando el objeto anidado `servicios`.
+- **Alineación snake_case**: Actualización de todos los tipos y componentes a nomenclatura `snake_case` (`valor_alquiler`, `mts2`, `banos`).
+- **Migración Financiera**: Cambio de tipo de `valor_alquiler` a `string` para preservación de precisión monetaria.
+
+### 🚀 Added
+- **Expansión Búnker**: Integración de campos `ambientes`, `cocheras` y `antiguedad` en `PropertyForm`.
+
+## [1.8.0] (Integración Local Exitosa — SYSTEM_READY_LOCAL)
+Fecha: 2026-04-07
+Rama: dev (Testing)
+
+### 🚀 Added
+- Certificación de integración local completa con mypropAPI v1.8.0 en puerto :3000
+- Verificación exhaustiva del hook `useInmobiliaria()` como eje de aislamiento Zero Leaks (42 puntos de inyección)
+
+### 🔐 Security / Zero Leaks
+- Master Filter `inmobiliaria_id` certificado en todos los formularios: PropertyForm, ContratoForm, InquilinoForm, PropietarioForm, CierrePeriodoModal, RegistrarIngresoModal
+- Flujo atómico B2B → API → DB verificado sin fugas de datos entre tenants
+
+## [1.6.2] (Physical Attributes UI Integration and Local Connectivity)
+Fecha: 2026-04-07
+Rama: dev (Testing)
+
+### 🚀 Added
+- **UI de Atributos Físicos**: Integración de campos `mts2`, `habitaciones` y `banos` en `PropertyForm.tsx` con estética Luxury Minimalist.
+- **Tipografía Técnica**: Aplicación de `Inter` para valores numéricos y `Plus Jakarta Sans` para etiquetas de formulario.
+- **Sincronización Eden Treaty**: Consumo de los nuevos tipos expuestos por `mypropAPI v1.7.2` para garantizar TypeSafety de punta a punta.
+
+### 🔄 Changed
+- **Conectividad Local**: Actualización de `VITE_API_URL` en `.env` para apuntar al Búnker local (`localhost:3000/v1`).
+- **Refactor de Formulario**: Mejora de la validación Zod en el frontend para soportar los nuevos atributos técnicos opcionales.
+
+### 🛡️ Security / Zero Leaks
+- **Aislamiento Verificado**: El hook `useInmobiliaria()` asegura la inyección del `inmobiliaria_id` en las mutaciones de creación y edición de propiedades.
+
+## [1.3.0] (mypropinmobiliarias v1.3.0) - Production Audit & Dialect Engine Completion
+Fecha: 2026-04-07
+Rama: dev (Testing)
+
+### 🚀 Added
+- **Finalización del Dialect Engine**: Integración completa del hook `useRegion()` en las páginas de `Inquilinos`, `Propietarios`, `MapPicker` y `GalleryUploader`.
+- **Localización UI**: Migración de todos los strings hardcodeados (headers, placeholders, empty states, alertas de degradación) al sistema de archivos `.md` regionales.
+- **Soporte de Moneda Dinámica**: Implementación de `Intl.NumberFormat` contextual basado en el locale de la región activa (ARS, MXN, USD).
+
+### 🛡️ Security / Zero Leaks
+- **Auditoría de Aislamiento**: Verificación atómica de la inyección de `inmobiliaria_id` en todos los formularios y hooks de fetching.
+- **Strict Typing (TS 5.7.2)**: Eliminación total de tipos `any` en bloques `catch` (migrados a `unknown`) y en estados de componentes críticos.
+- **Sanitización de "Trash Code"**: Remoción sistemática de `console.log`, comentarios obsoletos e imports no utilizados en toda la ruta de transacciones.
+
+### 🔧 Fixed / Infrastructure
+- **Corrección de Build Pipeline**: Resolución de errores de resolución de módulos (`brace-expansion`, `minimatch`) que bloqueaban la generación del bundle de producción.
+- **PWA Certification**: Validación de la estrategia `Stale-While-Revalidate` para activos de lujo (Fuentes y Assets críticos).
+- **Configuración .env**: Estandarización de variables de entorno para Clerk y API URL con soporte para Modo Auditoría.
+
+## [1.2.4] (mypropinmobiliarias v1.2.4) - 2026-04-06
+
+### 🚀 Added
+- Global integration of the Regional Dialect Engine with React Joyride tours
+- Localized terminology for Superadmin, Admin, and Vendedor roles (ar.md, mx.md, us.md)
+- Automatic terminal-based translation in tooltips via useRegion hook
+- Audit Mode reactivity: tours now switch terminology instantly when changing regions
+
+
+### 🚀 Added
+- Vendedor Catalog Onboarding flow focusing on assigned properties and service monitoring
+- Data-anchors for assigned catalog, service icons, and direct contact actions
+- Role-specific persistence flag tour_vendedor_completed in localStorage
+- Luxury Minimalist tooltips with Playfair Display welcome for Vendedor role
+
+## [1.2.2] (mypropinmobiliarias v1.2.2) - Admin Operational Onboarding
+Fecha: 2026-04-06
+Rama: dev (Testing)
+
+### 🚀 Added
+- **Onboarding Operativo Admin**: Flujo de 4 pasos para `admin` enfocado en MapPicker (coordenadas 10,8), Legajos Digitales y Motor Financiero (Rollover ACID).
+- **Persistencia Segmentada**: Implementación de `tour_admin_completed` en `localStorage` para asegurar ejecución única del segmento operativo.
+
+### 🛡️ Security / Business Logic
+- **Aislamiento de Negocio**: El Administrador visualiza el estado SaaS pero tiene bloqueado el acceso a la configuración de comisiones de Reseller y utilidades netas globales.
+- **Validación E.164**: Instrucciones interactivas para forzar el estándar internacional en telefonía para Twilio integration.
+
+================================================================================
+## [1.2.1] (mypropinmobiliarias v1.2.1) - Superadmin Onboarding Flow
+Fecha: 2026-04-06
+Rama: dev (Testing)
+
+### 🚀 Added
+- **Onboarding Segmentado**: Secuencia narrativa interactiva exclusiva para el rol `superadmin`, enlazada mediante el flag `tour_superadmin_completed` en el `localStorage`.
+- **Transparencia SaaS & Reseller**: Tour steps dedicados en Marketplace (para clarificar exclusión de utilidades de Boosters) y Configuración (para explicar los 7 días de Gracia y Bloqueo en Cascada).
+
+### 🛡️ Security (El Búnker)
+- **Zero Leaks UI Protection**: Aislamiento forzoso de la data financiera resaltada por el Joyride utilizando el `inmobiliaria_id` (Master Filter).
+- **Control de Permisos de Tour**: Evita que los `vendedores` visualicen las lógicas de utilidades netas o accesos al área de Administración SaaS.
+
+================================================================================
+## [1.1.9] (mypropinmobiliarias v1.1.9) - Joyride Framework Integration & Global Provider
+Fecha: 2026-04-06
+Rama: dev (Testing)
+
+### 🚀 Added
+- **Joyride Engine Integration**: Instalación de `react-joyride` vía Bun 1.3.10 para el manejo de onboarding guiado.
+- **JoyrideProvider & Wrapper**: Estructura centralizada para control de tours con persistencia en `localStorage` (flag `joyride_completed`).
+- **Anclaje de Datos**: Inyección de atributos `data-joyride` en Sidebar, Topbar y Dashboard para desacoplamiento visual de los tours.
+
+### 🔄 Changed
+- **Estética Luxury Native**: Configuración de tooltips con paleta Renta520 (#102324), tipografía Plus Jakarta Sans e Inter.
+
+## [1.1.1] (mypropinmobiliarias v1.1.1) - Metadata Regional Inheritance (Clerk Injection)
+Fecha: 2026-04-05
+Rama: dev (Testing)
+
+### 🚀 Added
+- **Herencia Regional Atómica**: Inyección automática de `country_code` en la `publicMetadata` de Clerk para nuevos Propietarios e Inquilinos.
+- **Feedback Luxury Minimalist**: Integración de `sonner` para notificaciones de éxito/error con estética Inter y micro-animaciones premium.
+
+### 🛡️ Security (El Búnker)
+- **Graceful Degradation**: Bloqueo mandatorio de creación de actores si el administrador no posee un `country_code` validado, previniendo corrupción regional.
+- **Typesafety Clerk**: Esquema extendido de metadatos `{ role, inmobiliaria_id, country_code }` validado vía Zod.
+
+### 🔄 Changed
+- `PropietarioForm` & `InquilinoForm`: Migración a `eden.actors.create.post` (Eden Treaty) para persistencia atómica en Clerk y PostgreSQL.
+
+## [1.1.0] (mypropinmobiliarias v1.1.0) - Multi-Region Admin Core & Regional Payments
+Fecha: 2026-04-02
+Rama: dev (Testing)
+
+### 🚀 Added
+- **Sistema de Dialectos (.md)**: Carga dinámica de archivos Markdown por país (`ar.md`, `mx.md`, `us.md`) con parser de frontmatter YAML para migrar textos estáticos de la UI a un sistema localizado
+- **RegionProvider + useRegion Hook**: Contexto React para detección de TLD (`.com.ar` → AR, `.com.mx` → MX), forzado a `AR` en dev vía `VITE_FORCE_REGION`. Expone `t()`, `formatCurrency()` y `formatPhone()`
+- **Modo Auditoría Regional**: Selector visual en Configuración (superadmin, dev-only) para conmutar entre dialectos y monedas sin alterar el Master Filter. Muestra info regional (moneda, locale, ID fiscal, prefijo telefónico)
+- **Dynamic Pricing en Marketplace**: Fetch obligatorio de planes desde API v1.7.0 (`/marketplace/plans?country_code={REGION}`) con graceful degradation a planes preview si el Búnker no está disponible
+
+### 🔄 Changed
+- Marketplace: Eliminado selector manual de moneda (ARS/MXN/USD toggle), la moneda se determina automáticamente por la región detectada
+- Cobranzas: Todos los importes formateados con `Intl.NumberFormat` regional en vez de `toLocaleString('es-AR')` hardcoded
+- Sidebar: Labels de navegación migrados al sistema de dialectos con fallback. Badge de versión actualizado a v1.1.0. Indicador visual de región (bandera + código país) y badge AUDIT
+- Topbar: Badge regional con bandera del país activo e indicador de Modo Auditoría
+- Dashboard: KPIs, textos de bienvenida y botones localizados via `t()` desde archivos .md
+- ConfiguracionPage: Textos de notificaciones localizados, prefijo telefónico dinámico según región
+- MapsService: Agrega `country_code` al request de geocoding para selección de API Key regional en el backend
+- `.env.example`: Variable `VITE_FORCE_REGION=AR` para forzar contexto regional en desarrollo
+
+## [1.0.0] (mypropinmobiliarias v1.0.0) - Production Ready
+Fecha: 2026-04-01
+Rama: dev (Testing / Main Release)
+
+### 🚀 Added
+- **Marketplace Multi-Divisa**: Panel en `/marketplace` para compra de *Boosters* (puntos de visibilidad de propiedades), integrado con flujos preventivos de `@mercadopago/sdk-react`. Soporte para ARS, MXN y USD.
+- **Motor de Notificaciones**: Incorporación de panel en `/configuracion` controlando Webhooks de Twilio (WhatsApp Automático en Rollover de Deuda) y SendGrid (Onboarding de Tenant). Validador E.164 implementado.
+- **Progressive Web App (PWA)**: Arquitectura Offline instalable lograda mediante `vite-plugin-pwa`. Service Workers Stale-While-Revalidate en tipografías Luxury Minimalist (Inter, Plus Jakarta Sans, Playfair Display) y caché estático.
+
+### 🛡️ Security / Certificación
+- El Búnker `v1.0.0`: **Auditoría Zero Leaks** superada. Transacciones blindadas por `inmobiliaria_id` (Master Filter) a nivel App-Wide.
+- Stateless Auth Role-Based Access Control asegurado en cada ruta (React Router).
+- MercadoPago Webhook Verification Plan: Definición de HMAC x-signature + Dual-Verification GET requests.
+
+### 🔄 Changed
+- Pasaje formal de Staging a estado *Production Ready* (`Bun build` con Strict TS).
+
+## [0.6.0] (mypropinmobiliarias v0.6.0)
+Fecha: 2026-04-01
+Rama: dev (Testing)
+
+### 🚀 Added
+- Módulo 'Cobranzas' (Cuenta Corriente Global).
+- Dashboard visual centralizado con filtros (`Al Día`, `Con Deuda`, `Saldos a Favor`) en la ruta `/cobranzas`.
+- Flujo interactivo de *Pago Parcial* permitiendo registrar múltiples ingresos por cuota mensual.
+- Componente `Modal de Cierre de Periodo`: Ejecuta consolidación masiva de deudas (Rollover hacia mes N+1) bajo formato transaccional ACID en El Búnker (`/api/v1/pagos/generar-siguiente`).
+
+### 🛡️ Security
+- Limitación estricta de Cierre Mensual: el botón de arrastre de deuda solo es ejecutable por `superadmin` / `admin`.
+- Inyección forzosa de Master Filter (`inmobiliaria_id`) protegiendo ingresos de otras inmobiliarias.
+
+### 🔄 Changed
+- Motor Financiero actualizado: Admite sobre-pagos como "saldos a favor", configurando diferencias negativas que deducirán capital de la cuota del siguiente periodo sin bloquear operaciones.
+
+## [0.5.0] (mypropinmobiliarias v0.5.0)
+Fecha: 2026-04-01
+Rama: dev (Testing)
+
+### 🚀 Added
+- Módulo 'Ciclo de Vida del Contrato' y rentabilidad.
+- Enrutamiento dedicado en `/contratos` y `/contratos/nuevo` integrado al Sidebar y layout principal (Icono: Handshake).
+- `ContratoForm`: Integración React Hook Form y Zod con *Switch de Indexación* (Aumentos Manuales vs. Índices ICL/IPC). Selectores de periodicidad visuales bajo estándar Inter.
+- Transacción Atómica Preparatoria: Reglas ACID UI garantizando Inquilino con DNI asignado + Propiedad 'DISPONIBLE'.
+
+### 🔄 Changed
+- Refactorización de periodicidad vía Zod Enums en Front (`mensual`, `bimestral`, etc).
+- Esquema Drizzle y Validaciones para alinearse a `mypropAPI` (El Búnker).
+
+## [0.4.0] (mypropinmobiliarias v0.4.0)
+Fecha: 2026-04-01
+Rama: dev (Testing)
+
+### 🚀 Added
+- Módulo CRUD integral de Inventario Patrimonial (Propiedades).
+- Vinculación atómica con Propietarios Vidu.
+- Servicios booleanos (luz, gas, agua, expensas, abl) integrados al Zod Schema.
+- Ficha técnica `PropertyForm` implementando diseño *Luxury Minimalist* (Renta520, Inter/Plus Jakarta Sans).
+- `MapsService` de Backend (mypropAPI) para geocodificación de direcciones a coordenadas GPS numéricas de alta precisión (Lat/Lng).
+- `GalleryUploader` manejador local de imágenes (4 a 20 mínimo/máximo) usando `FormData` y previsualización de `URL.createObjectURL` en preparación para bucket cloud.
+
+### 🛡️ Security
+- Cumplimiento de Master Filter: Aislemiento estricto por `inmobiliaria_id` inyectado vía Context y comprobado en Master Filter de Backend.
+- *Graceful Degradation* en MapsService: Permite fallos de la Google Maps API permitiendo guarda con Lat/Lng en null.
+
+[v0.3.0] - ACTOR MANAGEMENT & DIGITAL FILE IMPLEMENTATION
+Fecha: 2026-03-31
+Rama: dev (Testing)
+
+Gestión Integral de Propietarios e Inquilinos (CRUD):
+- Creación de las vistas `/propietarios` e `/inquilinos` basadas en DataTables nativas de Shadcn (tipografía Inter en tablas/form).
+- Integración de formularios (React Hook Form) modal-centric para Alta/Edición.
+
+Control de Integridad de Datos (Zod) y El Búnker:
+- Esquematización estricta: DNI requerido, Email nativo, y Teléfono bajo formato E.164 (soporte Twilio futuro).
+- Prohibición de montos de liquidación o balance en negativo.
+- Estrategia *Stale-while-revalidate* implementada con SWR para refrescos síncronos optimizados del listado al invocar la mypropAPI v1.6.0.
+- Aislamiento en cliente: inyección forzosa del `inmobiliaria_id` dentro del scope local de cada request CRUD, suprimiéndolo deliberadamente del endpoint UI.
+- Placeholders `dni_url` y `contrato_url` resueltos estáticamente como string (pre-Storage).
+
+[v0.2.0] - STATELESS AUTH & RBAC IMPLEMENTATION
+Fecha: 2026-03-31
+Rama: dev (Testing)
+
+Seguridad Stateless (Clerk):
+- Implementación del Provider centralizado con soporte en español y Appearance minimalista base (Renta520).
+- Diseño TypeSafe de los roles en runtime: 'superadmin' | 'admin' | 'vendedor'.
+- Middlewares de Frontend: `<ProtectedRoute>` verifica el `inmobiliaria_id` y valida jerarquías por acceso en UI sin tocar la base de datos local ni latencias API.
+
+Pantallas de Autenticación:
+- Modo B2B (Centered Modal Window) para SignUp / SignIn enrutados, garantizando aislamiento de la SPA principal.
+
+Reglas del Master Filter Refinadas:
+- `useInmobiliaria()` expone `hasPermission(allowedRoles[])` posibilitando la ocultación dinámica de los botones y de los submenúes laterales de navegación garantizando el principio "Zero Leaks".
+
+[v0.1.0] - REPOSITORY INITIALIZATION
+Fecha: 2026-03-31
+Rama: dev (Testing / Staging)
+
+Stack Técnico:
+- Runtime: Bun 1.3.10
+- Bundler: Vite 6.4.1
+- Framework: React 19.2.4 + TypeScript 5.7.2
+- Estilos: Tailwind CSS v4.2.2 (plugin Vite nativo)
+- UI Library: Shadcn/ui (estilo new-york, CSS variables)
+- API Client: Eden Treaty 1.2.0 → mypropAPI v1.6.0
+- Auth: Clerk React v5 (publicMetadata multi-tenant)
+- Iconografía: Lucide React v1.7.0
+- Validación: Zod v4.3.6
+
+Identidad Visual (Luxury Minimalist):
+- Paleta: Renta520 (10 tonos teal/esmeralda, #f5f8f8 → #102324)
+- Título: Plus Jakarta Sans (semibold, tracking-tight)
+- Formularios/Tablas: Inter (400-600)
+- Detalles Luxury: Playfair Display (italic, serif)
+
+Arquitectura Multi-tenant:
+- Master Filter: inmobiliaria_id extraído de Clerk publicMetadata
+- Hook dedicado: useInmobiliaria() para inyectar el filtro en todas las queries
+- Aislamiento de datos: Toda query al Búnker requiere inmobiliaria_id obligatorio
+
+Branching Strategy:
+- main: Rama de Producción. Solo merges vía PR certificado tras QA en Staging.
+- dev: Rama de trabajo activa para desarrollo de etapas 1-7 y despliegue a Staging.
+- Commits directos en main: PROHIBIDOS.
+
+Estructura del Panel:
+- Layout: Sidebar colapsable + Topbar + Content area
+- Dashboard: KPIs de resumen (Propiedades, Inquilinos, Cobranza, Ocupación)
+- Rutas planificadas: /propiedades, /inquilinos, /cobranzas, /configuracion
+
+Configuración:
+- Puerto de desarrollo: 5174 (evita colisión con mypropLand :5173)
+- Alias TypeScript: @/ → ./src/
+- SEO: noindex/nofollow (panel interno, no indexable)

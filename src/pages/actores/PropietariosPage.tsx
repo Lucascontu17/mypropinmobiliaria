@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { useRegion } from '@/hooks/useRegion';
 import { Plus, Search, Building2, Edit2, Trash2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PropietarioForm } from '@/components/actores/PropietarioForm';
@@ -12,9 +13,10 @@ const MOCK_PROPIETARIOS = [
 
 export function PropietariosPage() {
   const { hasPermission } = useInmobiliaria();
+  const { t } = useRegion();
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingData, setEditingData] = useState<any>(null);
+  const [editingData, setEditingData] = useState<typeof MOCK_PROPIETARIOS[0] | null>(null);
   
   
   // Stale-while-revalidate fetcher (a implementar con Eden)
@@ -27,9 +29,9 @@ export function PropietariosPage() {
       {/* ── Header ── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
         <div>
-          <h1 className="text-2xl font-bold text-renta-950 font-jakarta">Propietarios</h1>
+          <h1 className="text-2xl font-bold text-renta-950 font-jakarta">{t('nav_propietarios', 'Propietarios')}</h1>
           <p className="text-sm text-renta-600 font-inter mt-1">
-            Gestiona el legajo digital de los dueños de inmuebles.
+            {t('propietarios_subtitulo', 'Gestiona el legajo digital de los dueños de inmuebles.')}
           </p>
         </div>
         
@@ -39,7 +41,7 @@ export function PropietariosPage() {
             className="flex items-center gap-2 rounded-xl bg-renta-950 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-renta-950/20 transition-all hover:bg-renta-800"
           >
             <Plus className="h-4 w-4" />
-            Nuevo Propietario
+            {t('propietarios_nuevo', 'Nuevo Propietario')}
           </button>
         )}
       </div>
@@ -50,7 +52,7 @@ export function PropietariosPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-renta-400" />
           <input
             type="text"
-            placeholder="Buscar por nombre o DNI..."
+            placeholder={t('propietarios_buscar', 'Buscar por nombre o DNI/CUIT...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-xl border border-admin-border bg-white pl-10 pr-4 py-2 text-sm text-renta-900 placeholder:text-renta-400 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all"
@@ -64,11 +66,11 @@ export function PropietariosPage() {
           <table className="w-full text-left text-sm font-inter">
             <thead className="bg-renta-50/50 text-renta-600 border-b border-admin-border">
               <tr>
-                <th className="px-6 py-4 font-semibold">Propietario / Razón Social</th>
-                <th className="px-6 py-4 font-semibold">DNI/CUIT</th>
-                <th className="px-6 py-4 font-semibold">Contacto</th>
-                <th className="px-6 py-4 font-semibold">Comisión</th>
-                <th className="px-6 py-4 font-semibold text-right">Acciones</th>
+                <th className="px-6 py-4 font-semibold">{t('propietarios_th_nombre', 'Propietario / Razón Social')}</th>
+                <th className="px-6 py-4 font-semibold">{t('propietarios_th_dni', 'DNI/CUIT')}</th>
+                <th className="px-6 py-4 font-semibold">{t('propietarios_th_contacto', 'Contacto')}</th>
+                <th className="px-6 py-4 font-semibold">{t('propietarios_th_comision', 'Comisión')}</th>
+                <th className="px-6 py-4 font-semibold text-right">{t('propietarios_th_acciones', 'Acciones')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-admin-border-subtle">
@@ -76,7 +78,7 @@ export function PropietariosPage() {
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-renta-500">
                     <Building2 className="mx-auto h-8 w-8 text-renta-200 mb-3" />
-                    No se encontraron propietarios.
+                    {t('propietarios_vacio', 'No se encontraron propietarios.')}
                   </td>
                 </tr>
               ) : (

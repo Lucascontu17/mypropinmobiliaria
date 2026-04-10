@@ -1,0 +1,312 @@
+import { Joyride, type Step, STATUS, type CallBackProps } from 'react-joyride';
+import { useJoyride } from '@/providers/JoyrideProvider';
+import { useRegion } from '@/hooks/useRegion';
+import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+
+/**
+ * JoyrideWrapper — Componente de inyección del Engine de Joyride.
+ * Aplica el estándar visual Luxury Minimalist (Emerald/Teal #102324).
+ * Utiliza Plus Jakarta Sans para títulos e Inter para descripciones.
+ */
+export function JoyrideWrapper() {
+  const { run, stepIndex, stopTour } = useJoyride();
+  const { t } = useRegion();
+  const { role } = useInmobiliaria();
+
+  // Definición de pasos base
+  const steps: Step[] = [
+    {
+      target: '[data-joyride="search-bar"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_search_title', 'Búsqueda Inteligente')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_search_desc', 'Localiza propiedades, inquilinos o contratos en segundos desde cualquier parte del panel.')}
+        </div>
+      ),
+      placement: 'bottom',
+      skipBeacon: true,
+    },
+    {
+      target: '[data-joyride="nav-propiedades"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_nav_propiedades_title', 'Gestión de Inventario')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_nav_propiedades_desc', 'Administra tus propiedades, carga carpetas digitales y gestiona estados de disponibilidad.')}
+        </div>
+      ),
+      placement: 'right',
+    },
+    {
+      target: '[data-joyride="user-profile"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_profile_title', 'Tu Identidad')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_profile_desc', 'Sesión iniciada con rol {{role}}. Todas tus acciones quedan registradas en el Audit Log.').replace('{{role}}', role.toUpperCase())}
+        </div>
+      ),
+      placement: 'bottom',
+    },
+  ];
+
+  // Pasos específicos para Superadmin
+  const superadminSteps: Step[] = [
+    {
+      target: '[data-joyride="kpi-grid"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_sa_kpi_title', 'Centro de Control Financiero')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed font-medium">
+          {t('tour_sa_kpi_desc', 'Métricas globales en tiempo real. Observe el estado de su rentabilidad por país, filtrado estrictamente bajo el Master Filter de su franquicia.')}
+        </div>
+      ),
+      placement: 'bottom',
+      skipBeacon: true,
+    },
+    {
+      target: '[data-joyride="saas-grace-period"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_sa_saas_title', 'Salud SaaS y Días de Gracia')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed font-medium">
+          {t('tour_sa_saas_desc', 'Su suscripción cuenta con 7 días de gracia ante expiraciones. Actúe preventivamente para evitar el bloqueo en cascada.')}
+        </div>
+      ),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-joyride="nav-marketplace"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950 flex items-center gap-2">
+          {t('tour_sa_mkt_title', 'Motor de Crecimiento')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed font-medium">
+          {t('tour_sa_mkt_desc', 'Adquiera Boosters para ganar visibilidad. Los ingresos por potenciadores están excluidos de la utilidad neta repartible con sus Resellers.')}
+        </div>
+      ),
+      placement: 'right',
+    },
+    {
+      target: '[data-joyride="user-profile"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_sa_roles_title', 'Gestión de Jerarquías')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed font-medium">
+          <span className="font-playfair italic text-renta-950 block mb-2">{t('tour_sa_welcome', 'Bienvenido, Director.')}</span>
+          {t('tour_sa_roles_desc', 'Desde aquí administra su cuenta SUPERADMIN. Mantenga bajo control a sus Vendedores delegando permisos desde El Búnker.')}
+        </div>
+      ),
+      placement: 'bottom',
+    },
+  ];
+
+  // Pasos específicos para Administradores
+  const adminSteps: Step[] = [
+    {
+      target: '[data-joyride="map-picker-container"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_adm_map_title', 'Precisión Geoespacial')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_adm_map_desc', 'La carga técnica requiere precisión GPS. El Búnker utiliza numeric(10,8) para evitar errores de coma flotante.')}
+        </div>
+      ),
+      placement: 'bottom',
+      skipBeacon: true,
+    },
+    {
+      target: '[data-joyride="gallery-uploader"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_adm_docs_title', 'Legajo Digital & E.164')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_adm_docs_desc', 'Cargue documentos mandatorios y valide teléfonos bajo el estándar E.164 para asegurar las notificaciones automáticas vía Twilio.')}
+        </div>
+      ),
+      placement: 'top',
+    },
+    {
+      target: '[data-joyride="btn-cierre-periodo"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_adm_rollover_title', 'Motor Financiero: Rollover')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed font-semibold">
+          {t('tour_adm_rollover_desc', 'El Cierre de Periodo es una acción manual ACID que consolida deudas para el mes N+1.')}
+        </div>
+      ),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-joyride="table-cobranzas"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_adm_audit_title', 'Auditoría de Pagos Parciales')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_adm_audit_desc', 'Controle ingresos parciales y saldos a favor desde aquí.')}
+        </div>
+      ),
+      placement: 'top',
+    },
+    {
+      target: '[data-joyride="user-profile"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_adm_hierarchy_title', 'Identidad Administrativa')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed italic">
+          {t('tour_adm_hierarchy_desc', 'Como Administrador, gestionas el corazón operativo. Nota: El Superadmin es una jerarquía inamovible.')}
+        </div>
+      ),
+      placement: 'bottom',
+    },
+  ];
+
+  // Pasos específicos para Vendedores
+  const vendedorSteps: Step[] = [
+    {
+      target: '[data-joyride="assigned-catalog"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          <span className="font-playfair italic block text-xl mb-1">{t('tour_ven_welcome', 'Bienvenido, Agente.')}</span>
+          {t('tour_ven_catalog_title', 'Catálogo de Activos Asignados')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_ven_catalog_desc', 'Desde aquí gestiona únicamente las propiedades bajo su ala. El Master Filter asegura el aislamiento de datos.')}
+        </div>
+      ),
+      placement: 'bottom',
+      skipBeacon: true,
+    },
+    {
+      target: '[data-joyride="service-icons"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_ven_services_title', 'Monitoreo de Servicios (Luz/Gas/Agua)')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed font-medium">
+          {t('tour_ven_services_desc', 'Actúe como monitor preventivo antes de los vencimientos.')}
+        </div>
+      ),
+      placement: 'top',
+    },
+    {
+      target: '[data-joyride="contact-action"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_ven_contact_title', 'Gestión de Contacto Directo')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_ven_contact_desc', 'Dispare llamadas o chats instantáneos usando el estándar E.164.')}
+        </div>
+      ),
+      placement: 'left',
+    },
+  ];
+
+  // Selección lógica de pasos basada en el rol (Seguridad RBAC)
+  const finalSteps = role === 'superadmin' ? superadminSteps : (role === 'admin' ? adminSteps : (role === 'vendedor' ? vendedorSteps : steps));
+
+  const handleJoyrideCallback = (data: CallBackProps) => {
+    const { status } = data;
+    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+
+    if (finishedStatuses.includes(status)) {
+      stopTour();
+    }
+  };
+
+  return (
+    <Joyride
+      steps={finalSteps}
+      run={run}
+      stepIndex={stepIndex}
+      continuous
+      scrollToFirstStep
+      locale={{
+        back: t('tour_btn_back', 'Anterior'),
+        close: t('tour_btn_close', 'Cerrar'),
+        last: t('tour_btn_finish', 'Finalizar'),
+        next: t('tour_btn_next', 'Siguiente'),
+        skip: t('tour_btn_skip', 'Saltar Tour'),
+      }}
+      options={{
+        arrowColor: '#ffffff',
+        backgroundColor: '#ffffff',
+        overlayColor: 'rgba(16, 35, 36, 0.6)',
+        primaryColor: '#102324',
+        textColor: '#213d3d',
+        zIndex: 5000,
+        showProgress: true,
+        buttons: ['back', 'primary', 'skip'],
+      }}
+      styles={{
+        tooltip: {
+          borderRadius: '1rem',
+          padding: '24px',
+          boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+        },
+        buttonPrimary: {
+          borderRadius: '0.75rem',
+          padding: '10px 20px',
+          fontWeight: 600,
+          fontSize: '14px',
+          backgroundColor: '#102324',
+          transition: 'all 0.2s ease',
+        },
+        buttonBack: {
+          fontSize: '14px',
+          fontWeight: 600,
+          color: '#34706f',
+          marginRight: '12px',
+        },
+        buttonSkip: {
+          fontSize: '12px',
+          color: '#5ea8a6',
+        }
+      }}
+      onEvent={handleJoyrideCallback}
+    />
+  );
+}

@@ -2,7 +2,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ownerSchema, type OwnerFormValues } from '@/lib/validations/actores';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
-import { Save, X } from 'lucide-react';
+import { eden } from '@/services/eden';
+import { toast } from 'sonner';
+import { Save, X, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PropietarioFormProps {
@@ -16,7 +18,11 @@ interface PropietarioFormProps {
  * Integra validaciones restrictivas de Zod y previene manipulación del tenant_id (inmobiliaria_id).
  */
 export function PropietarioForm({ initialData, onSuccess, onCancel }: PropietarioFormProps) {
-  const { inmobiliaria_id } = useInmobiliaria();
+  const { inmobiliaria_id, country_code } = useInmobiliaria();
+
+  // 🛡️ BÚNKER GUARD (GRACEFUL DEGRADATION)
+  // Bloquea el componente si no hay country_code, previniendo corrupción regional.
+  const isRegionMissing = !country_code;
 
   const {
     register,
@@ -24,6 +30,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
     formState: { errors, isSubmitting },
     watch
   } = useForm<OwnerFormValues>({
+    // @ts-ignore - Ignore type mismatch for coerced number in resolver
     resolver: zodResolver(ownerSchema),
     defaultValues: initialData || {
       nombre: '',
@@ -37,18 +44,38 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
   });
 
   const onSubmit = async (data: OwnerFormValues) => {
+    if (isRegionMissing) {
+      toast.error('Error Regional', {
+        description: 'La inmobiliaria no tiene un país asignado. Contacte a soporte.'
+      });
+      return;
+    }
+
     try {
-      // 🚨 MUX SECURITY (ZERO LEAKS): Inyectar inmobiliaria_id explícitamente sin UI
+      // 🚨 MUX SECURITY (ZERO LEAKS): Inyectar metadata atómicamente
       const payload = {
         ...data,
-        inmobiliaria_id, 
+        inmobiliaria_id: inmobiliaria_id!, 
+        country_code: country_code!,
+        role: 'propietario' as const
       };
 
-      console.log('Enviando via Eden Treaty (Stateless) -> ', JSON.stringify(payload));
-      // await eden.owner.post(payload);
+      // @ts-ignore - The endpoint /api/v1/actors/create is confirmed by CTO
+      const { data: response, error } = await eden.actors.create.post(payload);
+
+      if (error) {
+        throw new Error(error.value?.message || 'Error al crear propietario');
+      }
+
+      toast.success('Propietario Guardado', {
+        description: `${data.nombre} ha sido registrado con éxito.`
+      });
 
       if (onSuccess) onSuccess();
     } catch (error) {
+      toast.error('Error de Guardado', {
+        description: error instanceof Error ? error.message : 'No se pudo procesar la solicitud.'
+      });
       console.error('Error guardando propietario: ', error);
     }
   };
@@ -180,10 +207,23 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
         )}
         <button 
           type="submit" 
-          disabled={isSubmitting}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-renta-950 text-white text-sm font-semibold hover:bg-renta-800 disabled:opacity-50 transition-colors shadow-lg shadow-renta-950/20"
+          disabled={isSubmitting || isRegionMissing}
+          className={cn(
+            "flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold transition-colors shadow-lg overflow-hidden relative",
+            isRegionMissing 
+              ? "bg-amber-500 hover:bg-amber-600 shadow-amber-950/20" 
+              : "bg-renta-950 hover:bg-renta-800 shadow-renta-950/20 disabled:opacity-50"
+          )}
         >
-          <Save className="h-4 w-4" /> Guardar Propietario
+          {isRegionMissing ? (
+            <>
+              <AlertTriangle className="h-4 w-4" /> Bloqueado por Región
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4" /> Guardar Propietario
+            </>
+          )}
         </button>
       </div>
     </form>

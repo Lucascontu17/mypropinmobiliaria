@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { CountryCode } from '@/types/region';
 
 /**
  * Validaciones Strictes (El Búnker v3.4.5)
@@ -21,23 +22,41 @@ export const ownerSchema = z.object({
   comision_tipo: z.enum(['percent', 'fixed']),
   comision_valor: z.coerce.number()
     .min(0, 'La comisión no puede ser un valor negativo'),
-  
-  // El inmobiliaria_id NO está aquí, ya que se inyecta desde Cliente (Stateless Auth)
 });
 
 export type OwnerFormValues = z.infer<typeof ownerSchema>;
+
+/** Payload final para Clerk + PostgreSQL (El Búnker) */
+export const ownerCreateSchema = ownerSchema.extend({
+  country_code: z.enum(['AR', 'MX', 'US']),
+  role: z.literal('propietario'), 
+  inmobiliaria_id: z.string().uuid()
+});
+
+export type OwnerCreatePayload = z.infer<typeof ownerCreateSchema>;
 
 export const tenantSchema = z.object({
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   dni: z.string()
     .min(7, 'El DNI debe tener al menos 7 dígitos')
     .max(20, 'El DNI es demasiado largo')
-    .regex(/^\d+$/, 'El DNI debe contener solo números'),
+    .regex(/^\d+$/, 'El DNI debe contener solo números')
+    .optional()
+    .or(z.literal('')), // Support empty initial state for Clients
   email: z.string().email('Formato de email inválido'),
   celular: z.string()
     .regex(e164Regex, 'El celular debe tener formato internacional (Ej: +549...)'),
   dni_url: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
-  contrato_url: z.string().url('Debe ser una URL válida').optional().or(z.literal(''))
+  contrato_url: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
 });
 
 export type TenantFormValues = z.infer<typeof tenantSchema>;
+
+/** Payload final para Clerk + PostgreSQL (El Búnker) */
+export const tenantCreateSchema = tenantSchema.extend({
+  country_code: z.enum(['AR', 'MX', 'US']),
+  role: z.literal('inquilino'),
+  inmobiliaria_id: z.string().uuid()
+});
+
+export type TenantCreatePayload = z.infer<typeof tenantCreateSchema>;
