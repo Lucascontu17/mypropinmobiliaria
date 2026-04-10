@@ -35,8 +35,8 @@ function App() {
           <BrowserRouter>
             <Routes>
               {/* ── Auth Routes (Standalone) ── */}
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/registro" element={<RegisterPage />} />
+              <Route path="/login/*" element={<LoginPage />} />
+              <Route path="/registro/*" element={<RegisterPage />} />
 
               {/* ── Búnker Routes (Protected & Layouted) ── */}
               <Route 
