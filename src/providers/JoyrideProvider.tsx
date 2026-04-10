@@ -24,7 +24,7 @@ const STORAGE_KEY_BASE = 'myprop_joyride_completed';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 
 export function JoyrideProvider({ children }: { children: React.ReactNode }) {
-  const { role } = useInmobiliaria();
+  const { role, isSignedIn } = useInmobiliaria();
   const STORAGE_KEY = `${STORAGE_KEY_BASE}_${role}`;
 
   const [run, setRun] = useState(false);
@@ -36,14 +36,14 @@ export function JoyrideProvider({ children }: { children: React.ReactNode }) {
 
   // Iniciar automáticamente si no se ha completado
   useEffect(() => {
-    if (!isTourCompleted && role) {
+    if (!isTourCompleted && role && isSignedIn) {
       // Pequeño delay para asegurar que el DOM esté listo y las animaciones de entrada terminen
       const timer = setTimeout(() => {
         setRun(true);
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [isTourCompleted, role]);
+  }, [isTourCompleted, role, isSignedIn]);
 
   const startTour = useCallback(() => {
     setStepIndex(0);
