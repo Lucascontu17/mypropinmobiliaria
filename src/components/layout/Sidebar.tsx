@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Building2,
   Users,
+  UsersRound,
   Wallet,
   Settings,
   ChevronLeft,
@@ -42,6 +43,7 @@ const NAV_ITEMS: NavItem[] = [
   { dialectKey: 'nav_inquilinos', fallbackLabel: 'Inquilinos', href: '/inquilinos', icon: Users, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_cobranzas', fallbackLabel: 'Cobranzas', href: '/cobranzas', icon: Wallet, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_marketplace', fallbackLabel: 'Marketplace', href: '/marketplace', icon: Store, allowedRoles: ['superadmin', 'admin'] },
+  { dialectKey: 'nav_equipo', fallbackLabel: 'Equipo', href: '/equipo', icon: UsersRound, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_configuracion', fallbackLabel: 'Configuración', href: '/configuracion', icon: Settings, allowedRoles: ['superadmin'] },
 ];
 

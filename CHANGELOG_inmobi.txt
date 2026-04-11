@@ -1,6 +1,22 @@
 ================================================================================
 CHANGELOG MYPROPINMOBILIARIAS (PANEL ADMINISTRATIVO)
 ================================================================================
+## [2.1.0] (Gestión de Equipo — RBAC Team Management)
+Fecha: 2026-04-11
+Rama: dev
+
+### 🚀 Added
+- **Módulo Equipo (`/equipo`)**: Nueva sección completa para gestión de Administradores y Vendedores de la inmobiliaria.
+- **EquipoPage**: Tabla de miembros con KPI cards (Admins, Vendedores, Activos), filtros por rol, buscador, badges de estado y menú contextual (Desactivar/Reactivar, Reenviar Invitación).
+- **MiembroForm**: Modal de creación/edición con selector visual de rol (Admin/Vendedor), validación Zod (nombre, email, celular E.164).
+- **Matriz de Permisos**: Card informativa con desglose de accesos por jerarquía (Superadmin/Admin/Vendedor).
+- **Sidebar**: Nuevo ítem "Equipo" (icono UsersRound) visible para `superadmin` y `admin`, ubicado entre Marketplace y Configuración.
+- **Traducciones i18n**: 40+ keys agregadas en los 3 dialectos (ar.md, mx.md, us.md) para el módulo completo.
+
+### 🛡️ Security
+- Ruta `/equipo` protegida con `ProtectedRoute allowedRoles={['superadmin', 'admin']}`.
+- Solo `superadmin` puede eliminar miembros del equipo (botón condicional con `hasPermission`).
+
 ## [1.9.1] (Sync with mypropAPI v1.9.0 — snake_case & 1:1 Parity)
 Fecha: 2026-04-08
 Rama: dev

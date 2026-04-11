@@ -18,6 +18,7 @@ import { ContratoFormPage } from '@/pages/contratos/ContratoFormPage';
 import { CobranzasPage } from '@/pages/cobranzas/CobranzasPage';
 import { MarketplacePage } from '@/pages/marketplace/MarketplacePage';
 import { ConfiguracionPage } from '@/pages/configuracion/ConfiguracionPage';
+import { EquipoPage } from '@/pages/equipo/EquipoPage';
 
 /**
  * App — Root component del Panel Administrativo MyProp.
@@ -116,6 +117,15 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
                       <MarketplacePage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/equipo" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
+                      <EquipoPage />
                     </ProtectedRoute>
                   } 
                 />

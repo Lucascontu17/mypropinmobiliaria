@@ -137,3 +137,42 @@ prop_table_status: Estado
 prop_table_valor: Valor
 prop_table_acc: Acciones
 prop_vacio: No se encontraron propiedades.
+
+# Equipo
+nav_equipo: Equipo
+equipo_titulo: Gestión de Equipo
+equipo_subtitulo: Administra los miembros de tu inmobiliaria: administradores y vendedores.
+equipo_nuevo: Nuevo Miembro
+equipo_buscar: Buscar por nombre o email...
+equipo_kpi_admins: Administradores
+equipo_kpi_vendedores: Vendedores
+equipo_kpi_activos: Activos
+equipo_th_miembro: Miembro
+equipo_th_rol: Rol
+equipo_th_contacto: Contacto
+equipo_th_estado: Estado
+equipo_th_alta: Fecha de Alta
+equipo_th_acciones: Acciones
+equipo_vacio: No se encontraron miembros del equipo.
+equipo_estado_activo: Activo
+equipo_estado_inactivo: Inactivo
+equipo_filtro_todos: Todos
+equipo_filtro_admins: Admins
+equipo_filtro_vendedores: Vendedores
+equipo_permisos_titulo: Matriz de Permisos por Rol
+equipo_accion_editar: Editar
+equipo_accion_eliminar: Eliminar
+equipo_accion_desactivar: Desactivar Cuenta
+equipo_accion_activar: Reactivar Cuenta
+equipo_accion_reenviar: Reenviar Invitación
+equipo_form_nuevo: Nuevo Miembro del Equipo
+equipo_form_editar: Editar Miembro del Equipo
+equipo_form_rol: Rol / Jerarquía
+equipo_form_nombre: Nombre Completo
+equipo_form_email: Email Corporativo
+equipo_form_email_desc: Se enviará una invitación por email para unirse al Búnker.
+equipo_form_celular: Celular (E.164)
+equipo_form_cancelar: Cancelar
+equipo_form_guardando: Guardando...
+equipo_form_crear: Crear Miembro
+equipo_form_actualizar: Actualizar Miembro

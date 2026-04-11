@@ -137,3 +137,42 @@ prop_table_status: Status
 prop_table_valor: Value
 prop_table_acc: Actions
 prop_vacio: No properties found.
+
+# Team
+nav_equipo: Team
+equipo_titulo: Team Management
+equipo_subtitulo: Manage your real estate team members: administrators and sellers.
+equipo_nuevo: New Member
+equipo_buscar: Search by name or email...
+equipo_kpi_admins: Administrators
+equipo_kpi_vendedores: Sellers
+equipo_kpi_activos: Active
+equipo_th_miembro: Member
+equipo_th_rol: Role
+equipo_th_contacto: Contact
+equipo_th_estado: Status
+equipo_th_alta: Join Date
+equipo_th_acciones: Actions
+equipo_vacio: No team members found.
+equipo_estado_activo: Active
+equipo_estado_inactivo: Inactive
+equipo_filtro_todos: All
+equipo_filtro_admins: Admins
+equipo_filtro_vendedores: Sellers
+equipo_permisos_titulo: Permission Matrix by Role
+equipo_accion_editar: Edit
+equipo_accion_eliminar: Delete
+equipo_accion_desactivar: Deactivate Account
+equipo_accion_activar: Reactivate Account
+equipo_accion_reenviar: Resend Invitation
+equipo_form_nuevo: New Team Member
+equipo_form_editar: Edit Team Member
+equipo_form_rol: Role / Hierarchy
+equipo_form_nombre: Full Name
+equipo_form_email: Corporate Email
+equipo_form_email_desc: An invitation email will be sent to join The Búnker.
+equipo_form_celular: Phone (E.164)
+equipo_form_cancelar: Cancel
+equipo_form_guardando: Saving...
+equipo_form_crear: Create Member
+equipo_form_actualizar: Update Member
