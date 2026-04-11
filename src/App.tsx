@@ -30,9 +30,9 @@ function App() {
     <ClerkProvider>
       <RegionProvider>
         <JoyrideProvider>
-          <JoyrideWrapper />
-          <Toaster position="top-right" expand={false} richColors closeButton />
           <BrowserRouter>
+            <JoyrideWrapper />
+            <Toaster position="top-right" expand={false} richColors closeButton />
             <Routes>
               {/* ── Auth Routes (Standalone) ── */}
               <Route path="/login/*" element={<LoginPage />} />

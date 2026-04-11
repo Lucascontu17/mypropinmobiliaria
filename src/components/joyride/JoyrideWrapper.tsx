@@ -1,7 +1,20 @@
-import { Joyride, type Step, STATUS, type CallBackProps } from 'react-joyride';
+import { Joyride, type Step, STATUS, ACTIONS, EVENTS, type CallBackProps } from 'react-joyride';
 import { useJoyride } from '@/providers/JoyrideProvider';
 import { useRegion } from '@/hooks/useRegion';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+/**
+ * Mapeo de selectores a rutas de la aplicación.
+ */
+const getPathForTarget = (target: string): string | null => {
+  if (target.includes('saas-grace-period')) return '/configuracion';
+  if (target.includes('map-picker-container') || target.includes('gallery-uploader')) return '/propiedades/nueva';
+  if (target.includes('btn-cierre-periodo') || target.includes('table-cobranzas')) return '/cobranzas';
+  if (target.includes('assigned-catalog') || target.includes('service-icons') || target.includes('contact-action')) return '/propiedades';
+  if (target.includes('kpi-grid')) return '/';
+  return null;
+};
 
 /**
  * JoyrideWrapper — Componente de inyección del Engine de Joyride.
@@ -9,9 +22,11 @@ import { useInmobiliaria } from '@/hooks/useInmobiliaria';
  * Utiliza Plus Jakarta Sans para títulos e Inter para descripciones.
  */
 export function JoyrideWrapper() {
-  const { run, stepIndex, stopTour } = useJoyride();
+  const { run, stepIndex, stopTour, nextStep, prevStep } = useJoyride();
   const { t } = useRegion();
   const { role } = useInmobiliaria();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Definición de pasos base
   const steps: Step[] = [
@@ -249,11 +264,31 @@ export function JoyrideWrapper() {
   const finalSteps = role === 'superadmin' ? superadminSteps : (role === 'admin' ? adminSteps : (role === 'vendedor' ? vendedorSteps : steps));
 
   const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status } = data;
-    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+    const { action, index, status, type } = data;
 
-    if (finishedStatuses.includes(status)) {
+    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
       stopTour();
+    } else if ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND].includes(type)) {
+      const isNext = action === ACTIONS.NEXT;
+      const nextIndex = isNext ? index + 1 : index - 1;
+
+      // Actualizar el índice en el provider
+      if (isNext) {
+        nextStep();
+      } else if (action === ACTIONS.PREV) {
+        prevStep();
+      }
+
+      // Lógica de navegación automática
+      const nextStepData = finalSteps[nextIndex];
+      if (nextStepData) {
+        const target = typeof nextStepData.target === 'string' ? nextStepData.target : '';
+        const targetPath = getPathForTarget(target);
+        
+        if (targetPath && location.pathname !== targetPath) {
+          navigate(targetPath);
+        }
+      }
     }
   };
 
