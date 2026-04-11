@@ -11,10 +11,13 @@ import {
   UserCheck,
   Handshake,
   Store,
+  RotateCcw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInmobiliaria, type UserRole } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
+import { useJoyride } from '@/providers/JoyrideProvider';
+import { useNavigate } from 'react-router-dom';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -49,8 +52,10 @@ const NAV_ITEMS: NavItem[] = [
  */
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { hasPermission } = useInmobiliaria();
   const { t, flag, country_code, isAuditOverride } = useRegion();
+  const { resetTour } = useJoyride();
 
   // Filter items based on user role
   const visibleNavItems = NAV_ITEMS.filter(item => hasPermission(item.allowedRoles));
@@ -129,9 +134,21 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               </span>
             )}
           </div>
-          <p className="text-[10px] font-medium uppercase tracking-widest text-white/30">
-            Búnker v2.0.0
-          </p>
+          <div className="flex flex-col gap-2 pt-2">
+            <p className="text-[10px] font-medium uppercase tracking-widest text-white/30">
+              Búnker v2.0.0
+            </p>
+            <button
+              onClick={() => {
+                resetTour();
+                navigate('/');
+              }}
+              className="flex items-center gap-2 rounded-lg py-1 px-0 text-[10px] font-bold uppercase tracking-wider text-renta-400 transition-colors hover:text-white"
+            >
+              <RotateCcw className="h-3 w-3" />
+              {t('reiniciar_tutorial', 'Reiniciar tutorial')}
+            </button>
+          </div>
         </div>
       )}
 
