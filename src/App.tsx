@@ -19,13 +19,8 @@ import { CobranzasPage } from '@/pages/cobranzas/CobranzasPage';
 import { MarketplacePage } from '@/pages/marketplace/MarketplacePage';
 import { ConfiguracionPage } from '@/pages/configuracion/ConfiguracionPage';
 import { EquipoPage } from '@/pages/equipo/EquipoPage';
+import { SuscripcionPage } from '@/pages/configuracion/SuscripcionPage';
 
-/**
- * App — Root component del Panel Administrativo MyProp.
- *
- * Estructura:
- * ClerkProvider → RegionProvider → JoyrideProvider → BrowserRouter → Routes
- */
 function App() {
   return (
     <ClerkProvider>
@@ -117,6 +112,15 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
                       <MarketplacePage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/suscripcion" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
+                      <SuscripcionPage />
                     </ProtectedRoute>
                   } 
                 />

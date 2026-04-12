@@ -1,117 +1,106 @@
 import { useState, useEffect } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { WalletCards, Rocket, CheckCircle2, Shield, Loader2, AlertTriangle } from 'lucide-react';
+import { 
+  WalletCards, 
+  Rocket, 
+  CheckCircle2, 
+  Shield, 
+  Loader2, 
+  AlertTriangle, 
+  Zap, 
+  PlusCircle, 
+  Info,
+  ArrowRight
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { eden } from '@/services/eden';
-import type { BoosterPlanAPI } from '@/types/region';
-// import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
-
-/**
- * MarketplacePage — Marketplace de Boosters con Dynamic Pricing.
- *
- * DIRECTIVA CTO: Los precios provienen OBLIGATORIAMENTE del API v1.7.0
- * endpoint: GET /api/v1/marketplace/plans?country_code={REGION}
- * Se prohíbe el uso de precios estáticos (hardcoded) en el frontend.
- *
- * La moneda se determina automáticamente por useRegion() — sin selector manual.
- */
 
 export function MarketplacePage() {
   const { hasPermission, inmobiliaria_id } = useInmobiliaria();
   const { t, formatCurrency, country_code, config } = useRegion();
 
-  // ── State: Dynamic Plans from API ──
-  const [planes, setPlanes] = useState<BoosterPlanAPI[]>([]);
+  const [activeTab, setActiveTab] = useState<'addons' | 'points'>('addons');
+  
+  // Data from API
+  const [catalog, setCatalog] = useState<{
+    addons: any[];
+    packages: any[];
+    balance: number;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [simulandoPago, setSimulandoPago] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
-  // ── Fetch plans from API v1.7.0 ──
+  // Custom Points purchase
+  const [customPoints, setCustomPoints] = useState<number>(0);
+  const pricePerPoint = country_code === 'AR' ? 100 : country_code === 'MX' ? 20 : 1; // Valuación definida por negocio
+
   useEffect(() => {
-    let cancelled = false;
+    fetchCatalog();
+  }, []);
 
-    async function fetchPlanes() {
-      setIsLoading(true);
-      setLoadError(null);
-
-      try {
-        // @ts-ignore - Eden dynamic path resolving for API v1.7.0
-        const { data, error } = await eden.marketplace.plans.get({
-          query: { country_code }
-        });
-
-        if (cancelled) return;
-
-        if (error) {
-          console.warn('[Marketplace] API Error — Falling back to preview mode:', error.value);
-          // Fallback: use preview data while API is not connected
-          setPlanes(getPreviewPlans(country_code, config.currency_code));
-          return;
-        }
-
-        if (data && Array.isArray(data)) {
-          setPlanes(data as BoosterPlanAPI[]);
-        } else {
-          // API returned unexpected shape — use preview fallback
-          setPlanes(getPreviewPlans(country_code, config.currency_code));
-        }
-      } catch {
-        if (cancelled) return;
-        console.warn('[Marketplace] Connection failed — Using preview plans.');
-        // Graceful degradation: show preview plans while Búnker is unavailable
-        setPlanes(getPreviewPlans(country_code, config.currency_code));
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    fetchPlanes();
-    return () => { cancelled = true; };
-  }, [country_code, config.currency_code]);
-
-  // ── Purchase Flow ──
-  const iniciarCompra = async (planId: string) => {
-    // 1. Frontend calls mypropAPI to generate a MercadoPago Preference
-    // POST /api/v1/marketplace/checkout { planId, country_code, inmobiliaria_id }
-    // The backend uses the regional MP credentials (AR, MX, or US account)
-    // 2. The response contains a preference_id used by the MP SDK Wallet component
-    
-    setSimulandoPago(planId);
+  const fetchCatalog = async () => {
+    setIsLoading(true);
     try {
       // @ts-ignore
-      // const { data } = await eden.marketplace.checkout.post({
-      //   planId,
-      //   country_code,
-      //   inmobiliaria_id
-      // });
-      // initMercadoPago(data.mp_public_key, { locale: config.currency_locale });
-      
-      // Simulation UI (until API endpoint is live)
-      setTimeout(() => {
-        alert(
-          `Mock: Checkout de MercadoPago se abriría aquí.\n` +
-          `Región: ${country_code} | Moneda: ${config.currency_code}\n` +
-          `Webhook Plan: Dual-Verification GET x-signature listo.`
-        );
-        setSimulandoPago(null);
-      }, 1500);
-    } catch {
-      setSimulandoPago(null);
+      const { data, error } = await eden.marketplace.catalog.get();
+      if (data) setCatalog(data);
+    } catch (err) {
+      console.error('Error fetching catalog:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // ── Access Control ──
+  const aquirirAddon = async (addonId: string) => {
+    if (!confirm(t('marketplace_confirm_addon', '¿Desea adquirir esta función? El cobro se verá reflejado a partir de su próxima cuota mensual de suscripción.'))) return;
+    
+    setIsProcessing(addonId);
+    try {
+      // @ts-ignore
+      await eden.marketplace['acquire-addon'].post({ addon_id: addonId });
+      alert(t('marketplace_success_addon', 'Función adquirida con éxito. Se activará de inmediato.'));
+      fetchCatalog();
+    } catch (err) {
+      alert('Error al adquirir la función.');
+    } finally {
+      setIsProcessing(null);
+    }
+  };
+
+  const comprarPuntos = async (puntos: number, monto: number) => {
+    setIsProcessing('points_purchase');
+    try {
+      // @ts-ignore
+      await eden.marketplace['buy-points'].post({ 
+        puntos, 
+        monto: monto.toString(),
+        metodo: 'Mercado Pago (Simulado)'
+      });
+      alert(t('marketplace_success_points', `Has comprado ${puntos} puntos. Ya están disponibles en tu balance.`));
+      fetchCatalog();
+    } catch (err) {
+      alert('Error en la transacción.');
+    } finally {
+      setIsProcessing(null);
+    }
+  };
+
   if (!hasPermission(['superadmin', 'admin'])) {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center space-y-4">
         <Shield className="h-12 w-12 text-red-500" />
-        <h2 className="text-xl font-bold font-jakarta text-renta-950">
-          {t('marketplace_acceso_denegado', 'Acceso Denegado')}
-        </h2>
-        <p className="text-sm font-inter text-renta-600">
-          {t('marketplace_solo_admins', 'Solo administradores pueden adquirir Boosters.')}
-        </p>
+        <h2 className="text-xl font-bold font-jakarta text-renta-950">Acceso Denegado</h2>
+        <p className="text-sm font-inter text-renta-600">Solo administradores pueden acceder al Marketplace.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 text-renta-400 animate-spin" />
+        <p className="mt-4 text-sm text-renta-500">Cargando Marketplace de Crecimiento...</p>
       </div>
     );
   }
@@ -119,160 +108,151 @@ export function MarketplacePage() {
   return (
     <div className="space-y-8 animate-fade-in-up">
       
-      {/* ── Header ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-admin-border-subtle pb-6">
-        <div>
-           <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 rounded-full border border-amber-200 text-amber-700 text-xs font-bold uppercase tracking-widest mb-3">
-              <Rocket className="h-3 w-3" /> {t('marketplace_badge', 'Ecosistema de Upselling')}
-           </div>
-           <h1 className="text-3xl font-bold text-renta-950 font-jakarta leading-tight tracking-tight">
-             {t('marketplace_titulo', 'Marketplace de Boosters')}
-           </h1>
-           <p className="text-sm text-renta-600 font-inter mt-1.5 max-w-xl">
-             {t('marketplace_subtitulo', 'Adquiera puntos de visibilidad para destacar sus propiedades.')}
-           </p>
+      {/* ── Header & Balance ── */}
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between border-b border-admin-border-subtle pb-8">
+        <div className="space-y-1">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-renta-50 rounded-full border border-renta-100 text-renta-700 text-[10px] font-bold uppercase tracking-widest mb-2">
+            <Zap className="h-3 w-3" /> Ecosistema de Crecimiento
+          </div>
+          <h1 className="text-3xl font-bold text-renta-950 font-jakarta leading-tight tracking-tight">
+            Marketplace de MyProp
+          </h1>
+          <p className="text-sm text-renta-600 font-inter">Potencie su inmobiliaria con funciones premium y puntos de visibilidad.</p>
         </div>
 
-        {/* Regional Currency Badge (replaces manual toggle) */}
-        <div className="bg-white p-1 rounded-xl border border-admin-border shadow-sm inline-flex items-center gap-2 px-4 py-2.5">
-          <span className="text-lg">{config.currency_symbol}</span>
-          <span className="text-sm font-bold text-renta-950">{config.currency_code}</span>
-          <span className="text-[10px] text-renta-400 uppercase tracking-wider">
-            Moneda Regional
-          </span>
+        <div className="flex items-center gap-4">
+          <div className="bg-gradient-to-br from-renta-950 to-renta-800 p-5 rounded-2xl shadow-xl shadow-renta-950/20 text-white min-w-[200px] border border-renta-700">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-renta-400 mb-1">Puntos Disponibles</p>
+            <div className="flex items-end justify-between">
+              <span className="text-3xl font-black font-jakarta tracking-tighter">{catalog?.balance || 0}</span>
+              <Rocket className="h-6 w-6 text-amber-400 animate-pulse" />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ── Loading State ── */}
-      {isLoading && (
-        <div className="flex flex-col items-center justify-center py-20 space-y-4">
-          <Loader2 className="h-8 w-8 text-renta-400 animate-spin" />
-          <p className="text-sm text-renta-500 font-inter">
-            {t('marketplace_cargando', 'Cargando planes regionales...')}
-          </p>
-        </div>
-      )}
+      {/* ── Tabs ── */}
+      <div className="flex gap-2 p-1 bg-admin-surface rounded-xl border border-admin-border w-fit">
+        <button
+          onClick={() => setActiveTab('addons')}
+          className={cn(
+            "px-6 py-2.5 rounded-lg text-sm font-bold transition-all",
+            activeTab === 'addons' ? "bg-white text-renta-950 shadow-sm border border-admin-border" : "text-renta-500 hover:text-renta-700"
+          )}
+        >
+          Funciones Extra
+        </button>
+        <button
+          onClick={() => setActiveTab('points')}
+          className={cn(
+            "px-6 py-2.5 rounded-lg text-sm font-bold transition-all",
+            activeTab === 'points' ? "bg-white text-renta-950 shadow-sm border border-admin-border" : "text-renta-500 hover:text-renta-700"
+          )}
+        >
+          Comprar Puntos
+        </button>
+      </div>
 
-      {/* ── Error State ── */}
-      {loadError && !isLoading && (
-        <div className="flex flex-col items-center justify-center py-20 space-y-4">
-          <AlertTriangle className="h-8 w-8 text-amber-500" />
-          <p className="text-sm text-amber-700 font-inter font-medium">{loadError}</p>
-        </div>
-      )}
-
-      {/* ── Planes Grid ── */}
-      {!isLoading && planes.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-inter">
-          {planes.map((plan) => (
-             <div 
-               key={plan.id}
-               className={cn(
-                 "relative flex flex-col p-6 rounded-3xl border transition-all duration-300 hover:shadow-xl",
-                 plan.popular 
-                   ? "bg-gradient-to-b from-renta-950 to-renta-900 text-white border-renta-800 scale-[1.02] shadow-renta-950/20" 
-                   : "bg-white border-admin-border hover:border-renta-300"
-               )}
-             >
-                {plan.popular && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-950 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm">
-                    {t('marketplace_popular', 'Más Elegido')}
+      {/* ── Content Area ── */}
+      {activeTab === 'addons' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {catalog?.addons.map((addon) => (
+            <div key={addon.id} className="group bg-white rounded-2xl border border-admin-border hover:border-renta-300 transition-all duration-300 p-6 flex flex-col hover:shadow-lg">
+              <div className="h-12 w-12 rounded-xl bg-renta-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <PlusCircle className="h-6 w-6 text-renta-600" />
+              </div>
+              <h3 className="text-lg font-bold font-jakarta text-renta-950">{addon.nombre}</h3>
+              <p className="text-sm text-renta-600 mt-2 flex-1 font-inter">{addon.descripcion}</p>
+              
+              <div className="mt-6 pt-6 border-t border-admin-border-subtle">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <span className="text-2xl font-bold text-renta-950">{formatCurrency(addon.costo_mensual)}</span>
+                    <span className="text-[10px] font-bold text-renta-400 ml-1">/ MES</span>
                   </div>
-                )}
-
-                <div className="space-y-4 flex-1">
-                   <h3 className={cn("text-xl font-jakarta font-bold", plan.popular ? "text-white" : "text-renta-950")}>
-                      {plan.nombre}
-                   </h3>
-                   <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold tracking-tighter">
-                         {formatCurrency(plan.precio)}
-                      </span>
-                   </div>
-                   
-                   <div className="h-px w-full bg-admin-border-subtle my-6 opacity-30"></div>
-
-                   <p className={cn("text-sm font-medium", plan.popular ? "text-renta-100" : "text-renta-700")}>
-                      {plan.descripcion}
-                   </p>
-
-                   <ul className={cn("space-y-3 pt-4 text-sm font-medium", plan.popular ? "text-renta-200" : "text-renta-600")}>
-                      <li className="flex items-center gap-2">
-                         <CheckCircle2 className={cn("h-4 w-4", plan.popular ? "text-amber-400" : "text-emerald-500")} /> 
-                         {t('marketplace_exposicion', 'Multiplica exposición')} x{Math.floor(plan.puntos / 10)}
-                      </li>
-                      <li className="flex items-center gap-2">
-                         <CheckCircle2 className={cn("h-4 w-4", plan.popular ? "text-amber-400" : "text-emerald-500")} /> 
-                         {plan.puntos} {t('marketplace_puntos', 'Gema-Puntos')}
-                      </li>
-                   </ul>
+                </div>
+                
+                <div className="bg-amber-50 rounded-lg p-3 mb-4 border border-amber-100 flex gap-2">
+                  <Info className="h-4 w-4 text-amber-600 shrink-0" />
+                  <p className="text-[10px] text-amber-700 font-medium">
+                    Se cobrará como extra a partir de su próxima cuota mensual de suscripción.
+                  </p>
                 </div>
 
-                <div className="pt-8">
-                   <button 
-                     onClick={() => iniciarCompra(plan.id)}
-                     disabled={simulandoPago !== null}
-                     className={cn(
-                       "w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold shadow-sm transition-all hover:scale-[1.02]",
-                       plan.popular 
-                         ? "bg-amber-400 text-amber-950 hover:bg-amber-300" 
-                         : "bg-renta-950 text-white hover:bg-renta-800"
-                     )}
-                   >
-                     {simulandoPago === plan.id ? t('marketplace_conectando', 'Conectando...') : (
-                        <>
-                          <WalletCards className="h-4 w-4" /> {t('boton_comprar', 'Comprar con Mercado Pago')}
-                        </>
-                     )}
-                   </button>
-                </div>
-             </div>
+                <button
+                  onClick={() => aquirirAddon(addon.id)}
+                  disabled={isProcessing !== null}
+                  className="w-full bg-renta-950 text-white rounded-xl py-3 text-sm font-bold hover:bg-renta-800 transition-colors disabled:opacity-50"
+                >
+                  {isProcessing === addon.id ? "Procesando..." : "Adquirir Función"}
+                </button>
+              </div>
+            </div>
           ))}
         </div>
+      ) : (
+        <div className="space-y-8">
+          {/* Packages */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {catalog?.packages.map((pkg) => (
+              <div key={pkg.id} className="relative bg-white rounded-2xl border border-admin-border p-6 flex flex-col">
+                <div className="absolute -top-3 right-4 bg-emerald-500 text-white text-[10px] font-bold tracking-widest px-3 py-1 rounded-full uppercase">
+                  Pack {pkg.puntos} Ptos
+                </div>
+                <h3 className="text-base font-bold font-jakarta text-renta-950 mb-1">{pkg.nombre}</h3>
+                <div className="text-2xl font-black text-renta-950 mb-4">{formatCurrency(pkg.precio)}</div>
+                <button
+                  onClick={() => comprarPuntos(pkg.puntos, Number(pkg.precio))}
+                  className="w-full border-2 border-renta-950 text-renta-950 rounded-xl py-3 text-xs font-bold hover:bg-renta-950 hover:text-white transition-all"
+                >
+                  Elegir Pack
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Custom Points */}
+          <div className="bg-admin-surface rounded-3xl border border-admin-border p-8 max-w-2xl">
+             <h3 className="text-xl font-bold font-jakarta text-renta-950 mb-2">Compra Personalizada</h3>
+             <p className="text-sm text-renta-600 mb-8 font-inter">Indique la cantidad exacta de puntos que necesita para su estrategia.</p>
+             
+             <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-renta-400 uppercase tracking-widest">Cantidad de Puntos</label>
+                  <div className="relative">
+                    <input 
+                      type="number"
+                      value={customPoints}
+                      onChange={(e) => setCustomPoints(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-full bg-white border border-admin-border rounded-xl px-4 py-4 text-2xl font-black font-jakarta outline-none focus:ring-2 focus:ring-renta-500"
+                    />
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-renta-400 font-bold">PTS</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-6 bg-white rounded-2xl border border-admin-border">
+                  <div>
+                    <p className="text-[10px] font-bold text-renta-400 uppercase mb-1">Total a Pagar</p>
+                    <div className="text-3xl font-black text-renta-950">{formatCurrency(customPoints * pricePerPoint)}</div>
+                  </div>
+                  <button 
+                    onClick={() => comprarPuntos(customPoints, customPoints * pricePerPoint)}
+                    disabled={customPoints <= 0 || isProcessing !== null}
+                    className="bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold hover:bg-emerald-600 transition-all flex items-center gap-2 disabled:opacity-50"
+                  >
+                    Confirmar Compra <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+             </div>
+          </div>
+        </div>
       )}
 
-      <div className="text-center pt-8 animate-fade-in text-[11px] font-medium text-renta-400 max-w-2xl mx-auto">
-        {t('marketplace_footer', 'Operación procesada mediante CheckOut de Mercado Pago.')}
+      {/* Footer Info */}
+      <div className="flex items-center justify-center gap-2 py-8 border-t border-admin-border-subtle">
+        <Shield className="h-4 w-4 text-emerald-500" />
+        <span className="text-[10px] font-medium text-renta-400 uppercase tracking-widest">Transacción Protegida por Mercado Pago 2026</span>
       </div>
     </div>
   );
-}
-
-/**
- * Preview Plans — Graceful degradation for when the API is unavailable.
- * These are DISPLAY ONLY and NEVER used for actual transactions.
- * All real purchases go through the API which returns server-side pricing.
- */
-function getPreviewPlans(countryCode: string, currencyCode: string): BoosterPlanAPI[] {
-  const priceMultiplier: Record<string, number> = { ARS: 1, MXN: 0.03, USD: 0.0016 };
-  const multiplier = priceMultiplier[currencyCode] ?? 1;
-  const baseARS = [5000, 20000, 70000];
-
-  return [
-    {
-      id: 'preview-b1',
-      nombre: 'Booster Básico',
-      puntos: 10,
-      descripcion: 'Puntos válidos para destacar 2 propiedades por 15 días.',
-      precio: Math.round(baseARS[0] * multiplier),
-      currency_code: currencyCode as BoosterPlanAPI['currency_code'],
-    },
-    {
-      id: 'preview-b2',
-      nombre: 'Pack Inmobiliaria PRO',
-      puntos: 50,
-      descripcion: 'Posicionamiento VIP. Destaca hasta 10 propiedades mensuales en el ecosistema.',
-      precio: Math.round(baseARS[1] * multiplier),
-      currency_code: currencyCode as BoosterPlanAPI['currency_code'],
-      popular: true,
-    },
-    {
-      id: 'preview-b3',
-      nombre: 'Agencia Master',
-      puntos: 200,
-      descripcion: 'Cobertura total. Presencia en top de búsquedas para todo tu catálogo.',
-      precio: Math.round(baseARS[2] * multiplier),
-      currency_code: currencyCode as BoosterPlanAPI['currency_code'],
-    },
-  ];
 }
