@@ -1,25 +1,18 @@
+import React, { useMemo, useCallback } from 'react';
 import { Joyride, type Step, STATUS, ACTIONS, EVENTS, type CallBackProps } from 'react-joyride';
 import { useJoyride } from '@/providers/JoyrideProvider';
 import { useRegion } from '@/hooks/useRegion';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 
-/**
- * JoyrideWrapper — Engine del Tour de Onboarding.
- * 
- * REGLA DE ORO: Todos los steps apuntan EXCLUSIVAMENTE a elementos
- * que están SIEMPRE VISIBLES en el DOM (sidebar, header, dashboard KPIs).
- * NO se usan targets de páginas internas (marketplace, suscripcion, etc.)
- * porque la navegación cross-page causa hangs irrecuperables en Joyride.
- */
 export function JoyrideWrapper() {
   const { run, stepIndex, stopTour, nextStep, prevStep } = useJoyride();
   const { t } = useRegion();
   const { role } = useInmobiliaria();
 
   // ═══════════════════════════════════════════════════════════════════
-  // SUPERADMIN TOUR — Solo usa targets del sidebar, header y dashboard
+  // SUPERADMIN TOUR
   // ═══════════════════════════════════════════════════════════════════
-  const superadminSteps: Step[] = [
+  const superadminSteps: Step[] = useMemo(() => [
     {
       target: '[data-joyride="kpi-grid"]',
       title: (
@@ -48,6 +41,7 @@ export function JoyrideWrapper() {
         </div>
       ),
       placement: 'right' as const,
+      disableScrolling: true,
     },
     {
       target: '[data-joyride="nav-cobranzas"]',
@@ -62,6 +56,7 @@ export function JoyrideWrapper() {
         </div>
       ),
       placement: 'right' as const,
+      disableScrolling: true,
     },
     {
       target: '[data-joyride="nav-marketplace"]',
@@ -72,10 +67,11 @@ export function JoyrideWrapper() {
       ),
       content: (
         <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_sa_mkt_desc', 'Adquiera Funciones Extra para potenciar su suscripción y compre Puntos Booster para aumentar la visibilidad de sus propiedades. Tiene dos secciones: Funciones Extra y Comprar Puntos.')}
+          {t('tour_sa_mkt_desc', 'Adquiera Funciones Extra para potenciar su suscripción y compre Puntos Booster para aumentar la visibilidad de sus propiedades.')}
         </div>
       ),
       placement: 'right' as const,
+      disableScrolling: true,
     },
     {
       target: '[data-joyride="nav-suscripcion"]',
@@ -86,10 +82,11 @@ export function JoyrideWrapper() {
       ),
       content: (
         <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_sub_nav_desc', 'Visualice el desglose de su próximo pago (Plan Base + Funciones Extra) y consulte el historial completo de transacciones del Marketplace.')}
+          {t('tour_sub_nav_desc', 'Visualice el desglose de su próximo pago y consulte el historial completo de transacciones del Marketplace.')}
         </div>
       ),
       placement: 'right' as const,
+      disableScrolling: true,
     },
     {
       target: '[data-joyride="nav-equipo"]',
@@ -100,10 +97,11 @@ export function JoyrideWrapper() {
       ),
       content: (
         <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_equipo_desc', 'Centralice la administración de sus colaboradores. Invite Administradores y Vendedores con permisos granulares predefinidos.')}
+          {t('tour_equipo_desc', 'Centralice la administración de sus colaboradores. Invite Administradores y Vendedores con permisos granulares.')}
         </div>
       ),
       placement: 'right' as const,
+      disableScrolling: true,
     },
     {
       target: '[data-joyride="nav-configuracion"]',
@@ -114,10 +112,11 @@ export function JoyrideWrapper() {
       ),
       content: (
         <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_sa_saas_desc', 'Configure notificaciones automáticas (Twilio/SendGrid), gestione sus días de gracia y personalice los parámetros operativos de su inmobiliaria.')}
+          {t('tour_sa_saas_desc', 'Configure notificaciones automáticas y personalice los parámetros operativos de su inmobiliaria.')}
         </div>
       ),
       placement: 'right' as const,
+      disableScrolling: true,
     },
     {
       target: '[data-joyride="user-profile"]',
@@ -133,13 +132,14 @@ export function JoyrideWrapper() {
         </div>
       ),
       placement: 'bottom' as const,
+      disableScrolling: true,
     },
-  ];
+  ], [t]);
 
   // ═══════════════════════════════════════════════════════════════════
-  // ADMIN TOUR — Solo sidebar + dashboard
+  // ADMIN TOUR
   // ═══════════════════════════════════════════════════════════════════
-  const adminSteps: Step[] = [
+  const adminSteps: Step[] = useMemo(() => [
     {
       target: '[data-joyride="kpi-grid"]',
       title: (
@@ -164,10 +164,11 @@ export function JoyrideWrapper() {
       ),
       content: (
         <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_nav_propiedades_desc', 'Administre sus propiedades, cargue carpetas digitales y use los Boosters 🚀 para destacar activos disponibles.')}
+          {t('tour_nav_propiedades_desc', 'Administre sus propiedades, cargue carpetas digitales y destaque activos disponibles.')}
         </div>
       ),
       placement: 'right' as const,
+      disableScrolling: true,
     },
     {
       target: '[data-joyride="nav-cobranzas"]',
@@ -182,6 +183,7 @@ export function JoyrideWrapper() {
         </div>
       ),
       placement: 'right' as const,
+      disableScrolling: true,
     },
     {
       target: '[data-joyride="nav-marketplace"]',
@@ -196,6 +198,7 @@ export function JoyrideWrapper() {
         </div>
       ),
       placement: 'right' as const,
+      disableScrolling: true,
     },
     {
       target: '[data-joyride="nav-suscripcion"]',
@@ -210,6 +213,7 @@ export function JoyrideWrapper() {
         </div>
       ),
       placement: 'right' as const,
+      disableScrolling: true,
     },
     {
       target: '[data-joyride="nav-equipo"]',
@@ -224,6 +228,7 @@ export function JoyrideWrapper() {
         </div>
       ),
       placement: 'right' as const,
+      disableScrolling: true,
     },
     {
       target: '[data-joyride="user-profile"]',
@@ -238,13 +243,14 @@ export function JoyrideWrapper() {
         </div>
       ),
       placement: 'bottom' as const,
+      disableScrolling: true,
     },
-  ];
+  ], [t]);
 
   // ═══════════════════════════════════════════════════════════════════
-  // VENDEDOR TOUR — Solo sidebar + propiedades
+  // VENDEDOR TOUR
   // ═══════════════════════════════════════════════════════════════════
-  const vendedorSteps: Step[] = [
+  const vendedorSteps: Step[] = useMemo(() => [
     {
       target: '[data-joyride="nav-propiedades"]',
       title: (
@@ -260,6 +266,7 @@ export function JoyrideWrapper() {
       ),
       placement: 'right' as const,
       disableBeacon: true,
+      disableScrolling: true,
     },
     {
       target: '[data-joyride="nav-contratos"]',
@@ -274,6 +281,7 @@ export function JoyrideWrapper() {
         </div>
       ),
       placement: 'right' as const,
+      disableScrolling: true,
     },
     {
       target: '[data-joyride="user-profile"]',
@@ -288,41 +296,34 @@ export function JoyrideWrapper() {
         </div>
       ),
       placement: 'bottom' as const,
+      disableScrolling: true,
     },
-  ];
+  ], [t]);
 
-  // Selección lógica de pasos basada en el rol
-  const finalSteps = role === 'superadmin'
-    ? superadminSteps
-    : role === 'admin'
-      ? adminSteps
-      : role === 'vendedor'
-        ? vendedorSteps
-        : [];
+  // Selección lógica de pasos basada en el rol (con useMemo para referencia estable)
+  const finalSteps = React.useMemo(() => {
+    if (role === 'superadmin') return superadminSteps;
+    if (role === 'admin') return adminSteps;
+    if (role === 'vendedor') return vendedorSteps;
+    return [];
+  }, [role, superadminSteps, adminSteps, vendedorSteps]);
 
-  const handleJoyrideCallback = (data: CallBackProps) => {
+  const handleJoyrideCallback = useCallback((data: CallBackProps) => {
     const { action, status, type } = data;
 
-    // Tour completed or skipped
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
       stopTour();
       return;
     }
 
-    // Step completed — advance or go back
-    if (type === EVENTS.STEP_AFTER) {
+    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
       if (action === ACTIONS.NEXT) {
         nextStep();
       } else if (action === ACTIONS.PREV) {
         prevStep();
       }
     }
-
-    // If a target is not found, skip to the next step
-    if (type === EVENTS.TARGET_NOT_FOUND) {
-      nextStep();
-    }
-  };
+  }, [stopTour, nextStep, prevStep]);
 
   if (!finalSteps.length) return null;
 
@@ -335,6 +336,9 @@ export function JoyrideWrapper() {
       scrollToFirstStep
       showSkipButton
       disableScrollParentFix
+      floaterProps={{
+        disableAnimation: true
+      }}
       locale={{
         back: t('tour_btn_back', 'Anterior'),
         close: t('tour_btn_close', 'Cerrar'),

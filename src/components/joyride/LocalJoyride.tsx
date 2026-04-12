@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Joyride, type Step, STATUS, ACTIONS, EVENTS, type CallBackProps } from 'react-joyride';
 import { useRegion } from '@/hooks/useRegion';
 
@@ -33,7 +33,7 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
     }
   }, [storageKey, steps]);
 
-  const handleJoyrideCallback = (data: CallBackProps) => {
+  const handleJoyrideCallback = useCallback((data: CallBackProps) => {
     const { action, status, type } = data;
 
     // Tour completado o saltado
@@ -44,19 +44,14 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
     }
 
     // Avanzar de paso
-    if (type === EVENTS.STEP_AFTER) {
+    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
       if (action === ACTIONS.NEXT) {
         setStepIndex((prev) => prev + 1);
       } else if (action === ACTIONS.PREV) {
         setStepIndex((prev) => prev - 1);
       }
     }
-
-    // Si el target desaparece, salta al siguiente
-    if (type === EVENTS.TARGET_NOT_FOUND) {
-      setStepIndex((prev) => prev + 1);
-    }
-  };
+  }, [storageKey]);
 
   if (steps.length === 0 || !run) return null;
 
@@ -69,6 +64,9 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
       scrollToFirstStep
       showSkipButton
       disableScrollParentFix
+      floaterProps={{
+        disableAnimation: true
+      }}
       locale={{
         back: t('tour_btn_back', 'Anterior'),
         close: t('tour_btn_close', 'Cerrar'),
