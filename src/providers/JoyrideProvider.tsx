@@ -34,16 +34,21 @@ export function JoyrideProvider({ children }: { children: React.ReactNode }) {
     return localStorage.getItem(STORAGE_KEY) === 'true';
   });
 
+  // Sincronizar estado de completado cuando cambia la key (por cambio de rol)
+  useEffect(() => {
+    setIsTourCompleted(localStorage.getItem(STORAGE_KEY) === 'true');
+  }, [STORAGE_KEY]);
+
   // Iniciar automáticamente si no se ha completado
   useEffect(() => {
-    if (!isTourCompleted && role && isSignedIn) {
+    if (!isTourCompleted && role && isSignedIn && !run) {
       // Pequeño delay para asegurar que el DOM esté listo y las animaciones de entrada terminen
       const timer = setTimeout(() => {
         setRun(true);
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [isTourCompleted, role, isSignedIn]);
+  }, [isTourCompleted, role, isSignedIn, run]);
 
   const startTour = useCallback(() => {
     setStepIndex(0);

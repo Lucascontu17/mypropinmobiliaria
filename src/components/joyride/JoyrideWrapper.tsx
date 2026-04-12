@@ -13,6 +13,7 @@ const getPathForTarget = (target: string): string | null => {
   if (target.includes('btn-cierre-periodo') || target.includes('table-cobranzas')) return '/cobranzas';
   if (target.includes('assigned-catalog') || target.includes('service-icons') || target.includes('contact-action')) return '/propiedades';
   if (target.includes('kpi-grid')) return '/';
+  if (target.includes('equipo-header') || target.includes('equipo-kpis') || target.includes('btn-nuevo-miembro')) return '/equipo';
   return null;
 };
 
@@ -121,6 +122,48 @@ export function JoyrideWrapper() {
       placement: 'right',
     },
     {
+      target: '[data-joyride="equipo-header"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_equipo_title', 'Gestión de Equipos')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_equipo_desc', 'Centralice la administración de sus colaboradores. El Búnker le permite delegar responsabilidades manteniendo la soberanía de los datos.')}
+        </div>
+      ),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-joyride="equipo-kpis"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_equipo_kpi_title', 'Métricas del Staff')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_equipo_kpi_desc', 'Visualice la distribución de roles y el estado de activación de sus cuentas en tiempo real.')}
+        </div>
+      ),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-joyride="btn-nuevo-miembro"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_equipo_nuevo_title', 'Expansión de Fuerza de Venta')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_equipo_nuevo_desc', 'Invite a nuevos Administradores o Vendedores. Recuerde que cada rol tiene permisos granulares predefinidos.')}
+        </div>
+      ),
+      placement: 'left',
+    },
+    {
       target: '[data-joyride="user-profile"]',
       title: (
         <span className="font-jakarta font-bold text-renta-950">
@@ -195,6 +238,34 @@ export function JoyrideWrapper() {
         </div>
       ),
       placement: 'top',
+    },
+    {
+      target: '[data-joyride="equipo-header"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_equipo_title', 'Gestión de Equipos')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_equipo_desc', 'Administre los Vendedores de su sucursal. Asigne propiedades y monitoree el estado de sus cuentas.')}
+        </div>
+      ),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-joyride="btn-nuevo-miembro"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_equipo_nuevo_title', 'Alta de Colaboradores')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_equipo_nuevo_desc', 'Como Administrador puede invitar a nuevos Vendedores para potenciar su inmobiliaria.')}
+        </div>
+      ),
+      placement: 'left',
     },
     {
       target: '[data-joyride="user-profile"]',
@@ -341,7 +412,7 @@ export function JoyrideWrapper() {
           color: '#5ea8a6',
         }
       }}
-      onEvent={handleJoyrideCallback}
+      callback={handleJoyrideCallback}
     />
   );
 }

@@ -94,7 +94,10 @@ export function EquipoPage() {
   return (
     <div className="space-y-6">
       {/* ── Header ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
+      <div 
+        data-joyride="equipo-header"
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up"
+      >
         <div>
           <h1 className="text-2xl font-bold text-renta-950 font-jakarta">
             {t('equipo_titulo', 'Gestión de Equipo')}
@@ -106,7 +109,7 @@ export function EquipoPage() {
 
         {hasPermission(['superadmin', 'admin']) && (
           <button
-            id="btn-nuevo-miembro"
+            data-joyride="btn-nuevo-miembro"
             onClick={() => {
               setEditingData(null);
               setIsFormOpen(true);
@@ -121,6 +124,7 @@ export function EquipoPage() {
 
       {/* ── KPI Cards ── */}
       <div
+        data-joyride="equipo-kpis"
         className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-in-up"
         style={{ animationDelay: '80ms' }}
       >
