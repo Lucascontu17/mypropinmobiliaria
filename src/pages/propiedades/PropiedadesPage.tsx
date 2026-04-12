@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { Plus, Search, Home, Edit2, Trash2, MapPin, Zap, Flame, Droplets, FileText, Phone } from 'lucide-react';
+import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phone, Rocket, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { eden } from '@/services/eden';
 
 // Mock Data Enriquecido para Vendedor (v1.2.3)
 const MOCK_PROPIEDADES = [
@@ -33,15 +34,41 @@ const MOCK_PROPIEDADES = [
   },
 ];
 
+const BOOSTABLE_STATUSES = ['DISPONIBLE', 'VENTA'];
+
 export function PropiedadesPage() {
   const { hasPermission } = useInmobiliaria();
   const [searchTerm, setSearchTerm] = useState('');
-  const { t } = useRegion();
+  const { t, formatCurrency } = useRegion();
   const navigate = useNavigate();
+
+  // Booster Modal State
+  const [boosterModal, setBoosterModal] = useState<{ uid: string; direccion: string } | null>(null);
+  const [boosterPuntos, setBoosterPuntos] = useState(5);
+  const [isAssigning, setIsAssigning] = useState(false);
   
   const properties = MOCK_PROPIEDADES.filter(p => 
     p.direccion.toLowerCase().includes(searchTerm.toLowerCase()) || p.propietario.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleAssignPoints = async () => {
+    if (!boosterModal || boosterPuntos <= 0) return;
+    setIsAssigning(true);
+    try {
+      // @ts-ignore
+      await eden.marketplace['assign-points'].post({
+        propiedad_uid: boosterModal.uid,
+        puntos: boosterPuntos
+      });
+      alert(`${boosterPuntos} puntos asignados a ${boosterModal.direccion}`);
+      setBoosterModal(null);
+      setBoosterPuntos(5);
+    } catch (err) {
+      alert('Error al asignar puntos. Verifique su saldo.');
+    } finally {
+      setIsAssigning(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -149,7 +176,17 @@ export function PropiedadesPage() {
                       ${p.valor_alquiler.toLocaleString('es-AR')}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1.5">
+                        {/* Booster Button — Solo para propiedades DISPONIBLE o VENTA */}
+                        {BOOSTABLE_STATUSES.includes(p.status) && (
+                          <button 
+                            onClick={() => setBoosterModal({ uid: p.uid_prop, direccion: p.direccion })}
+                            title="Asignar puntos de visibilidad"
+                            className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-all hover:scale-110"
+                          >
+                            <Rocket className="h-4 w-4" />
+                          </button>
+                        )}
                         <button 
                           data-joyride="contact-action"
                           title="Click para llamar (E.164)"
@@ -172,6 +209,72 @@ export function PropiedadesPage() {
           </table>
         </div>
       </div>
+
+      {/* ── Modal: Asignar Puntos ── */}
+      {boosterModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-fade-in-up">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-renta-950 to-renta-800 px-6 py-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-amber-400 flex items-center justify-center shadow-lg">
+                  <Rocket className="h-5 w-5 text-amber-950" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold font-jakarta">Asignar Puntos Booster</h3>
+                  <p className="text-white/60 text-[10px] uppercase tracking-wider">Visibilidad Premium</p>
+                </div>
+              </div>
+              <button onClick={() => setBoosterModal(null)} className="text-white/50 hover:text-white transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              <div className="bg-renta-50 rounded-xl p-4 border border-admin-border-subtle">
+                <p className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mb-1">Propiedad Seleccionada</p>
+                <p className="text-sm font-bold text-renta-950 flex items-center gap-2">
+                  <Home className="h-4 w-4 text-renta-400" /> {boosterModal.direccion}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-renta-600 uppercase tracking-widest">Puntos a Asignar</label>
+                <input 
+                  type="number"
+                  min={1}
+                  value={boosterPuntos}
+                  onChange={(e) => setBoosterPuntos(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full rounded-xl border border-admin-border px-4 py-3 text-2xl font-black font-jakarta text-renta-950 outline-none focus:ring-2 focus:ring-amber-400 text-center"
+                />
+                <p className="text-[10px] text-renta-400 text-center">
+                  Se descontarán del balance total de su inmobiliaria.
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 pb-6 flex gap-3">
+              <button 
+                onClick={() => setBoosterModal(null)}
+                className="flex-1 py-3 rounded-xl border border-admin-border text-sm font-bold text-renta-600 hover:bg-renta-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleAssignPoints}
+                disabled={isAssigning || boosterPuntos <= 0}
+                className="flex-1 py-3 rounded-xl bg-amber-400 text-amber-950 text-sm font-bold hover:bg-amber-300 transition-all shadow-lg shadow-amber-400/20 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isAssigning ? 'Asignando...' : (
+                  <><Rocket className="h-4 w-4" /> Aplicar Booster</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
