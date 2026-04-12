@@ -13,6 +13,7 @@ interface JoyrideContextType {
   resumeTour: () => void;
   isTourCompleted: boolean;
   setTotalSteps: (steps: number) => void;
+  setStepIndexAction: (index: number) => void;
 }
 
 const JoyrideContext = createContext<JoyrideContextType | undefined>(undefined);
@@ -76,6 +77,8 @@ export function JoyrideProvider({ children }: { children: React.ReactNode }) {
   const nextStep = useCallback(() => setStepIndex(prev => prev + 1), []);
   const prevStep = useCallback(() => setStepIndex(prev => Math.max(0, prev - 1)), []);
 
+  const setStepIndexAction = useCallback((index: number) => setStepIndex(index), []);
+
   return (
     <JoyrideContext.Provider
       value={{
@@ -91,6 +94,7 @@ export function JoyrideProvider({ children }: { children: React.ReactNode }) {
         resumeTour,
         isTourCompleted,
         setTotalSteps,
+        setStepIndexAction,
       }}
     >
       {children}

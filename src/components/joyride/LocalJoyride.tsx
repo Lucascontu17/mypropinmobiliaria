@@ -34,7 +34,7 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
   }, [storageKey, steps]);
 
   const handleJoyrideCallback = useCallback((data: CallBackProps) => {
-    const { action, status, type } = data;
+    const { action, status, type, index } = data;
 
     // Tour completado o saltado
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
@@ -44,20 +44,18 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
     }
 
     // Avanzar de paso
-    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
-      if (action === ACTIONS.NEXT) {
-        setStepIndex((prev) => prev + 1);
-      } else if (action === ACTIONS.PREV) {
-        setStepIndex((prev) => prev - 1);
-      }
+    if ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND].includes(type as any)) {
+      setStepIndex(index + (action === ACTIONS.PREV ? -1 : 1));
     }
   }, [storageKey]);
 
   if (steps.length === 0 || !run) return null;
 
+  const finalSteps = steps.map(step => ({ ...step, disableBeacon: true }));
+
   return (
     <Joyride
-      steps={steps}
+      steps={finalSteps}
       run={run}
       stepIndex={stepIndex}
       continuous

@@ -5,7 +5,7 @@ import { useRegion } from '@/hooks/useRegion';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 
 export function JoyrideWrapper() {
-  const { run, stepIndex, stopTour, nextStep, prevStep } = useJoyride();
+  const { run, stepIndex, stopTour, setStepIndexAction } = useJoyride();
   const { t } = useRegion();
   const { role } = useInmobiliaria();
 
@@ -302,28 +302,30 @@ export function JoyrideWrapper() {
 
   // Selección lógica de pasos basada en el rol (con useMemo para referencia estable)
   const finalSteps = React.useMemo(() => {
-    if (role === 'superadmin') return superadminSteps;
-    if (role === 'admin') return adminSteps;
-    if (role === 'vendedor') return vendedorSteps;
-    return [];
+    let steps: Step[] = [];
+    if (role === 'superadmin') steps = superadminSteps;
+    if (role === 'admin') steps = adminSteps;
+    if (role === 'vendedor') steps = vendedorSteps;
+    
+    // Desactivar Beacon globalmente para evitar cuelgues de posicionamiento de target
+    return steps.map(step => ({ ...step, disableBeacon: true }));
   }, [role, superadminSteps, adminSteps, vendedorSteps]);
 
   const handleJoyrideCallback = useCallback((data: CallBackProps) => {
-    const { action, status, type } = data;
+    const { action, status, type, index } = data;
 
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
       stopTour();
       return;
     }
 
-    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
-      if (action === ACTIONS.NEXT) {
-        nextStep();
-      } else if (action === ACTIONS.PREV) {
-        prevStep();
-      }
+    // Usar el índice real proporcionado por el evento asegura total sincronización 
+    // entre el state de React de la librería y nuestro Contexto.
+    if ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND].includes(type as any)) {
+      const nextIndex = index + (action === ACTIONS.PREV ? -1 : 1);
+      setStepIndexAction(nextIndex);
     }
-  }, [stopTour, nextStep, prevStep]);
+  }, [stopTour, setStepIndexAction]);
 
   if (!finalSteps.length) return null;
 
