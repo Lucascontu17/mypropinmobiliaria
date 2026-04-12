@@ -11,9 +11,11 @@ const getPathForTarget = (target: string): string | null => {
   if (target.includes('saas-grace-period')) return '/configuracion';
   if (target.includes('map-picker-container') || target.includes('gallery-uploader')) return '/propiedades/nueva';
   if (target.includes('btn-cierre-periodo') || target.includes('table-cobranzas')) return '/cobranzas';
-  if (target.includes('assigned-catalog') || target.includes('service-icons') || target.includes('contact-action')) return '/propiedades';
+  if (target.includes('assigned-catalog') || target.includes('service-icons') || target.includes('contact-action') || target.includes('booster-action')) return '/propiedades';
   if (target.includes('kpi-grid')) return '/';
   if (target.includes('equipo-header') || target.includes('equipo-kpis') || target.includes('btn-nuevo-miembro')) return '/equipo';
+  if (target.includes('mkt-balance') || target.includes('mkt-tabs') || target.includes('nav-marketplace')) return '/marketplace';
+  if (target.includes('sub-desglose') || target.includes('sub-historial') || target.includes('nav-suscripcion')) return '/suscripcion';
   return null;
 };
 
@@ -116,10 +118,94 @@ export function JoyrideWrapper() {
       ),
       content: (
         <div className="font-inter text-sm text-renta-600 leading-relaxed font-medium">
-          {t('tour_sa_mkt_desc', 'Adquiera Boosters para ganar visibilidad. Los ingresos por potenciadores están excluidos de la utilidad neta repartible con sus Resellers.')}
+          {t('tour_sa_mkt_desc', 'Adquiera funciones extra y compre puntos Booster para aumentar la visibilidad de sus propiedades.')}
         </div>
       ),
       placement: 'right',
+    },
+    {
+      target: '[data-joyride="mkt-balance"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_mkt_balance_title', 'Balance de Puntos')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_mkt_balance_desc', 'Este es el saldo global de puntos de su inmobiliaria. Puede comprar puntos por paquetes o de forma personalizada y luego distribuirlos en las propiedades que desee destacar.')}
+        </div>
+      ),
+      placement: 'left',
+    },
+    {
+      target: '[data-joyride="mkt-tabs"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_mkt_tabs_title', 'Secciones del Marketplace')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_mkt_tabs_desc', 'El Marketplace tiene dos secciones: "Funciones Extra" le permite agregar herramientas premium a su suscripción mensual, y "Comprar Puntos" le permite adquirir créditos de visibilidad para sus propiedades.')}
+        </div>
+      ),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-joyride="booster-action"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_booster_title', 'Booster de Propiedades')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_booster_desc', 'Este ícono aparece en propiedades disponibles o en venta. Utilícelo para asignar puntos de visibilidad y posicionar mejor sus activos en el ecosistema MyProp.')}
+        </div>
+      ),
+      placement: 'left',
+    },
+    {
+      target: '[data-joyride="nav-suscripcion"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_sub_nav_title', 'Mi Suscripción')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_sub_nav_desc', 'Desde aquí puede visualizar el desglose de su próximo pago y el historial completo de transacciones del Marketplace.')}
+        </div>
+      ),
+      placement: 'right',
+    },
+    {
+      target: '[data-joyride="sub-desglose"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_sub_desglose_title', 'Desglose de Facturación')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_sub_desglose_desc', 'Aquí verá el total de su próxima cuota: Plan Base más las funciones extra que haya adquirido. Las funciones nuevas se cobran a partir del ciclo siguiente a su activación.')}
+        </div>
+      ),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-joyride="sub-historial"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_sub_historial_title', 'Historial de Transacciones')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_sub_historial_desc', 'Registro cronológico de todas las operaciones realizadas en el Marketplace: compras de puntos, activación de funciones y distribución de puntos a propiedades.')}
+        </div>
+      ),
+      placement: 'left',
     },
     {
       target: '[data-joyride="equipo-header"]',

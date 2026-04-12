@@ -180,6 +180,7 @@ export function PropiedadesPage() {
                         {/* Booster Button — Solo para propiedades DISPONIBLE o VENTA */}
                         {BOOSTABLE_STATUSES.includes(p.status) && (
                           <button 
+                            data-joyride="booster-action"
                             onClick={() => setBoosterModal({ uid: p.uid_prop, direccion: p.direccion })}
                             title="Asignar puntos de visibilidad"
                             className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-all hover:scale-110"

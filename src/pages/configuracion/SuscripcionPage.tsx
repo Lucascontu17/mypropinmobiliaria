@@ -65,7 +65,7 @@ export function SuscripcionPage() {
         
         {/* ── PRÓXIMO PAGO (Left 2/3) ── */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-3xl border border-admin-border overflow-hidden shadow-sm">
+          <div data-joyride="sub-desglose" className="bg-white rounded-3xl border border-admin-border overflow-hidden shadow-sm">
             <div className="bg-renta-50/50 px-8 py-6 border-b border-admin-border-subtle flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-renta-950 text-white flex items-center justify-center shadow-lg shadow-renta-950/20">
@@ -140,7 +140,7 @@ export function SuscripcionPage() {
 
         {/* ── HISTORIAL (Right 1/3) ── */}
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-admin-border shadow-sm flex flex-col h-full">
+          <div data-joyride="sub-historial" className="bg-white rounded-3xl border border-admin-border shadow-sm flex flex-col h-full">
             <div className="px-6 py-5 border-b border-admin-border-subtle flex items-center gap-2">
               <History className="h-4 w-4 text-renta-600" />
               <h2 className="text-sm font-bold text-renta-950 font-jakarta">Historial de Transacciones</h2>

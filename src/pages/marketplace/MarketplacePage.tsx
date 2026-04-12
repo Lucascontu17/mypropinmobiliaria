@@ -121,7 +121,7 @@ export function MarketplacePage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="bg-gradient-to-br from-renta-950 to-renta-800 p-5 rounded-2xl shadow-xl shadow-renta-950/20 text-white min-w-[200px] border border-renta-700">
+          <div data-joyride="mkt-balance" className="bg-gradient-to-br from-renta-950 to-renta-800 p-5 rounded-2xl shadow-xl shadow-renta-950/20 text-white min-w-[200px] border border-renta-700">
             <p className="text-[10px] font-bold uppercase tracking-widest text-renta-400 mb-1">Puntos Disponibles</p>
             <div className="flex items-end justify-between">
               <span className="text-3xl font-black font-jakarta tracking-tighter">{catalog?.balance || 0}</span>
@@ -132,7 +132,7 @@ export function MarketplacePage() {
       </div>
 
       {/* ── Tabs ── */}
-      <div className="flex gap-2 p-1 bg-admin-surface rounded-xl border border-admin-border w-fit">
+      <div data-joyride="mkt-tabs" className="flex gap-2 p-1 bg-admin-surface rounded-xl border border-admin-border w-fit">
         <button
           onClick={() => setActiveTab('addons')}
           className={cn(
