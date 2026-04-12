@@ -1,4 +1,4 @@
-import Joyride, { type Step, STATUS, ACTIONS, EVENTS, type CallBackProps } from 'react-joyride';
+import { Joyride, type Step, STATUS, ACTIONS, EVENTS, type CallBackProps } from 'react-joyride';
 import { useJoyride } from '@/providers/JoyrideProvider';
 import { useRegion } from '@/hooks/useRegion';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
