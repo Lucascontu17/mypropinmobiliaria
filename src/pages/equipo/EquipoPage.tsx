@@ -19,6 +19,8 @@ import {
 import { cn } from '@/lib/utils';
 import { MiembroForm, type MiembroData } from '@/components/equipo/MiembroForm';
 import type { UserRole } from '@/hooks/useInmobiliaria';
+import { LocalJoyride } from '@/components/joyride/LocalJoyride';
+import { type Step } from 'react-joyride';
 
 // Mock Data — reemplazar con Eden/SWR conectado a MyPropAPI
 const MOCK_EQUIPO: MiembroData[] = [
@@ -91,8 +93,55 @@ export function EquipoPage() {
   const totalVendedores = MOCK_EQUIPO.filter((m) => m.role === 'vendedor').length;
   const totalActivos = MOCK_EQUIPO.filter((m) => m.estado === 'activo').length;
 
+  const joyrideSteps: Step[] = [
+    {
+      target: '[data-joyride="equipo-header"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_equipo_header_title', 'Su Equipo')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_equipo_header_desc', 'Desde aquí podrá gestionar todos los agentes inmobiliarios y administradores afiliados a su franquicia. Tenga en cuenta que un Vendedor de la sucursal 1 NO verá data de la sucursal 2 (Master Filter).')}
+        </div>
+      ),
+      placement: 'bottom',
+      disableBeacon: true,
+    },
+    {
+      target: '[data-joyride="equipo-kpis"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_equipo_kpis_title', 'Estado de la Fuerza de Ventas')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_equipo_kpis_desc', 'Métricas rápidas que muestran cuántos colaboradores tienen acceso activo a su plataforma, divididos por el rol asignado.')}
+        </div>
+      ),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-joyride="btn-nuevo-miembro"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_equipo_invite_title', 'Reclutamiento Rápido')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_equipo_invite_desc', 'Haga clic aquí para enviar una invitación de onboarding por email a su nuevo vendedor o administrador. Ellos cargarán sus propios datos y contraseña.')}
+        </div>
+      ),
+      placement: 'left',
+    }
+  ];
+
   return (
     <div className="space-y-6">
+      <LocalJoyride steps={joyrideSteps} storageKey="enjoy_local_equipo" />
       {/* ── Header ── */}
       <div 
         data-joyride="equipo-header"

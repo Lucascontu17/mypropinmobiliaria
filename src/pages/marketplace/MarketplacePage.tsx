@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { eden } from '@/services/eden';
+import { LocalJoyride } from '@/components/joyride/LocalJoyride';
+import { type Step } from 'react-joyride';
 
 export function MarketplacePage() {
   const { hasPermission, inmobiliaria_id } = useInmobiliaria();
@@ -105,8 +107,42 @@ export function MarketplacePage() {
     );
   }
 
+  // Joyride Steps
+  const joyrideSteps: Step[] = [
+    {
+      target: '[data-joyride="mkt-balance"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_mkt_balance_title', 'Balance de Puntos')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_mkt_balance_desc', 'Este es el saldo global de puntos de su inmobiliaria. Puede comprar puntos por paquetes o de forma personalizada y luego distribuirlos en las propiedades que desee destacar.')}
+        </div>
+      ),
+      placement: 'left',
+      disableBeacon: true,
+    },
+    {
+      target: '[data-joyride="mkt-tabs"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_mkt_tabs_title', 'Secciones del Marketplace')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_mkt_tabs_desc', 'El Marketplace tiene dos secciones: "Funciones Extra" le permite agregar herramientas premium a su suscripción mensual, y "Comprar Puntos" le permite adquirir créditos de visibilidad para sus propiedades.')}
+        </div>
+      ),
+      placement: 'bottom',
+    }
+  ];
+
   return (
     <div className="space-y-8 animate-fade-in-up">
+      <LocalJoyride steps={joyrideSteps} storageKey="enjoy_local_marketplace" />
       
       {/* ── Header & Balance ── */}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between border-b border-admin-border-subtle pb-8">

@@ -5,6 +5,8 @@ import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phon
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { eden } from '@/services/eden';
+import { LocalJoyride } from '@/components/joyride/LocalJoyride';
+import { type Step } from 'react-joyride';
 
 // Mock Data Enriquecido para Vendedor (v1.2.3)
 const MOCK_PROPIEDADES = [
@@ -70,8 +72,73 @@ export function PropiedadesPage() {
     }
   };
 
+  const joyrideSteps: Step[] = role === 'superadmin' || role === 'admin' 
+    ? [
+        {
+          target: '[data-joyride="assigned-catalog"]',
+          title: (
+            <span className="font-jakarta font-bold text-renta-950">
+              {t('tour_prop_catalog_title', 'Catálogo de Propiedades')}
+            </span>
+          ),
+          content: (
+            <div className="font-inter text-sm text-renta-600 leading-relaxed">
+              {t('tour_prop_catalog_desc', 'Aquí se listan todas las propiedades dadas de alta. Si eres Vendedor, el sistema aplica automáticamente el Master Filter para que solo veas las asignadas a ti.')}
+            </div>
+          ),
+          placement: 'bottom',
+          disableBeacon: true,
+        },
+        {
+          target: '[data-joyride="booster-action"]',
+          title: (
+            <span className="font-jakarta font-bold text-renta-950">
+              {t('tour_prop_booster_title', 'Asignar Puntos Booster 🚀')}
+            </span>
+          ),
+          content: (
+            <div className="font-inter text-sm text-renta-600 leading-relaxed">
+              {t('tour_prop_booster_desc', 'Use este botón para inyectarle puntos a una propiedad que esté "Disponible" o "En Venta". Los puntos mejoran su ranking dentro del ecosistema.')}
+            </div>
+          ),
+          placement: 'left',
+        }
+      ]
+    : [
+        {
+          target: '[data-joyride="assigned-catalog"]',
+          title: (
+            <span className="font-jakarta font-bold text-renta-950">
+              {t('tour_prop_catalog_title', 'Tu Catálogo Asignado')}
+            </span>
+          ),
+          content: (
+            <div className="font-inter text-sm text-renta-600 leading-relaxed">
+              {t('tour_prop_catalog_ven_desc', 'Como vendedor, solo ves las propiedades que te fueron asignadas. Este es tu espacio de trabajo principal.')}
+            </div>
+          ),
+          placement: 'bottom',
+          disableBeacon: true,
+        },
+        {
+          target: '[data-joyride="service-icons"]',
+          title: (
+            <span className="font-jakarta font-bold text-renta-950">
+              {t('tour_prop_services_title', 'Indicadores de Servicios')}
+            </span>
+          ),
+          content: (
+            <div className="font-inter text-sm text-renta-600 leading-relaxed">
+              {t('tour_prop_services_desc', 'Estos íconos te muestran rápidamente qué servicios tiene activos la propiedad (luz, gas, agua).')}
+            </div>
+          ),
+          placement: 'bottom',
+        }
+      ];
+
   return (
     <div className="space-y-6">
+      <LocalJoyride steps={joyrideSteps} storageKey={`enjoy_local_propiedades_${role}`} />
       {/* ── Header ── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
         <div>

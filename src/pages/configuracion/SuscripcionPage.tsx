@@ -14,6 +14,8 @@ import { cn } from '@/lib/utils';
 import { eden } from '@/services/eden';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { LocalJoyride } from '@/components/joyride/LocalJoyride';
+import { type Step } from 'react-joyride';
 
 export function SuscripcionPage() {
   const { t, formatCurrency } = useRegion();
@@ -52,8 +54,41 @@ export function SuscripcionPage() {
     );
   }
 
+  const joyrideSteps: Step[] = [
+    {
+      target: '[data-joyride="sub-desglose"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_sub_desglose_title', 'Desglose de Facturación')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_sub_desglose_desc', 'Aquí verá el total de su próxima cuota: Plan Base más las funciones extra que haya adquirido. Las funciones nuevas se cobran a partir del ciclo siguiente a su activación.')}
+        </div>
+      ),
+      placement: 'bottom',
+      disableBeacon: true,
+    },
+    {
+      target: '[data-joyride="sub-historial"]',
+      title: (
+        <span className="font-jakarta font-bold text-renta-950">
+          {t('tour_sub_historial_title', 'Historial de Transacciones')}
+        </span>
+      ),
+      content: (
+        <div className="font-inter text-sm text-renta-600 leading-relaxed">
+          {t('tour_sub_historial_desc', 'Registro cronológico de todas las operaciones realizadas en el Marketplace: compras de puntos, activación de funciones y distribución de puntos a propiedades.')}
+        </div>
+      ),
+      placement: 'left',
+    }
+  ];
+
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in-up">
+      <LocalJoyride steps={joyrideSteps} storageKey="enjoy_local_suscripcion" />
       
       {/* ── Header ── */}
       <div className="border-b border-admin-border-subtle pb-6">
