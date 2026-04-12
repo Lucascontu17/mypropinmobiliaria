@@ -9,6 +9,8 @@ interface JoyrideContextType {
   nextStep: () => void;
   prevStep: () => void;
   resetTour: () => void;
+  pauseTour: () => void;
+  resumeTour: () => void;
   isTourCompleted: boolean;
   setTotalSteps: (steps: number) => void;
 }
@@ -68,6 +70,9 @@ export function JoyrideProvider({ children }: { children: React.ReactNode }) {
     setRun(true);
   }, [STORAGE_KEY]);
 
+  const pauseTour = useCallback(() => setRun(false), []);
+  const resumeTour = useCallback(() => setRun(true), []);
+
   const nextStep = useCallback(() => setStepIndex(prev => prev + 1), []);
   const prevStep = useCallback(() => setStepIndex(prev => Math.max(0, prev - 1)), []);
 
@@ -82,6 +87,8 @@ export function JoyrideProvider({ children }: { children: React.ReactNode }) {
         nextStep,
         prevStep,
         resetTour,
+        pauseTour,
+        resumeTour,
         isTourCompleted,
         setTotalSteps,
       }}

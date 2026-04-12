@@ -25,7 +25,7 @@ const getPathForTarget = (target: string): string | null => {
  * Utiliza Plus Jakarta Sans para títulos e Inter para descripciones.
  */
 export function JoyrideWrapper() {
-  const { run, stepIndex, stopTour, nextStep, prevStep } = useJoyride();
+  const { run, stepIndex, stopTour, nextStep, prevStep, pauseTour, resumeTour } = useJoyride();
   const { t } = useRegion();
   const { role } = useInmobiliaria();
   const navigate = useNavigate();
@@ -425,26 +425,38 @@ export function JoyrideWrapper() {
 
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
       stopTour();
-    } else if ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND].includes(type)) {
+      return;
+    }
+
+    // Only handle STEP_AFTER — ignore TARGET_NOT_FOUND to prevent loops
+    if (type === EVENTS.STEP_AFTER) {
       const isNext = action === ACTIONS.NEXT;
       const nextIndex = isNext ? index + 1 : index - 1;
 
-      // Actualizar el índice en el provider
-      if (isNext) {
-        nextStep();
-      } else if (action === ACTIONS.PREV) {
-        prevStep();
+      // Bounds check
+      if (nextIndex < 0 || nextIndex >= finalSteps.length) {
+        stopTour();
+        return;
       }
 
-      // Lógica de navegación automática
+      // Check if navigation is needed for the next step
       const nextStepData = finalSteps[nextIndex];
-      if (nextStepData) {
-        const target = typeof nextStepData.target === 'string' ? nextStepData.target : '';
-        const targetPath = getPathForTarget(target);
-        
-        if (targetPath && location.pathname !== targetPath) {
-          navigate(targetPath);
-        }
+      const target = typeof nextStepData.target === 'string' ? nextStepData.target : '';
+      const targetPath = getPathForTarget(target);
+      const needsNavigation = targetPath && location.pathname !== targetPath;
+
+      if (needsNavigation) {
+        // 1. Pause the tour so Joyride stops looking for targets
+        pauseTour();
+        // 2. Update the step index
+        if (isNext) { nextStep(); } else { prevStep(); }
+        // 3. Navigate to the target page
+        navigate(targetPath);
+        // 4. Resume tour after the new page has rendered
+        setTimeout(() => resumeTour(), 800);
+      } else {
+        // Same page — just advance normally
+        if (isNext) { nextStep(); } else { prevStep(); }
       }
     }
   };
@@ -456,6 +468,8 @@ export function JoyrideWrapper() {
       stepIndex={stepIndex}
       continuous
       scrollToFirstStep
+      showSkipButton
+      disableScrollParentFix
       locale={{
         back: t('tour_btn_back', 'Anterior'),
         close: t('tour_btn_close', 'Cerrar'),
