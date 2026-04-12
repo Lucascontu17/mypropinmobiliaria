@@ -428,7 +428,6 @@ export function JoyrideWrapper() {
       return;
     }
 
-    // Only handle STEP_AFTER — ignore TARGET_NOT_FOUND to prevent loops
     if (type === EVENTS.STEP_AFTER) {
       const isNext = action === ACTIONS.NEXT;
       const nextIndex = isNext ? index + 1 : index - 1;
@@ -439,24 +438,42 @@ export function JoyrideWrapper() {
         return;
       }
 
-      // Check if navigation is needed for the next step
+      // Check if navigation is needed for the NEXT step
       const nextStepData = finalSteps[nextIndex];
       const target = typeof nextStepData.target === 'string' ? nextStepData.target : '';
       const targetPath = getPathForTarget(target);
       const needsNavigation = targetPath && location.pathname !== targetPath;
 
       if (needsNavigation) {
-        // 1. Pause the tour so Joyride stops looking for targets
         pauseTour();
-        // 2. Update the step index
         if (isNext) { nextStep(); } else { prevStep(); }
-        // 3. Navigate to the target page
         navigate(targetPath);
-        // 4. Resume tour after the new page has rendered
         setTimeout(() => resumeTour(), 800);
       } else {
-        // Same page — just advance normally
         if (isNext) { nextStep(); } else { prevStep(); }
+      }
+    }
+
+    // When TARGET_NOT_FOUND fires, the current step target isn't in the DOM.
+    // Navigate to the correct page and retry after the page renders.
+    if (type === EVENTS.TARGET_NOT_FOUND) {
+      const currentStepData = finalSteps[index];
+      if (!currentStepData) { stopTour(); return; }
+
+      const target = typeof currentStepData.target === 'string' ? currentStepData.target : '';
+      const targetPath = getPathForTarget(target);
+
+      if (targetPath && location.pathname !== targetPath) {
+        pauseTour();
+        navigate(targetPath);
+        setTimeout(() => resumeTour(), 800);
+      } else {
+        // Target should be on this page but doesn't exist — skip this step
+        if (index + 1 < finalSteps.length) {
+          nextStep();
+        } else {
+          stopTour();
+        }
       }
     }
   };
