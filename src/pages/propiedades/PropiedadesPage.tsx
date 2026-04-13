@@ -39,7 +39,7 @@ const MOCK_PROPIEDADES = [
 const BOOSTABLE_STATUSES = ['DISPONIBLE', 'VENTA'];
 
 export function PropiedadesPage() {
-  const { hasPermission } = useInmobiliaria();
+  const { hasPermission, role } = useInmobiliaria();
   const [searchTerm, setSearchTerm] = useState('');
   const { t, formatCurrency } = useRegion();
   const navigate = useNavigate();

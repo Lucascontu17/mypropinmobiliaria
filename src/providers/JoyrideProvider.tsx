@@ -1,102 +1,36 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useCallback } from 'react';
 
 interface JoyrideContextType {
-  run: boolean;
-  stepIndex: number;
-  totalSteps: number;
-  startTour: () => void;
-  stopTour: () => void;
-  nextStep: () => void;
-  prevStep: () => void;
   resetTour: () => void;
-  pauseTour: () => void;
-  resumeTour: () => void;
-  isTourCompleted: boolean;
-  setTotalSteps: (steps: number) => void;
-  setStepIndexAction: (index: number) => void;
 }
 
 const JoyrideContext = createContext<JoyrideContextType | undefined>(undefined);
 
-const STORAGE_KEY_BASE = 'myprop_joyride_completed';
-
 /**
- * JoyrideProvider — Manejador global del estado del tour de onboarding.
- * Gestiona la persistencia en localStorage para evitar repeticiones innecesarias.
+ * JoyrideProvider — Manejador de estado para los LocalJoyrides.
+ * Su única responsabilidad ahora es proveer un mecanismo global para resetear
+ * todos los micro-tours de la aplicación y volver a mostrarlos.
  */
-import { useInmobiliaria } from '@/hooks/useInmobiliaria';
-
 export function JoyrideProvider({ children }: { children: React.ReactNode }) {
-  const { role, isSignedIn } = useInmobiliaria();
-  const STORAGE_KEY = `${STORAGE_KEY_BASE}_${role}`;
-
-  const [run, setRun] = useState(false);
-  const [stepIndex, setStepIndex] = useState(0);
-  const [totalSteps, setTotalSteps] = useState(0);
-  const [isTourCompleted, setIsTourCompleted] = useState(() => {
-    return localStorage.getItem(STORAGE_KEY) === 'true';
-  });
-
-  // Sincronizar estado de completado cuando cambia la key (por cambio de rol)
-  useEffect(() => {
-    setIsTourCompleted(localStorage.getItem(STORAGE_KEY) === 'true');
-  }, [STORAGE_KEY]);
-
-  // Iniciar automáticamente si no se ha completado
-  useEffect(() => {
-    if (!isTourCompleted && role && isSignedIn && !run) {
-      // Pequeño delay para asegurar que el DOM esté listo y las animaciones de entrada terminen
-      const timer = setTimeout(() => {
-        setRun(true);
-      }, 1500);
-      return () => clearTimeout(timer);
+  const resetTour = useCallback(() => {
+    // Buscar todas las keys de localStorage que empiecen con enjoy_local_
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('enjoy_local_')) {
+        keysToRemove.push(key);
+      }
     }
-  }, [isTourCompleted, role, isSignedIn, run]);
 
-  const startTour = useCallback(() => {
-    setStepIndex(0);
-    setRun(true);
+    // Eliminarlas
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+
+    // Refrescar para reiniciar el estado de los componentes
+    window.location.reload();
   }, []);
 
-  const stopTour = useCallback(() => {
-    setRun(false);
-    localStorage.setItem(STORAGE_KEY, 'true');
-    setIsTourCompleted(true);
-  }, [STORAGE_KEY]);
-
-  const resetTour = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    setIsTourCompleted(false);
-    setStepIndex(0);
-    setRun(true);
-  }, [STORAGE_KEY]);
-
-  const pauseTour = useCallback(() => setRun(false), []);
-  const resumeTour = useCallback(() => setRun(true), []);
-
-  const nextStep = useCallback(() => setStepIndex(prev => prev + 1), []);
-  const prevStep = useCallback(() => setStepIndex(prev => Math.max(0, prev - 1)), []);
-
-  const setStepIndexAction = useCallback((index: number) => setStepIndex(index), []);
-
   return (
-    <JoyrideContext.Provider
-      value={{
-        run,
-        stepIndex,
-        totalSteps,
-        startTour,
-        stopTour,
-        nextStep,
-        prevStep,
-        resetTour,
-        pauseTour,
-        resumeTour,
-        isTourCompleted,
-        setTotalSteps,
-        setStepIndexAction,
-      }}
-    >
+    <JoyrideContext.Provider value={{ resetTour }}>
       {children}
     </JoyrideContext.Provider>
   );

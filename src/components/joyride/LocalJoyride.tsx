@@ -34,7 +34,7 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
   }, [storageKey, steps]);
 
   const handleJoyrideCallback = useCallback((data: CallBackProps) => {
-    const { action, status, type, index } = data;
+    const { action, status, type, index, lifecycle } = data;
 
     // Tour completado o saltado
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
@@ -43,9 +43,10 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
       return;
     }
 
-    // Avanzar de paso
-    if ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND].includes(type as any)) {
-      setStepIndex(index + (action === ACTIONS.PREV ? -1 : 1));
+    // Avanzar de paso sincronizadamente
+    if (type === EVENTS.STEP_AFTER || (type === EVENTS.TARGET_NOT_FOUND && lifecycle === 'ready')) {
+      const nextIndex = index + (action === ACTIONS.PREV ? -1 : 1);
+      setStepIndex(nextIndex);
     }
   }, [storageKey]);
 
@@ -62,6 +63,8 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
       scrollToFirstStep
       showSkipButton
       disableScrollParentFix
+      spotlightClicks={true}
+      disableOverlayClose={false}
       floaterProps={{
         disableAnimation: true
       }}
@@ -76,10 +79,10 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
         options: {
           arrowColor: '#ffffff',
           backgroundColor: '#ffffff',
-          overlayColor: 'rgba(16, 35, 36, 0.6)',
+          overlayColor: 'rgba(16, 35, 36, 0.5)',
           primaryColor: '#102324',
           textColor: '#213d3d',
-          zIndex: 5000,
+          zIndex: 9999,
         },
         tooltip: {
           borderRadius: '1rem',

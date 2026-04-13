@@ -3,7 +3,6 @@ import { Toaster } from 'sonner';
 import { ClerkProvider } from '@/providers/ClerkProvider';
 import { RegionProvider } from '@/providers/RegionProvider';
 import { JoyrideProvider } from '@/providers/JoyrideProvider';
-import { JoyrideWrapper } from '@/components/joyride/JoyrideWrapper';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
@@ -27,7 +26,6 @@ function App() {
       <RegionProvider>
         <JoyrideProvider>
           <BrowserRouter>
-            <JoyrideWrapper />
             <Toaster position="top-right" expand={false} richColors closeButton />
             <Routes>
               {/* ── Auth Routes (Standalone) ── */}
