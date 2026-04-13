@@ -165,12 +165,11 @@ export function CobranzasPage() {
 
       {/* ── Data Table ── */}
       <div 
-        data-joyride="table-cobranzas"
         className="rounded-2xl border border-admin-border bg-white shadow-sm overflow-hidden animate-fade-in-up" 
         style={{ animationDelay: '200ms' }}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm font-inter">
-            <thead className="bg-renta-50/50 text-renta-600 border-b border-admin-border">
+            <thead data-joyride="table-cobranzas" className="bg-renta-50/50 text-renta-600 border-b border-admin-border">
               <tr>
                 <th className="px-6 py-4 font-semibold shrink-0">{t('cobranza_inquilino', 'Inquilino / Contrato')}</th>
                 <th className="px-6 py-4 font-semibold text-right">{t('cobranza_a_abonar', 'A Abonar (N)')}</th>
