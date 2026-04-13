@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Joyride, type Step, STATUS, ACTIONS, EVENTS, type CallBackProps } from 'react-joyride';
+import { Joyride, type Step, STATUS, type CallBackProps } from 'react-joyride';
 import { useRegion } from '@/hooks/useRegion';
 
 interface LocalJoyrideProps {
@@ -16,7 +16,6 @@ interface LocalJoyrideProps {
 export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
   const { t } = useRegion();
   const [run, setRun] = useState(false);
-  const [stepIndex, setStepIndex] = useState(0);
 
   useEffect(() => {
     // Verificar si ya se completó el tour
@@ -34,19 +33,12 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
   }, [storageKey, steps]);
 
   const handleJoyrideCallback = useCallback((data: CallBackProps) => {
-    const { action, status, type, index, lifecycle } = data;
+    const { status } = data;
 
     // Tour completado o saltado
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
       setRun(false);
       localStorage.setItem(storageKey, 'true');
-      return;
-    }
-
-    // Avanzar de paso sincronizadamente
-    if (type === EVENTS.STEP_AFTER || (type === EVENTS.TARGET_NOT_FOUND && lifecycle === 'ready')) {
-      const nextIndex = index + (action === ACTIONS.PREV ? -1 : 1);
-      setStepIndex(nextIndex);
     }
   }, [storageKey]);
 
@@ -58,7 +50,6 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
     <Joyride
       steps={finalSteps}
       run={run}
-      stepIndex={stepIndex}
       continuous
       scrollToFirstStep
       showSkipButton
