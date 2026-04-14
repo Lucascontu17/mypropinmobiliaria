@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import Joyride, { type Step, STATUS, type CallBackProps } from 'react-joyride';
+import { Joyride, type Step, STATUS, type CallBackProps } from 'react-joyride';
 import { useRegion } from '@/hooks/useRegion';
 
 interface LocalJoyrideProps {
