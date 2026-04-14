@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Joyride, type Step, STATUS, type CallBackProps } from 'react-joyride';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import Joyride, { type Step, STATUS, type CallBackProps } from 'react-joyride';
 import { useRegion } from '@/hooks/useRegion';
 
 interface LocalJoyrideProps {
@@ -12,19 +12,28 @@ interface LocalJoyrideProps {
  * Solo se dispara si en localStorage no existe la clave solicitada.
  * Se inicia con un delay de 800ms para permitir a la página completar
  * sus animaciones de entrada (fade-in) antes de montar el overlay.
+ *
+ * El tour se marca como "visto" apenas arranca, de modo que si el usuario
+ * navega fuera antes de completar los pasos, no vuelve a aparecer el beacon
+ * al regresar.
  */
 export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
   const { t } = useRegion();
   const [run, setRun] = useState(false);
+  const markedRef = useRef(false);
 
   useEffect(() => {
-    // Verificar si ya se completó el tour
-    const isCompleted = localStorage.getItem(storageKey) === 'true';
+    // Verificar si ya se completó (o se vio) el tour
+    const isSeen = localStorage.getItem(storageKey) === 'true';
     
-    if (!isCompleted && steps.length > 0) {
+    if (!isSeen && steps.length > 0) {
       // Retrasar el inicio para evitar parpadeos y solapamientos
       // con las animaciones de carga de la propia página.
       const timer = setTimeout(() => {
+        // Marcar como visto inmediatamente al arrancar para que,
+        // si el usuario navega fuera antes de terminar, no reaparezca.
+        localStorage.setItem(storageKey, 'true');
+        markedRef.current = true;
         setRun(true);
       }, 800);
       
@@ -35,9 +44,10 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
   const handleJoyrideCallback = useCallback((data: CallBackProps) => {
     const { status } = data;
 
-    // Tour completado o saltado
+    // Tour completado, saltado o reseteado por Joyride internamente
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
       setRun(false);
+      // Asegurar que quede marcado (ya debería estarlo, pero por seguridad)
       localStorage.setItem(storageKey, 'true');
     }
   }, [storageKey]);
