@@ -35,6 +35,12 @@ export function MapPicker({ direccionFieldName = 'direccion' }: MapPickerProps) 
       if (result) {
         setValue('latitud', result.latitud, { shouldValidate: true });
         setValue('longitud', result.longitud, { shouldValidate: true });
+        
+        // Auto-completar metadatos geográficos si están disponibles
+        if (result.provincia) setValue('provincia', result.provincia, { shouldValidate: true });
+        if (result.ciudad) setValue('ciudad', result.ciudad, { shouldValidate: true });
+        if (result.barrio) setValue('barrio', result.barrio, { shouldValidate: true });
+        
         setGeocodeStatus('success');
       } else {
         setGeocodeStatus('error');

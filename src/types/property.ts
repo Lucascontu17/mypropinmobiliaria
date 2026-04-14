@@ -16,8 +16,10 @@ export const propertySchema = z.object({
 
   // Datos Generales
   direccion: z.string().min(5, "La dirección debe tener al menos 5 caracteres."),
-  status: z.enum(['DISPONIBLE', 'ALQUILADA', 'VENTA', 'RESERVADA', 'VENDIDA']).default('DISPONIBLE'),
   valor_alquiler: z.string().min(1, "El valor es requerido."),
+  provincia: z.string().optional().nullable(),
+  ciudad: z.string().optional().nullable(),
+  barrio: z.string().optional().nullable(),
 
   // Soporte Geoespacial
   latitud: z.coerce.number()
@@ -64,6 +66,9 @@ export interface PropertyResponse {
   valor_alquiler: string; // numeric(12,2) returned as string
   latitud: number | null;
   longitud: number | null;
+  provincia?: string | null;
+  ciudad?: string | null;
+  barrio?: string | null;
   imagenes: string[]; 
   
   // Detalles Técnicos

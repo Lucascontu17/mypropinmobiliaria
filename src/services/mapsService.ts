@@ -3,6 +3,9 @@ import { eden } from './eden';
 export interface GeocoderResult {
   latitud: number;
   longitud: number;
+  provincia?: string;
+  ciudad?: string;
+  barrio?: string;
 }
 
 /**
@@ -30,11 +33,14 @@ export const geocodeAddress = async (
       return null;
     }
 
-    // Esperamos recibir { latitud, longitud } o algo similar del Server Proxy
-    if (data?.latitud && data?.longitud) {
+    // Esperamos recibir { latitud, longitud, provincia, ciudad, barrio } o algo similar del Server Proxy
+    if (data?.success && data.data?.latitud && data.data?.longitud) {
        return {
-         latitud: Number(data.latitud),
-         longitud: Number(data.longitud)
+         latitud: Number(data.data.latitud),
+         longitud: Number(data.data.longitud),
+         provincia: data.data.provincia,
+         ciudad: data.data.ciudad,
+         barrio: data.data.barrio
        };
     }
 

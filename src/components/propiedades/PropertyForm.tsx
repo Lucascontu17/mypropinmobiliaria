@@ -45,7 +45,10 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
       has_gas: false,
       has_agua: false,
       has_expensas: false,
-      has_abl: false
+      has_abl: false,
+      provincia: '',
+      ciudad: '',
+      barrio: ''
     }
   });
 
@@ -185,6 +188,33 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                   placeholder="Ej: Av. Callao 1234, CABA"
                 />
                 {errors.direccion && <p className="text-xs text-red-500 font-medium">{errors.direccion.message}</p>}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-renta-500 uppercase tracking-wider">Provincia / Estado</label>
+                  <input
+                    {...register('provincia')}
+                    className="w-full rounded-lg border border-admin-border bg-white px-3 py-1.5 text-xs focus:ring-1 focus:ring-renta-200 text-renta-900"
+                    placeholder="Auto-fill..."
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-renta-500 uppercase tracking-wider">Ciudad</label>
+                  <input
+                    {...register('ciudad')}
+                    className="w-full rounded-lg border border-admin-border bg-white px-3 py-1.5 text-xs focus:ring-1 focus:ring-renta-200 text-renta-900"
+                    placeholder="Auto-fill..."
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-renta-500 uppercase tracking-wider">Barrio / Colonia</label>
+                  <input
+                    {...register('barrio')}
+                    className="w-full rounded-lg border border-admin-border bg-white px-3 py-1.5 text-xs focus:ring-1 focus:ring-renta-200 text-renta-900"
+                    placeholder="Auto-fill..."
+                  />
+                </div>
               </div>
 
               <MapPicker />
