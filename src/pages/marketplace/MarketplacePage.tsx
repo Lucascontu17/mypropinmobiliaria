@@ -70,6 +70,22 @@ export function MarketplacePage() {
     }
   };
 
+  const cancelarAddon = async (addonId: string) => {
+    if (!confirm('¿Desea dar de baja esta función? Dejará de cobrarse en la próxima facturación mensual.')) return;
+    
+    setIsProcessing(addonId);
+    try {
+      // @ts-ignore
+      await eden.marketplace['cancel-addon'].post({ addon_id: addonId });
+      alert('Función dada de baja exitosamente.');
+      fetchCatalog();
+    } catch (err) {
+      alert('Error al dar de baja la función.');
+    } finally {
+      setIsProcessing(null);
+    }
+  };
+
   const comprarPuntos = async (puntos: number, monto: number) => {
     setIsProcessing('points_purchase');
     try {
@@ -193,9 +209,16 @@ export function MarketplacePage() {
       {activeTab === 'addons' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {catalog?.addons.map((addon) => (
-            <div key={addon.id} className="group bg-white rounded-2xl border border-admin-border hover:border-renta-300 transition-all duration-300 p-6 flex flex-col hover:shadow-lg">
-              <div className="h-12 w-12 rounded-xl bg-renta-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <PlusCircle className="h-6 w-6 text-renta-600" />
+            <div key={addon.id} className={`group bg-white rounded-2xl border transition-all duration-300 p-6 flex flex-col hover:shadow-lg ${addon.is_acquired ? 'border-emerald-300 ring-2 ring-emerald-500/10' : 'border-admin-border hover:border-renta-300'}`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-12 w-12 rounded-xl bg-renta-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <PlusCircle className="h-6 w-6 text-renta-600" />
+                </div>
+                {addon.is_acquired && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-200">
+                    <CheckCircle2 className="w-3 h-3" /> Contratado
+                  </span>
+                )}
               </div>
               <h3 className="text-lg font-bold font-jakarta text-renta-950">{addon.nombre}</h3>
               <p className="text-sm text-renta-600 mt-2 flex-1 font-inter">{addon.descripcion}</p>
@@ -215,13 +238,23 @@ export function MarketplacePage() {
                   </p>
                 </div>
 
-                <button
-                  onClick={() => aquirirAddon(addon.id)}
-                  disabled={isProcessing !== null}
-                  className="w-full bg-renta-950 text-white rounded-xl py-3 text-sm font-bold hover:bg-renta-800 transition-colors disabled:opacity-50"
-                >
-                  {isProcessing === addon.id ? "Procesando..." : "Adquirir Función"}
-                </button>
+                {addon.is_acquired ? (
+                  <button
+                    onClick={() => cancelarAddon(addon.id)}
+                    disabled={isProcessing !== null}
+                    className="w-full bg-red-50 text-red-600 border border-red-200 rounded-xl py-3 text-sm font-bold hover:bg-red-100 transition-colors disabled:opacity-50"
+                  >
+                    {isProcessing === addon.id ? "Procesando..." : "Dar de baja"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => aquirirAddon(addon.id)}
+                    disabled={isProcessing !== null}
+                    className="w-full bg-renta-950 text-white rounded-xl py-3 text-sm font-bold hover:bg-renta-800 transition-colors disabled:opacity-50"
+                  >
+                    {isProcessing === addon.id ? "Procesando..." : "Adquirir Función"}
+                  </button>
+                )}
               </div>
             </div>
           ))}
