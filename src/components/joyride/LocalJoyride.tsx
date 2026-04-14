@@ -20,7 +20,7 @@ interface LocalJoyrideProps {
 export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
   const { t } = useRegion();
   const [run, setRun] = useState(false);
-  const markedRef = useRef(false);
+  const [stepIndex, setStepIndex] = useState(0);
 
   useEffect(() => {
     // Verificar si ya se completó (o se vio) el tour
@@ -28,26 +28,35 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
     
     if (!isSeen && steps.length > 0) {
       // Retrasar el inicio para evitar parpadeos y solapamientos
-      // con las animaciones de carga de la propia página.
       const timer = setTimeout(() => {
-        // Marcar como visto inmediatamente al arrancar para que,
-        // si el usuario navega fuera antes de terminar, no reaparezca.
-        localStorage.setItem(storageKey, 'true');
-        markedRef.current = true;
+        // En lugar de marcarlo "visto" inmediatamente, esperamos a que inicie 
+        // y lo manejamos en el callback de mount.
+        setStepIndex(0);
         setRun(true);
-      }, 800);
+      }, 600);
       
       return () => clearTimeout(timer);
     }
   }, [storageKey, steps]);
 
   const handleJoyrideCallback = useCallback((data: CallBackProps) => {
-    const { status } = data;
+    const { status, type, action, index } = data;
+
+    // Al arrancar o pasar pasos, aseguramos que quede persistido
+    // Para que si el usuario navega fuera por la mitad, no vuelva a verse
+    if (type === 'step:after' || type === 'tour:start') {
+       localStorage.setItem(storageKey, 'true');
+    }
+
+    if (type === 'step:after') {
+      // Control de avance/retroceso explícito
+      if (action === 'next') setStepIndex(index + 1);
+      if (action === 'prev') setStepIndex(index - 1);
+    }
 
     // Tour completado, saltado o reseteado por Joyride internamente
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
       setRun(false);
-      // Asegurar que quede marcado (ya debería estarlo, pero por seguridad)
       localStorage.setItem(storageKey, 'true');
     }
   }, [storageKey]);
@@ -60,6 +69,7 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
     <Joyride
       steps={finalSteps}
       run={run}
+      stepIndex={stepIndex}
       continuous
       scrollToFirstStep
       showSkipButton
@@ -85,6 +95,13 @@ export function LocalJoyride({ steps, storageKey }: LocalJoyrideProps) {
           textColor: '#213d3d',
           zIndex: 9999,
         },
+        beacon: {
+          display: 'none', // Forzar ocultamiento del dot incial
+          opacity: 0,
+          visibility: 'hidden'
+        },
+        beaconInner: { display: 'none' },
+        beaconOuter: { display: 'none' },
         tooltip: {
           borderRadius: '1rem',
           padding: '24px',
