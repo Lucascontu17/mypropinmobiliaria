@@ -2,7 +2,7 @@ import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { contratoSchema, type ContratoFormData } from '@/types/contrato';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
-import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,6 +26,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
       fecha_inicio: '',
       fecha_fin: '',
       monto_inicial: 0,
+      pago_mes_curso: false,
       reglas_aumento: {
         aplicar_aumento: false,
       },
@@ -59,6 +60,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
   const aplicarAumento = useWatch({ control, name: 'reglas_aumento.aplicar_aumento' });
   const tipoAumento = useWatch({ control, name: 'reglas_aumento.tipo_aumento' });
   const aplicarMora = useWatch({ control, name: 'reglas_mora.aplicar_mora' });
+  const pagoMesCurso = useWatch({ control, name: 'pago_mes_curso' });
 
   return (
     <FormProvider {...methods}>
@@ -172,6 +174,30 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                    />
                  </div>
                  {errors.monto_inicial && <p className="text-xs text-red-500 font-medium">{errors.monto_inicial.message}</p>}
+               </div>
+               
+               {/* Transición Suave / Mid-Month Onboarding */}
+               <div className="pt-5 border-t border-admin-border-subtle space-y-3">
+                 <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-semibold text-renta-900 leading-tight">Estado de Pago Actual</h4>
+                      <p className="text-[10px] text-renta-500">¿El inquilino ya abonó el alquiler correspondiente al mes actual al momento de firmar/registrarse?</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                      <input type="checkbox" className="sr-only peer" {...register('pago_mes_curso')} />
+                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+                    </label>
+                 </div>
+                 
+                 {pagoMesCurso && (
+                    <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl flex gap-2.5 animate-fade-in">
+                       <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                       <p className="text-[10px] leading-relaxed text-blue-700 font-semibold">
+                          Se omitirá la generación de cuota para el mes de inicio actual. Las estadísticas de rentabilidad 
+                          no contabilizarán este periodo saldado, corriendo los KPIs recién a partir del próximo mes.
+                       </p>
+                    </div>
+                 )}
                </div>
             </div>
 

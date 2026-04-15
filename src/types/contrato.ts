@@ -34,6 +34,9 @@ export const contratoSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, "El formato debe ser YYYY-MM-DD"),
   
   monto_inicial: z.coerce.number().positive("El monto de alquiler base debe ser mayor a 0"),
+  
+  // Condición de Inserción
+  pago_mes_curso: z.boolean().default(false),
 
   // Reglas de Rentabilidad: Aumentos
   reglas_aumento: z.object({
