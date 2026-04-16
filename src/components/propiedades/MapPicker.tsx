@@ -56,7 +56,7 @@ export function MapPicker({ direccionFieldName = 'direccion' }: MapPickerProps) 
 
   return (
     <div 
-      data-joyride="map-picker-container"
+      data-shepherd="map-picker-container"
       className="space-y-4 font-inter">
       <div className="flex items-center justify-between">
         <label className="text-sm font-semibold text-renta-900">{t('map_ubicacion', 'Ubicación Geoespacial (API Proxy)')}</label>

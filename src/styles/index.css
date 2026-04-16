@@ -122,3 +122,54 @@
     @apply bg-white/80 backdrop-blur-lg border-b border-admin-border;
   }
 }
+
+/* ============================================================================
+   SHEPHERD.JS CUSTOM THEME — Glassmorphism Edition
+   ============================================================================ */
+
+.shepherd-modal-overlay-container {
+  @apply opacity-0 animate-fade-in;
+  fill: rgba(16, 35, 36, 0.7);
+}
+
+.zonatia-shepherd-tooltip {
+  @apply bg-white/90 backdrop-blur-xl border border-white/30 rounded-3xl shadow-2xl p-2 max-w-sm !important;
+}
+
+.shepherd-header {
+  @apply bg-transparent p-4 pb-0 !important;
+}
+
+.shepherd-title {
+  @apply font-jakarta font-bold text-renta-950 text-xl !important;
+}
+
+.shepherd-text {
+  @apply font-inter text-renta-600 leading-relaxed p-4 pt-2 text-sm !important;
+}
+
+.shepherd-footer {
+  @apply p-4 pt-2 flex items-center justify-end gap-3 !important;
+}
+
+/* Custom Buttons */
+.shepherd-button-primary {
+  @apply bg-renta-950 text-white font-jakarta font-bold px-5 py-2.5 rounded-xl 
+         transition-all hover:bg-renta-800 hover:shadow-lg !important;
+}
+
+.shepherd-button-secondary {
+  @apply bg-renta-100 text-renta-700 font-jakarta font-bold px-5 py-2.5 rounded-xl 
+         transition-all hover:bg-renta-200 !important;
+}
+
+.shepherd-button-skip {
+  @apply text-renta-400 font-inter font-medium text-xs px-3 py-2 
+         hover:text-renta-600 transition-colors uppercase tracking-widest !important;
+}
+
+/* Arrow customization */
+.shepherd-arrow:before {
+  @apply bg-white/90 !important;
+}
+

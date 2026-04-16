@@ -1,17 +1,17 @@
 import React, { createContext, useContext, useCallback } from 'react';
 
-interface JoyrideContextType {
+interface ShepherdContextType {
   resetTour: () => void;
 }
 
-const JoyrideContext = createContext<JoyrideContextType | undefined>(undefined);
+const ShepherdContext = createContext<ShepherdContextType | undefined>(undefined);
 
 /**
- * JoyrideProvider — Manejador de estado para los LocalJoyrides.
+ * ShepherdProvider — Manejador de estado para los LocalShepherds.
  * Su única responsabilidad ahora es proveer un mecanismo global para resetear
  * todos los micro-tours de la aplicación y volver a mostrarlos.
  */
-export function JoyrideProvider({ children }: { children: React.ReactNode }) {
+export function ShepherdProvider({ children }: { children: React.ReactNode }) {
   const resetTour = useCallback(() => {
     // Buscar todas las keys de localStorage que empiecen con enjoy_local_
     const keysToRemove: string[] = [];
@@ -30,16 +30,16 @@ export function JoyrideProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <JoyrideContext.Provider value={{ resetTour }}>
+    <ShepherdContext.Provider value={{ resetTour }}>
       {children}
-    </JoyrideContext.Provider>
+    </ShepherdContext.Provider>
   );
 }
 
-export function useJoyride() {
-  const context = useContext(JoyrideContext);
+export function useShepherd() {
+  const context = useContext(ShepherdContext);
   if (!context) {
-    throw new Error('useJoyride must be used within a JoyrideProvider');
+    throw new Error('useShepherd must be used within a ShepherdProvider');
   }
   return context;
 }

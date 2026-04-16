@@ -5,8 +5,8 @@ import { Settings, BellRing, Mail, MessageSquare, Save, ShieldAlert, Globe, Rota
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
 import { COUNTRY_FLAG, type CountryCode } from '@/types/region';
-import { LocalJoyride } from '@/components/joyride/LocalJoyride';
-import { type Step } from 'react-joyride';
+import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
+import { useShepherd } from '@/providers/ShepherdProvider';
 
 const configSchema = z.object({
   enviar_whatsapp_rollover: z.boolean(),
@@ -24,6 +24,7 @@ const REGION_NAMES: Record<CountryCode, string> = {
 export function ConfiguracionPage() {
   const { role } = useInmobiliaria();
   const { t, country_code, flag, isAuditOverride, setAuditRegion, config } = useRegion();
+  const { resetTour } = useShepherd();
   const isSuperadmin = role === 'superadmin';
   const isAdmin = role === 'admin';
   const canViewConfig = isSuperadmin || isAdmin;
@@ -73,34 +74,36 @@ export function ConfiguracionPage() {
 
   const isDev = import.meta.env.DEV;
 
-  const joyrideSteps: Step[] = [
+  const shepherdSteps: ShepherdStep[] = [
     {
-      target: '[data-joyride="saas-grace-period"]',
-      title: (
-        <span className="font-jakarta font-bold text-renta-950">
-          {t('tour_sa_saas_title', 'Configuración de Automatizaciones')}
-        </span>
-      ),
-      content: (
-        <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_sa_saas_desc', 'Desde aquí puede configurar las notificaciones automáticas (Twilio/SendGrid). Habilite o deshabilite el envío de mensajes por WhatsApp e email según las necesidades de su inmobiliaria.')}
-        </div>
-      ),
+      target: '[data-shepherd="saas-grace-period"]',
+      title: t('tour_sa_saas_title', 'Configuración de Automatizaciones'),
+      content: t('tour_sa_saas_desc', 'Desde aquí puede configurar las notificaciones automáticas (Twilio/SendGrid). Habilite o deshabilite el envío de mensajes por WhatsApp e email según las necesidades de su inmobiliaria.'),
       placement: 'bottom',
-      disableBeacon: true,
     }
   ];
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in-up">
-      <LocalJoyride steps={joyrideSteps} storageKey="enjoy_local_configuracion" />
-      <div className="flex items-center gap-3 border-b border-admin-border-subtle pb-6">
-         <Settings className="h-6 w-6 text-renta-950" />
-         <h1 
-           data-joyride="saas-grace-period"
-           className="text-2xl font-bold text-renta-950 font-jakarta">
-           {t('config_titulo', 'Configuración del Búnker')}
-         </h1>
+      <LocalShepherd steps={shepherdSteps} storageKey="enjoy_local_configuracion" />
+      <div className="flex items-center justify-between border-b border-admin-border-subtle pb-6">
+         <div className="flex items-center gap-3">
+            <Settings className="h-6 w-6 text-renta-950" />
+            <h1 
+              data-shepherd="saas-grace-period"
+              className="text-2xl font-bold text-renta-950 font-jakarta">
+              {t('config_titulo', 'Configuración del Búnker')}
+            </h1>
+         </div>
+
+         {/* Reiniciar Onboarding - Herramienta de Soporte */}
+         <button
+            onClick={resetTour}
+            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-renta-400 hover:text-renta-950 transition-colors bg-renta-50 px-3 py-1.5 rounded-lg border border-renta-100"
+         >
+            <RotateCcw className="h-3 w-3" />
+            Reiniciar Onboarding
+         </button>
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════

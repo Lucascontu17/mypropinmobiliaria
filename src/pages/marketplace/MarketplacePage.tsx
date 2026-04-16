@@ -15,8 +15,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { eden } from '@/services/eden';
-import { LocalJoyride } from '@/components/joyride/LocalJoyride';
-import { type Step } from 'react-joyride';
+import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
 export function MarketplacePage() {
   const { hasPermission, inmobiliaria_id } = useInmobiliaria();
@@ -123,42 +122,25 @@ export function MarketplacePage() {
     );
   }
 
-  // Joyride Steps
-  const joyrideSteps: Step[] = [
+  // Shepherd Steps
+  const shepherdSteps: ShepherdStep[] = [
     {
-      target: '[data-joyride="mkt-balance"]',
-      title: (
-        <span className="font-jakarta font-bold text-renta-950">
-          {t('tour_mkt_balance_title', 'Balance de Puntos')}
-        </span>
-      ),
-      content: (
-        <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_mkt_balance_desc', 'Este es el saldo global de puntos de su inmobiliaria. Puede comprar puntos por paquetes o de forma personalizada y luego distribuirlos en las propiedades que desee destacar.')}
-        </div>
-      ),
+      target: '[data-shepherd="mkt-balance"]',
+      title: t('tour_mkt_balance_title', 'Balance de Puntos'),
+      content: t('tour_mkt_balance_desc', 'Este es el saldo global de puntos de su inmobiliaria. Puede comprar puntos por paquetes o de forma personalizada y luego distribuirlos en las propiedades que desee destacar.'),
       placement: 'left',
-      disableBeacon: true,
     },
     {
-      target: '[data-joyride="mkt-tabs"]',
-      title: (
-        <span className="font-jakarta font-bold text-renta-950">
-          {t('tour_mkt_tabs_title', 'Secciones del Marketplace')}
-        </span>
-      ),
-      content: (
-        <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_mkt_tabs_desc', 'El Marketplace tiene dos secciones: "Funciones Extra" le permite agregar herramientas premium a su suscripción mensual, y "Comprar Puntos" le permite adquirir créditos de visibilidad para sus propiedades.')}
-        </div>
-      ),
+      target: '[data-shepherd="mkt-tabs"]',
+      title: t('tour_mkt_tabs_title', 'Secciones del Marketplace'),
+      content: t('tour_mkt_tabs_desc', 'El Marketplace tiene dos secciones: "Funciones Extra" le permite agregar herramientas premium a su suscripción mensual, y "Comprar Puntos" le permite adquirir créditos de visibilidad para sus propiedades.'),
       placement: 'bottom',
     }
   ];
 
   return (
     <div className="space-y-8 animate-fade-in-up">
-      <LocalJoyride steps={joyrideSteps} storageKey="enjoy_local_marketplace" />
+      <LocalShepherd steps={shepherdSteps} storageKey="enjoy_local_marketplace" />
       
       {/* ── Header & Balance ── */}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between border-b border-admin-border-subtle pb-8">
@@ -173,7 +155,7 @@ export function MarketplacePage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div data-joyride="mkt-balance" className="bg-gradient-to-br from-renta-950 to-renta-800 p-5 rounded-2xl shadow-xl shadow-renta-950/20 text-white min-w-[200px] border border-renta-700">
+          <div data-shepherd="mkt-balance" className="bg-gradient-to-br from-renta-950 to-renta-800 p-5 rounded-2xl shadow-xl shadow-renta-950/20 text-white min-w-[200px] border border-renta-700">
             <p className="text-[10px] font-bold uppercase tracking-widest text-renta-400 mb-1">Puntos Disponibles</p>
             <div className="flex items-end justify-between">
               <span className="text-3xl font-black font-jakarta tracking-tighter">{catalog?.balance || 0}</span>
@@ -184,7 +166,7 @@ export function MarketplacePage() {
       </div>
 
       {/* ── Tabs ── */}
-      <div data-joyride="mkt-tabs" className="flex gap-2 p-1 bg-admin-surface rounded-xl border border-admin-border w-fit">
+      <div data-shepherd="mkt-tabs" className="flex gap-2 p-1 bg-admin-surface rounded-xl border border-admin-border w-fit">
         <button
           onClick={() => setActiveTab('addons')}
           className={cn(

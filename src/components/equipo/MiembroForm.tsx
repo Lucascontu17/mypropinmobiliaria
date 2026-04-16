@@ -99,7 +99,7 @@ export function MiembroForm({ initialData, onCancel, onSuccess }: MiembroFormPro
 
       <form onSubmit={handleSubmit} className="p-6 space-y-6 font-inter">
         {/* Selector de Rol */}
-        <div data-joyride="form-rol" className="space-y-3">
+        <div data-shepherd="form-rol" className="space-y-3">
           <label className="text-sm font-bold text-renta-950 flex items-center gap-2">
             <Shield className="h-4 w-4 text-renta-600" />
             {t('equipo_form_rol', 'Rol / Jerarquía')}
@@ -141,7 +141,7 @@ export function MiembroForm({ initialData, onCancel, onSuccess }: MiembroFormPro
           {errors.role && <p className="text-[10px] text-red-500 font-medium">{errors.role}</p>}
         </div>
 
-        <div data-joyride="form-contacto" className="space-y-6">
+        <div data-shepherd="form-contacto" className="space-y-6">
           {/* Nombre */}
           <div className="space-y-2">
             <label className="text-sm font-bold text-renta-950">

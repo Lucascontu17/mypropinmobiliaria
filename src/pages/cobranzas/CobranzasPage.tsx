@@ -94,7 +94,7 @@ export function CobranzasPage() {
         
         {hasPermission(['superadmin', 'admin']) && (
           <button 
-            data-joyride="btn-cierre-periodo"
+            data-shepherd="btn-cierre-periodo"
             onClick={() => setShowCierreModal(true)}
             className="flex items-center gap-2 rounded-xl bg-renta-950 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-renta-950/20 transition-all hover:bg-renta-800 hover:scale-[1.02]"
           >
@@ -119,7 +119,7 @@ export function CobranzasPage() {
             <p className="text-2xl font-bold text-renta-900 font-jakarta mt-1">{formatCurrency(totalEsperado)}</p>
          </div>
           <div 
-            data-joyride="kpi-morosidad"
+            data-shepherd="kpi-morosidad"
             className="bg-white border border-admin-border p-5 rounded-2xl shadow-sm">
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <AlertCircle className="h-3 w-3" /> {t('cobranza_morosidad', 'Morosidad (A arrastrar)')}
@@ -169,7 +169,7 @@ export function CobranzasPage() {
         style={{ animationDelay: '200ms' }}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm font-inter">
-            <thead data-joyride="table-cobranzas" className="bg-renta-50/50 text-renta-600 border-b border-admin-border">
+            <thead data-shepherd="table-cobranzas" className="bg-renta-50/50 text-renta-600 border-b border-admin-border">
               <tr>
                 <th className="px-6 py-4 font-semibold shrink-0">{t('cobranza_inquilino', 'Inquilino / Contrato')}</th>
                 <th className="px-6 py-4 font-semibold text-right">{t('cobranza_a_abonar', 'A Abonar (N)')}</th>
@@ -228,7 +228,7 @@ export function CobranzasPage() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
                            <button 
-                             data-joyride="btn-registrar-pago"
+                             data-shepherd="btn-registrar-pago"
                              onClick={() => setSelectedPago(p)}
                              className="text-[11px] uppercase tracking-wider font-bold text-renta-600 bg-white border border-admin-border hover:bg-renta-50 hover:text-renta-900 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
                            >

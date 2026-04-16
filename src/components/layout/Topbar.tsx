@@ -24,7 +24,7 @@ export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps)
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-renta-400" />
           <input
             type="text"
-            data-joyride="search-bar"
+            data-shepherd="search-bar"
             placeholder={t('buscar_placeholder', 'Buscar propiedades, inquilinos...')}
             className={cn(
               'h-9 w-72 rounded-xl border border-admin-border bg-renta-50/50 pl-10 pr-4',
@@ -40,7 +40,7 @@ export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps)
       <div className="flex items-center gap-4">
         {/* Region Badge */}
         <div 
-          data-joyride="region-indicator"
+          data-shepherd="region-indicator"
           className={cn(
           "hidden sm:flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition-all",
           isAuditOverride
@@ -65,7 +65,7 @@ export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps)
 
         {/* Tenant Badge */}
         <div 
-          data-joyride="user-profile"
+          data-shepherd="user-profile"
           className="flex items-center gap-3 rounded-xl border border-admin-border bg-white px-3 py-1.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-renta-500 to-renta-700 text-xs font-bold text-white">
             {nombre.charAt(0).toUpperCase()}

@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { ClerkProvider } from '@/providers/ClerkProvider';
 import { RegionProvider } from '@/providers/RegionProvider';
-import { JoyrideProvider } from '@/providers/JoyrideProvider';
+import { ShepherdProvider } from '@/providers/ShepherdProvider';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
@@ -24,7 +24,7 @@ function App() {
   return (
     <ClerkProvider>
       <RegionProvider>
-        <JoyrideProvider>
+        <ShepherdProvider>
           <BrowserRouter>
             <Toaster position="top-right" expand={false} richColors closeButton />
             <Routes>
@@ -143,7 +143,7 @@ function App() {
               </Route>
             </Routes>
           </BrowserRouter>
-        </JoyrideProvider>
+        </ShepherdProvider>
       </RegionProvider>
     </ClerkProvider>
   );

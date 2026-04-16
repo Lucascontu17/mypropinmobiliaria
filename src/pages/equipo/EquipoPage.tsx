@@ -19,57 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import { MiembroForm, type MiembroData } from '@/components/equipo/MiembroForm';
 import type { UserRole } from '@/hooks/useInmobiliaria';
-import { LocalJoyride } from '@/components/joyride/LocalJoyride';
-import { type Step } from 'react-joyride';
-
-// Mock Data — reemplazar con Eden/SWR conectado a MyPropAPI
-const MOCK_EQUIPO: MiembroData[] = [
-  {
-    id: '1',
-    nombre: 'Carlos Méndez',
-    email: 'carlos@inmobiliariabunker.com',
-    celular: '+5491134567890',
-    role: 'admin',
-    estado: 'activo',
-    fecha_alta: '2025-11-15',
-  },
-  {
-    id: '2',
-    nombre: 'Ana Rodríguez',
-    email: 'ana@inmobiliariabunker.com',
-    celular: '+5491198765432',
-    role: 'vendedor',
-    estado: 'activo',
-    fecha_alta: '2026-01-20',
-  },
-  {
-    id: '3',
-    nombre: 'Martín López',
-    email: 'martin@inmobiliariabunker.com',
-    celular: '+5491156789012',
-    role: 'vendedor',
-    estado: 'inactivo',
-    fecha_alta: '2025-08-10',
-  },
-];
-
-const ROLE_META: Record<UserRole, { label: string; icon: React.ElementType; badgeClass: string }> = {
-  superadmin: {
-    label: 'Superadmin',
-    icon: Shield,
-    badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
-  },
-  admin: {
-    label: 'Administrador',
-    icon: ShieldCheck,
-    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
-  },
-  vendedor: {
-    label: 'Vendedor',
-    icon: Briefcase,
-    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-  },
-};
+import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
 export function EquipoPage() {
   const { hasPermission, role: currentRole } = useInmobiliaria();
@@ -93,58 +43,33 @@ export function EquipoPage() {
   const totalVendedores = MOCK_EQUIPO.filter((m) => m.role === 'vendedor').length;
   const totalActivos = MOCK_EQUIPO.filter((m) => m.estado === 'activo').length;
 
-  const joyrideSteps: Step[] = [
+  const shepherdSteps: ShepherdStep[] = [
     {
-      target: '[data-joyride="equipo-header"]',
-      title: (
-        <span className="font-jakarta font-bold text-renta-950">
-          {t('tour_equipo_header_title', 'Su Equipo')}
-        </span>
-      ),
-      content: (
-        <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_equipo_header_desc', 'Desde aquí podrá gestionar todos los agentes inmobiliarios y administradores afiliados a su franquicia. Tenga en cuenta que un Vendedor de la sucursal 1 NO verá data de la sucursal 2 (Master Filter).')}
-        </div>
-      ),
-      placement: 'bottom',
-      disableBeacon: true,
-    },
-    {
-      target: '[data-joyride="equipo-kpis"]',
-      title: (
-        <span className="font-jakarta font-bold text-renta-950">
-          {t('tour_equipo_kpis_title', 'Estado de la Fuerza de Ventas')}
-        </span>
-      ),
-      content: (
-        <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_equipo_kpis_desc', 'Métricas rápidas que muestran cuántos colaboradores tienen acceso activo a su plataforma, divididos por el rol asignado.')}
-        </div>
-      ),
+      target: '[data-shepherd="equipo-header"]',
+      title: t('tour_equipo_header_title', 'Su Equipo'),
+      content: t('tour_equipo_header_desc', 'Desde aquí podrá gestionar todos los agentes inmobiliarios y administradores afiliados a su franquicia. Tenga en cuenta que un Vendedor de la sucursal 1 NO verá data de la sucursal 2 (Master Filter).'),
       placement: 'bottom',
     },
     {
-      target: '[data-joyride="btn-nuevo-miembro"]',
-      title: (
-        <span className="font-jakarta font-bold text-renta-950">
-          {t('tour_equipo_invite_title', 'Reclutamiento Rápido')}
-        </span>
-      ),
-      content: (
-        <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_equipo_invite_desc', 'Haga clic aquí para enviar una invitación de onboarding por email a su nuevo vendedor o administrador. Ellos cargarán sus propios datos y contraseña.')}
-        </div>
-      ),
+      target: '[data-shepherd="equipo-kpis"]',
+      title: t('tour_equipo_kpis_title', 'Estado de la Fuerza de Ventas'),
+      content: t('tour_equipo_kpis_desc', 'Métricas rápidas que muestran cuántos colaboradores tienen acceso activo a su plataforma, divididos por el rol asignado.'),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-shepherd="btn-nuevo-miembro"]',
+      title: t('tour_equipo_invite_title', 'Reclutamiento Rápido'),
+      content: t('tour_equipo_invite_desc', 'Haga clic aquí para enviar una invitación de onboarding por email a su nuevo vendedor o administrador. Ellos cargarán sus propios datos y contraseña.'),
       placement: 'left',
     }
   ];
 
   return (
     <div className="space-y-6">
-      <LocalJoyride steps={joyrideSteps} storageKey="enjoy_local_equipo" />
+      <LocalShepherd steps={shepherdSteps} storageKey="enjoy_local_equipo" />
       {/* ── Header ── */}
       <div 
-        data-joyride="equipo-header"
+        data-shepherd="equipo-header"
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up"
       >
         <div>
@@ -158,7 +83,7 @@ export function EquipoPage() {
 
         {hasPermission(['superadmin', 'admin']) && (
           <button
-            data-joyride="btn-nuevo-miembro"
+            data-shepherd="btn-nuevo-miembro"
             onClick={() => {
               setEditingData(null);
               setIsFormOpen(true);
@@ -173,7 +98,7 @@ export function EquipoPage() {
 
       {/* ── KPI Cards ── */}
       <div
-        data-joyride="equipo-kpis"
+        data-shepherd="equipo-kpis"
         className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-in-up"
         style={{ animationDelay: '80ms' }}
       >

@@ -18,7 +18,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useInmobiliaria, type UserRole } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { useJoyride } from '@/providers/JoyrideProvider';
+import { useShepherd } from '@/providers/ShepherdProvider';
 import { useNavigate } from 'react-router-dom';
 
 interface SidebarProps {
@@ -59,7 +59,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const navigate = useNavigate();
   const { hasPermission } = useInmobiliaria();
   const { t, flag, country_code, isAuditOverride } = useRegion();
-  const { resetTour } = useJoyride();
+  const { resetTour } = useShepherd();
 
   // Filter items based on user role
   const visibleNavItems = NAV_ITEMS.filter(item => hasPermission(item.allowedRoles));
@@ -98,7 +98,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <Link
               key={item.href}
               to={item.href}
-              data-joyride={`nav-${item.dialectKey.replace('nav_', '')}`}
+              data-shepherd={`nav-${item.dialectKey.replace('nav_', '')}`}
               className={cn(
                 'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
                 isActive

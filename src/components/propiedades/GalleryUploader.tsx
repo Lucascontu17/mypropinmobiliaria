@@ -49,7 +49,7 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
 
   return (
     <div 
-      data-joyride="gallery-uploader"
+      data-shepherd="gallery-uploader"
       className="space-y-3">
       <div className="flex justify-between items-center mb-1">
         <label className="text-sm font-semibold text-renta-900">{t('gallery_label', 'Catálogo de Imágenes (4 a 20 permitidas)')} <span className="text-red-500">*</span></label>

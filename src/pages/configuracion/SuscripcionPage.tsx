@@ -14,8 +14,7 @@ import { cn } from '@/lib/utils';
 import { eden } from '@/services/eden';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { LocalJoyride } from '@/components/joyride/LocalJoyride';
-import { type Step } from 'react-joyride';
+import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
 export function SuscripcionPage() {
   const { t, formatCurrency } = useRegion();
@@ -54,41 +53,24 @@ export function SuscripcionPage() {
     );
   }
 
-  const joyrideSteps: Step[] = [
+  const shepherdSteps: ShepherdStep[] = [
     {
-      target: '[data-joyride="sub-desglose"]',
-      title: (
-        <span className="font-jakarta font-bold text-renta-950">
-          {t('tour_sub_desglose_title', 'Desglose de Facturación')}
-        </span>
-      ),
-      content: (
-        <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_sub_desglose_desc', 'Aquí verá el total de su próxima cuota: Plan Base más las funciones extra que haya adquirido. Las funciones nuevas se cobran a partir del ciclo siguiente a su activación.')}
-        </div>
-      ),
+      target: '[data-shepherd="sub-desglose"]',
+      title: t('tour_sub_desglose_title', 'Desglose de Facturación'),
+      content: t('tour_sub_desglose_desc', 'Aquí verá el total de su próxima cuota: Plan Base más las funciones extra que haya adquirido. Las funciones nuevas se cobran a partir del ciclo siguiente a su activación.'),
       placement: 'bottom',
-      disableBeacon: true,
     },
     {
-      target: '[data-joyride="sub-historial"]',
-      title: (
-        <span className="font-jakarta font-bold text-renta-950">
-          {t('tour_sub_historial_title', 'Historial de Transacciones')}
-        </span>
-      ),
-      content: (
-        <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_sub_historial_desc', 'Registro cronológico de todas las operaciones realizadas en el Marketplace: compras de puntos, activación de funciones y distribución de puntos a propiedades.')}
-        </div>
-      ),
+      target: '[data-shepherd="sub-historial"]',
+      title: t('tour_sub_historial_title', 'Historial de Transacciones'),
+      content: t('tour_sub_historial_desc', 'Registro cronológico de todas las operaciones realizadas en el Marketplace: compras de puntos, activación de funciones y distribución de puntos a propiedades.'),
       placement: 'left',
     }
   ];
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in-up">
-      <LocalJoyride steps={joyrideSteps} storageKey="enjoy_local_suscripcion" />
+      <LocalShepherd steps={shepherdSteps} storageKey="enjoy_local_suscripcion" />
       
       {/* ── Header ── */}
       <div className="border-b border-admin-border-subtle pb-6">
@@ -101,7 +83,7 @@ export function SuscripcionPage() {
         {/* ── PRÓXIMO PAGO (Left 2/3) ── */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-3xl border border-admin-border overflow-hidden shadow-sm">
-            <div data-joyride="sub-desglose" className="bg-renta-50/50 px-8 py-6 border-b border-admin-border-subtle flex items-center justify-between">
+            <div data-shepherd="sub-desglose" className="bg-renta-50/50 px-8 py-6 border-b border-admin-border-subtle flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-renta-950 text-white flex items-center justify-center shadow-lg shadow-renta-950/20">
                   <CreditCard className="h-5 w-5" />
@@ -176,7 +158,7 @@ export function SuscripcionPage() {
         {/* ── HISTORIAL (Right 1/3) ── */}
         <div className="space-y-6">
           <div className="bg-white rounded-3xl border border-admin-border shadow-sm flex flex-col h-full">
-            <div data-joyride="sub-historial" className="px-6 py-5 border-b border-admin-border-subtle flex items-center gap-2">
+            <div data-shepherd="sub-historial" className="px-6 py-5 border-b border-admin-border-subtle flex items-center gap-2">
               <History className="h-4 w-4 text-renta-600" />
               <h2 className="text-sm font-bold text-renta-950 font-jakarta">Historial de Transacciones</h2>
             </div>

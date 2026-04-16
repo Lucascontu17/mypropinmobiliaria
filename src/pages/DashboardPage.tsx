@@ -10,8 +10,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { LocalJoyride } from '@/components/joyride/LocalJoyride';
-import { type Step } from 'react-joyride';
+import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
 /**
  * DashboardPage — Vista principal del Panel Administrativo.
@@ -119,42 +118,24 @@ export function DashboardPage() {
     return true;
   });
 
-  const joyrideSteps: Step[] = [
+  const shepherdSteps: ShepherdStep[] = [
     {
-      target: '[data-joyride="kpi-grid"]',
-      title: (
-        <span className="font-jakarta font-bold text-renta-950">
-          {t('tour_sa_kpi_title', 'Centro de Control')}
-        </span>
-      ),
-      content: (
-        <div className="font-inter text-sm text-renta-600 leading-relaxed">
-          {t('tour_sa_kpi_desc', 'Métricas globales en tiempo real. Observe el estado general de su plataforma inmobiliaria.')}
-        </div>
-      ),
+      target: '[data-shepherd="kpi-grid"]',
+      title: t('tour_sa_kpi_title', 'Centro de Control'),
+      content: t('tour_sa_kpi_desc', 'Métricas globales en tiempo real. Observe el estado general de su plataforma inmobiliaria.'),
       placement: 'bottom',
-      disableBeacon: true,
     },
     {
-       target: '[data-joyride="user-profile"]',
-       title: (
-         <span className="font-jakarta font-bold text-renta-950">
-           {t('tour_sa_roles_title', 'Su Identidad')}
-         </span>
-       ),
-       content: (
-         <div className="font-inter text-sm text-renta-600 leading-relaxed">
-           <span className="font-playfair italic text-renta-950 block mb-2">{t('tour_sa_welcome', 'Bienvenido a su Búnker.')}</span>
-           {t('tour_sa_roles_desc', 'Desde aquí puede administrar su cuenta, configurar su perfil y cerrar sesión.')}
-         </div>
-       ),
+       target: '[data-shepherd="user-profile"]',
+       title: t('tour_sa_roles_title', 'Su Identidad'),
+       content: t('tour_sa_roles_desc', 'Desde aquí puede administrar su cuenta, configurar su perfil y cerrar sesión.'),
        placement: 'bottom',
      }
   ];
 
   return (
     <div className="space-y-8">
-      <LocalJoyride steps={joyrideSteps} storageKey={`enjoy_local_dashboard_${role}`} />
+      <LocalShepherd steps={shepherdSteps} storageKey={`enjoy_local_dashboard_${role}`} />
       {/* ── Page Header ── */}
       <div className="opacity-0 animate-fade-in-up">
         <h1 className="text-2xl font-bold text-renta-950 lg:text-3xl">
@@ -170,7 +151,7 @@ export function DashboardPage() {
 
       {/* ── Stats Grid ── */}
       <div 
-        data-joyride="kpi-grid"
+        data-shepherd="kpi-grid"
         className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {visibleStats.map((stat, index) => (
           <StatCard
