@@ -481,7 +481,6 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
 
           </div>
         </div>
-      </div>
 
         {/* Debug Global Errors */}
         {Object.keys(errors).length > 0 && (
