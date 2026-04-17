@@ -21,6 +21,54 @@ import { MiembroForm, type MiembroData } from '@/components/equipo/MiembroForm';
 import type { UserRole } from '@/hooks/useInmobiliaria';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
+const ROLE_META = {
+  superadmin: {
+    label: 'Superadmin',
+    badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
+    icon: Shield,
+  },
+  admin: {
+    label: 'Administrador',
+    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+    icon: ShieldCheck,
+  },
+  vendedor: {
+    label: 'Vendedor',
+    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+    icon: Briefcase,
+  },
+};
+
+const MOCK_EQUIPO: Partial<MiembroData>[] = [
+  {
+    id: 'u_1',
+    nombre: 'Ana Martinez',
+    email: 'ana@inmobiliaria.com',
+    celular: '+5491122334455',
+    role: 'superadmin',
+    estado: 'activo',
+    fecha_alta: new Date('2023-01-15').toISOString(),
+  },
+  {
+    id: 'u_2',
+    nombre: 'Carlos Lopez',
+    email: 'carlos@inmobiliaria.com',
+    celular: '+5491122334466',
+    role: 'admin',
+    estado: 'activo',
+    fecha_alta: new Date('2023-03-10').toISOString(),
+  },
+  {
+    id: 'u_3',
+    nombre: 'Maria Gomez',
+    email: 'maria@inmobiliaria.com',
+    celular: '+5491122334477',
+    role: 'vendedor',
+    estado: 'inactivo',
+    fecha_alta: new Date('2023-06-20').toISOString(),
+  },
+];
+
 export function EquipoPage() {
   const { hasPermission, role: currentRole } = useInmobiliaria();
   const { t } = useRegion();
