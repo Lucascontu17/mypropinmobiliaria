@@ -2,7 +2,7 @@
  * RegionProvider.tsx — Proveedor de contexto regional multi-país.
  *
  * Responsabilidades:
- * 1. Detecta el TLD del hostname (`.com.ar` → AR, `.com.mx` → MX, default → US)
+ * 1. Detecta la región vía estado interno y localStorage (post-TLD migration)
  * 2. En dev, fuerza la región a VITE_FORCE_REGION (default: AR)
  * 3. Carga el archivo de dialecto .md correspondiente
  * 4. Expone `t()`, `formatCurrency()`, `formatPhone()` y el config regional
