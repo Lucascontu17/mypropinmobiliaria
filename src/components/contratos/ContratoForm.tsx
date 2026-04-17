@@ -178,8 +178,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                   <p className="text-[10px] text-renta-500">Solo se listan inmuebles con estado "DISPONIBLE".</p>
                </div>
 
-               <div className="space-y-1.5 pt-1">
-               <div className="pt-1">
+               <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between mb-3">
                     <label className="text-sm font-semibold text-renta-900 flex items-center gap-1.5">
                        {isNuevoInquilino ? 'Datos del Nuevo Inquilino' : 'Inquilino Titular'} <User className="h-3 w-3" /> <span className="text-red-500">*</span>
@@ -482,6 +481,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
 
           </div>
         </div>
+      </div>
 
         {/* Debug Global Errors */}
         {Object.keys(errors).length > 0 && (
