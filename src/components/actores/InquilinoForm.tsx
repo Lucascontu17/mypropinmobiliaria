@@ -97,6 +97,8 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
         // 🚨 STANDARD FLOW: Crear inquilino desde cero
         const payload = {
           ...data,
+          dni_url: typeof data.dni_url === 'object' && data.dni_url?.length ? `https://zonatiastorage.local/mock/${data.dni_url[0].name}` : '',
+          contrato_url: typeof data.contrato_url === 'object' && data.contrato_url?.length ? `https://zonatiastorage.local/mock/${data.contrato_url[0].name}` : '',
           inmobiliaria_id: inmobiliaria_id!,
           country_code: country_code!,
           role: 'inquilino' as const
@@ -227,32 +229,34 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
           {errors.celular && <p className="text-xs text-red-500 font-medium">{errors.celular.message}</p>}
         </div>
 
-        {/* DNI URL */}
+        {/* DNI Upload */}
         <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-renta-900">Ruta / URL del DNI</label>
+          <label className="text-sm font-semibold text-renta-900">DNI Adjunto (Frente y Dorso)</label>
           <input
             {...register('dni_url')}
+            type="file"
+            accept=".pdf,.png,.jpg,.jpeg"
             className={cn(
-              "w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
-              errors.dni_url ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+              "w-full rounded-xl border border-admin-border bg-white pr-4 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-renta-200 transition-all text-renta-950 file:mr-4 file:-my-1.5 file:py-2.5 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-renta-100 file:text-renta-700 hover:file:bg-renta-200 file:cursor-pointer",
+              errors.dni_url ? "border-red-400" : ""
             )}
-            placeholder="https://storage..."
           />
-          {errors.dni_url && <p className="text-xs text-red-500 font-medium">{errors.dni_url.message}</p>}
+          {errors.dni_url && <p className="text-xs text-red-500 font-medium">{errors.dni_url.message as string}</p>}
         </div>
 
-        {/* Contrato URL */}
+        {/* Contrato Upload */}
         <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-renta-900">Ruta / URL del Contrato</label>
+          <label className="text-sm font-semibold text-renta-900">Contrato Firmado</label>
           <input
             {...register('contrato_url')}
+            type="file"
+            accept=".pdf,.png,.jpg,.jpeg"
             className={cn(
-              "w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
-              errors.contrato_url ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+              "w-full rounded-xl border border-admin-border bg-white pr-4 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-renta-200 transition-all text-renta-950 file:mr-4 file:-my-1.5 file:py-2.5 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-renta-100 file:text-renta-700 hover:file:bg-renta-200 file:cursor-pointer",
+              errors.contrato_url ? "border-red-400" : ""
             )}
-            placeholder="https://storage..."
           />
-          {errors.contrato_url && <p className="text-xs text-red-500 font-medium">{errors.contrato_url.message}</p>}
+          {errors.contrato_url && <p className="text-xs text-red-500 font-medium">{errors.contrato_url.message as string}</p>}
         </div>
 
       </div>

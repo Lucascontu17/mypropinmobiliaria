@@ -46,8 +46,8 @@ export const tenantSchema = z.object({
   email: z.string().email('Formato de email inválido'),
   celular: z.string()
     .regex(e164Regex, 'El celular debe tener formato internacional (Ej: +549...)'),
-  dni_url: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
-  contrato_url: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
+  dni_url: z.any().optional(),
+  contrato_url: z.any().optional(),
 });
 
 export type TenantFormValues = z.infer<typeof tenantSchema>;
