@@ -115,6 +115,26 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
               </h3>
 
               <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-renta-900">Tipo de Inmueble <span className="text-red-500">*</span></label>
+                <select 
+                  {...register('tipo_inmueble')}
+                  className={cn(
+                    "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950",
+                    errors.tipo_inmueble ? "border-red-400" : "border-admin-border"
+                  )}
+                >
+                  <option value="">-- Seleccionar Tipo --</option>
+                  <option value="departamento">🏢 Departamento</option>
+                  <option value="casa">🏡 Casa</option>
+                  <option value="ph">🏘️ PH</option>
+                  <option value="terreno">🌱 Terreno</option>
+                  <option value="habitacion">🛌 Habitación</option>
+                  <option value="otro">❓ Otro</option>
+                </select>
+                {errors.tipo_inmueble && <p className="text-xs text-red-500 font-medium">{errors.tipo_inmueble.message}</p>}
+              </div>
+
+              <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-renta-900">Propietario Vinculado <span className="text-red-500">*</span></label>
                 <select 
                   {...register('owner_id')}

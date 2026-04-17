@@ -20,6 +20,9 @@ export const propertySchema = z.object({
   provincia: z.string().optional().nullable(),
   ciudad: z.string().optional().nullable(),
   barrio: z.string().optional().nullable(),
+  tipo_inmueble: z.enum(["departamento", "casa", "ph", "terreno", "habitacion", "otro"], {
+    errorMap: () => ({ message: "Debe seleccionar un tipo de inmueble." })
+  }),
 
   // Soporte Geoespacial
   latitud: z.coerce.number()
@@ -78,6 +81,7 @@ export interface PropertyResponse {
   banos: number;
   antiguedad: number;
   cocheras: number;
+  tipo_inmueble: "departamento" | "casa" | "ph" | "terreno" | "habitacion" | "otro";
 
   // 1:1 Parity Columns
   has_luz: boolean;

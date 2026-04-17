@@ -14,11 +14,8 @@ const MOCK_PROPIEDADES = [
     direccion: 'Av. Callao 1234, CABA', 
     status: 'DISPONIBLE', 
     valor_alquiler: 450000, 
-    propietario: 'Juan Perez',
-    celular_contacto: '+5491112345678',
-    superficie_total: 85,
-    ambientes: 3,
     dormitorios: 2,
+    tipo_inmueble: 'departamento',
     servicios: { luz: true, gas: true, agua: true, expensas: false, abl: true }
   },
   { 
@@ -31,6 +28,7 @@ const MOCK_PROPIEDADES = [
     superficie_total: 60,
     ambientes: 2,
     dormitorios: 1,
+    tipo_inmueble: 'departamento',
     servicios: { luz: true, gas: false, agua: true, expensas: true, abl: false }
   },
 ];
@@ -40,6 +38,7 @@ const BOOSTABLE_STATUSES = ['DISPONIBLE', 'VENTA'];
 export function PropiedadesPage() {
   const { hasPermission, role } = useInmobiliaria();
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterTipo, setFilterTipo] = useState<string>('todos');
   const { t, formatCurrency } = useRegion();
   const navigate = useNavigate();
 
@@ -48,9 +47,11 @@ export function PropiedadesPage() {
   const [boosterPuntos, setBoosterPuntos] = useState(5);
   const [isAssigning, setIsAssigning] = useState(false);
   
-  const properties = MOCK_PROPIEDADES.filter(p => 
-    p.direccion.toLowerCase().includes(searchTerm.toLowerCase()) || p.propietario.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const properties = MOCK_PROPIEDADES.filter(p => {
+    const matchesSearch = p.direccion.toLowerCase().includes(searchTerm.toLowerCase()) || p.propietario.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTipo = filterTipo === 'todos' || p.tipo_inmueble === filterTipo;
+    return matchesSearch && matchesTipo;
+  });
 
   const handleAssignPoints = async () => {
     if (!boosterModal || boosterPuntos <= 0) return;
@@ -136,6 +137,20 @@ export function PropiedadesPage() {
             className="w-full rounded-xl border border-admin-border bg-white pl-10 pr-4 py-2 text-sm text-renta-900 placeholder:text-renta-400 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all"
           />
         </div>
+
+        <select
+          value={filterTipo}
+          onChange={(e) => setFilterTipo(e.target.value)}
+          className="rounded-xl border border-admin-border bg-white px-4 py-2 text-sm text-renta-900 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all font-semibold"
+        >
+          <option value="todos">Todos los Tipos</option>
+          <option value="departamento">🏢 Departamento</option>
+          <option value="casa">🏡 Casa</option>
+          <option value="ph">🏘️ PH</option>
+          <option value="terreno">🌱 Terreno</option>
+          <option value="habitacion">🛌 Habitación</option>
+          <option value="otro">❓ Otro</option>
+        </select>
       </div>
 
       {/* ── Data Table ── */}
