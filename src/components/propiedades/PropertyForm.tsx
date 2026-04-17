@@ -247,25 +247,32 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                 <div className="grid grid-cols-3 gap-3 col-span-2">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Ambientes</label>
-                    <input
-                      {...register('ambientes')}
-                      type="number"
-                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
-                    />
+                    <select
+                      {...register('ambientes', { valueAsNumber: true })}
+                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950 cursor-pointer"
+                    >
+                      <option value={1}>1</option>
+                      <option value={2}>2</option>
+                      <option value={3}>3</option>
+                      <option value={4}>4</option>
+                      <option value={5}>4 o más de 4</option>
+                    </select>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Habitaciones</label>
                     <input
-                      {...register('habitaciones')}
+                      {...register('habitaciones', { valueAsNumber: true })}
                       type="number"
+                      min="0"
                       className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
                     />
                   </div>
                    <div className="space-y-1.5">
                     <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Baños</label>
                     <input
-                      {...register('banos')}
+                      {...register('banos', { valueAsNumber: true })}
                       type="number"
+                      min="0"
                       className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
                     />
                   </div>
@@ -275,8 +282,9 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Cocheras</label>
                     <input
-                      {...register('cocheras')}
+                      {...register('cocheras', { valueAsNumber: true })}
                       type="number"
+                      min="0"
                       className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
                     />
                   </div>
@@ -284,8 +292,9 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                     <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Antigüedad</label>
                     <div className="relative">
                        <input
-                        {...register('antiguedad')}
+                        {...register('antiguedad', { valueAsNumber: true })}
                         type="number"
+                        min="0"
                         className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
                       />
                       <span className="absolute right-3 top-2 text-[10px] text-renta-400 font-bold">AÑOS</span>
