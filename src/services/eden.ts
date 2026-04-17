@@ -10,4 +10,15 @@ import type { App } from 'mypropapi';
 // In production, it will point to the public centralized domain (e.g. railway URL + /api/v1)
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
-export const eden = treaty<App>(API_URL);
+export const eden = treaty<App>(API_URL, {
+    async headers() {
+        const isDev = import.meta.env.DEV;
+        let region = 'AR';
+        if (!isDev) {
+            region = localStorage.getItem('zonatia_audit_region') || 'AR';
+        }
+        return {
+            'x-region': region
+        };
+    }
+});
