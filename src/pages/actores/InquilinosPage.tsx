@@ -32,16 +32,6 @@ export function InquilinosPage() {
             {t('inquilinos_subtitulo', 'Gestión de locatarios y acceso a documentación digital.')}
           </p>
         </div>
-        
-        {hasPermission(['superadmin', 'admin']) && (
-          <button 
-            onClick={() => { setEditingData(null); setIsFormOpen(true); }}
-            className="flex items-center gap-2 rounded-xl bg-renta-950 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-renta-950/20 transition-all hover:bg-renta-800"
-          >
-            <Plus className="h-4 w-4" />
-            {t('inquilinos_nuevo', 'Nuevo Inquilino')}
-          </button>
-        )}
       </div>
 
       {/* ── Toolbar ── */}

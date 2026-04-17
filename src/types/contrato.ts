@@ -23,7 +23,21 @@ export const contratoSchema = z.object({
   
   // Vínculos Atómicos
   uid_propiedad: z.string().uuid({ message: "Debe seleccionar una propiedad DISPONIBLE." }),
-  uid_inquilino: z.string().uuid({ message: "Debe asignar un inquilino válido (con DNI)." }),
+  
+  // Selección o Creación de Inquilino
+  is_nuevo_inquilino: z.boolean().default(false),
+  uid_inquilino: z.string().uuid().optional(), 
+  
+  // Datos de Inquilino (Si se crea nuevo)
+  nuevo_inquilino: z.object({
+    nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres').optional(),
+    dni: z.string().min(7, 'DNI incompleto').optional(),
+    email: z.string().email('Email inválido').optional(),
+    celular: z.string().optional(),
+    dni_url: z.any().optional(),
+    contrato_url: z.any().optional(),
+    client_number: z.string().optional(), // Para vinculación global
+  }).optional(),
   
   // Ciclo de Vida del Contrato
   fecha_inicio: z.string()
@@ -54,6 +68,19 @@ export const contratoSchema = z.object({
   })
 }).superRefine((data, ctx) => {
   // Validaciones custom condicionales
+  if (data.is_nuevo_inquilino) {
+    if (!data.nuevo_inquilino?.nombre) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['nuevo_inquilino', 'nombre'], message: "El nombre es obligatorio." });
+    }
+    if (!data.nuevo_inquilino?.dni) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['nuevo_inquilino', 'dni'], message: "El DNI es obligatorio." });
+    }
+  } else {
+    if (!data.uid_inquilino) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['uid_inquilino'], message: "Debe seleccionar un inquilino." });
+    }
+  }
+
   if (data.reglas_aumento.aplicar_aumento) {
     if (!data.reglas_aumento.periodicidad) {
       ctx.addIssue({

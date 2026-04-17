@@ -1,10 +1,9 @@
-import { FormProvider, useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { contratoSchema, type ContratoFormData } from '@/types/contrato';
-import { useInmobiliaria } from '@/hooks/useInmobiliaria';
-import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { eden } from '@/services/eden';
+import { toast } from 'sonner';
+import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info, Search, Link as LinkIcon, UserCheck } from 'lucide-react';
 
 interface ContratoFormProps {
   propiedadesDisponibles: { uid_prop: string; direccion: string }[];
@@ -14,15 +13,26 @@ interface ContratoFormProps {
 }
 
 export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables, onCancel, onSubmitSuccess }: ContratoFormProps) {
-  const { inmobiliaria_id } = useInmobiliaria();
+  const { inmobiliaria_id, country_code } = useInmobiliaria();
   const navigate = useNavigate();
+
+  const [isLinking, setIsLinking] = useState(false);
+  const [foundClient, setFoundClient] = useState<any>(null);
+  const [clientSearch, setClientSearch] = useState('');
 
   const methods = useForm<ContratoFormData>({
     resolver: zodResolver(contratoSchema),
     defaultValues: {
       inmobiliaria_id: '',
       uid_propiedad: '',
+      is_nuevo_inquilino: false,
       uid_inquilino: '',
+      nuevo_inquilino: {
+        nombre: '',
+        dni: '',
+        email: '',
+        celular: '',
+      },
       fecha_inicio: '',
       fecha_fin: '',
       monto_inicial: 0,
@@ -40,19 +50,82 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, control, setValue } = methods;
 
+  const isNuevoInquilino = useWatch({ control, name: 'is_nuevo_inquilino' });
+
+  const handleLookupClient = async () => {
+    if (!clientSearch) return;
+    setIsLinking(true);
+    try {
+      // @ts-ignore
+      const { data, error } = await eden.clients.lookup[clientSearch].get();
+      if (error) throw new Error('Cliente no encontrado');
+
+      setFoundClient(data);
+      setValue('nuevo_inquilino.nombre', data.nombre);
+      setValue('nuevo_inquilino.email', data.email || '');
+      setValue('nuevo_inquilino.celular', data.celular || '');
+      if (data.dni) setValue('nuevo_inquilino.dni', data.dni);
+      setValue('nuevo_inquilino.client_number', data.client_number);
+
+      toast.success('Cliente Localizado', {
+        description: `Se han cargado los datos de ${data.nombre}`
+      });
+    } catch (err: any) {
+      toast.error('Error de Búsqueda', { description: err.message });
+    } finally {
+      setIsLinking(false);
+    }
+  };
+
   const onSubmit = async (data: ContratoFormData) => {
     try {
-      // 🚨 MUX SECURITY (ZERO LEAKS): Inyectar Master Filter antes de enviarlo
-      const payload: ContratoFormData = {
+      let finalUidInquilino = data.uid_inquilino;
+
+      // ── PASO 1: Creación Atómica de Inquilino (Si aplica) ──
+      if (data.is_nuevo_inquilino && data.nuevo_inquilino) {
+        toast.info('Creando inquilino...');
+        
+        const tenantPayload = {
+          ...data.nuevo_inquilino,
+          // Mock Storage URL generation inherited from InquilinoForm logic
+          dni_url: typeof data.nuevo_inquilino.dni_url === 'object' && data.nuevo_inquilino.dni_url?.length ? `https://zonatiastorage.local/mock/${data.nuevo_inquilino.dni_url[0].name}` : '',
+          contrato_url: typeof data.nuevo_inquilino.contrato_url === 'object' && data.nuevo_inquilino.contrato_url?.length ? `https://zonatiastorage.local/mock/${data.nuevo_inquilino.contrato_url[0].name}` : '',
+          inmobiliaria_id: inmobiliaria_id!,
+          country_code: country_code!,
+          role: 'inquilino' as const
+        };
+
+        // @ts-ignore
+        const { data: newInq, error: inqError } = await eden.actors.create.post(tenantPayload);
+        
+        if (inqError) throw new Error('Error al crear el nuevo inquilino.');
+        
+        finalUidInquilino = newInq.id;
+        toast.success('Inquilino creado con éxito');
+      }
+
+      // ── PASO 2: Creación del Contrato ──
+      toast.info('Generando contrato...');
+      const contractPayload = {
         ...data,
+        uid_inquilino: finalUidInquilino!,
         inmobiliaria_id: inmobiliaria_id || undefined
       };
-
-      // const response = await eden.contratos.post(payload);
       
+      // Eliminar el objeto temporal de nuevo inquilino antes del envío final
+      delete (contractPayload as any).nuevo_inquilino;
+      delete (contractPayload as any).is_nuevo_inquilino;
+
+      // @ts-ignore
+      const { error: contractError } = await eden.contratos.post(contractPayload);
+      
+      if (contractError) throw new Error('Error al generar el contrato.');
+
+      toast.success('Contrato Generado Correctamente');
       if (onSubmitSuccess) onSubmitSuccess();
-    } catch (error) {
-       console.error('Error generando contrato:', error);
+    } catch (error: any) {
+       toast.error('Error en la Transacción', { description: error.message });
+       console.error('Error: ', error);
     }
   };
 
@@ -106,23 +179,102 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                </div>
 
                <div className="space-y-1.5 pt-1">
-                  <label className="text-sm font-semibold text-renta-900 flex items-center gap-1.5">
-                     Inquilino Titular <User className="h-3 w-3" /> <span className="text-red-500">*</span>
-                  </label>
-                  <select 
-                    {...register('uid_inquilino')}
-                    className={cn(
-                      "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-1 transition-all",
-                      errors.uid_inquilino ? "border-red-400 focus:ring-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200 text-renta-950"
-                    )}
-                  >
-                    <option value="">-- Seleccione un Inquilino --</option>
-                    {inquilinosSeleccionables.map(inq => (
-                      <option key={inq.uid_inq} value={inq.uid_inq}>{inq.nombre} (DNI: {inq.dni})</option>
-                    ))}
-                  </select>
-                  {errors.uid_inquilino && <p className="text-xs text-red-500 font-medium">{errors.uid_inquilino.message}</p>}
-                  <p className="text-[10px] text-renta-500">La validación de DNI es obligatoria (Búnker Rule).</p>
+               <div className="pt-1">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-semibold text-renta-900 flex items-center gap-1.5">
+                       {isNuevoInquilino ? 'Datos del Nuevo Inquilino' : 'Inquilino Titular'} <User className="h-3 w-3" /> <span className="text-red-500">*</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <span className="text-[10px] font-bold text-renta-500 uppercase tracking-tighter group-hover:text-renta-950 transition-colors">¿Es inquilino nuevo?</span>
+                      <input type="checkbox" {...register('is_nuevo_inquilino')} className="w-4 h-4 rounded border-admin-border text-renta-600 focus:ring-renta-500" />
+                    </label>
+                  </div>
+
+                  {!isNuevoInquilino ? (
+                    <div className="space-y-1.5">
+                      <select 
+                        {...register('uid_inquilino')}
+                        className={cn(
+                          "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-1 transition-all",
+                          errors.uid_inquilino ? "border-red-400 focus:ring-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200 text-renta-950"
+                        )}
+                      >
+                        <option value="">-- Seleccione un Inquilino --</option>
+                        {inquilinosSeleccionables.map(inq => (
+                          <option key={inq.uid_inq} value={inq.uid_inq}>{inq.nombre} (DNI: {inq.dni})</option>
+                        ))}
+                      </select>
+                      {errors.uid_inquilino && <p className="text-xs text-red-500 font-medium">{errors.uid_inquilino.message}</p>}
+                      <p className="text-[10px] text-renta-500">Seleccione un inquilino de su base de datos actual.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 p-4 rounded-xl border border-renta-200 bg-white shadow-inner animate-fade-in">
+                      {/* Lookup Component (Atomic Port) */}
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                        <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                           <LinkIcon className="w-3 h-3" /> Vincular desde Red Zonatia
+                        </label>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text"
+                            value={clientSearch}
+                            onChange={(e) => setClientSearch(e.target.value)}
+                            placeholder="Ej: 001"
+                            className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-xs focus:outline-none focus:border-renta-500"
+                          />
+                          <button 
+                            type="button"
+                            onClick={handleLookupClient}
+                            disabled={isLinking}
+                            className="bg-white border border-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2"
+                          >
+                            {isLinking ? <div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> : <Search className="w-3 h-3" />}
+                            Buscar
+                          </button>
+                        </div>
+                        {foundClient && (
+                          <div className="text-[9px] font-black text-emerald-600 flex items-center gap-1 uppercase">
+                            <UserCheck className="w-3 h-3" /> Vinculado a #{foundClient.client_number}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="col-span-2 space-y-1">
+                          <label className="text-[10px] font-bold text-renta-600 uppercase">Nombre Completo</label>
+                          <input {...register('nuevo_inquilino.nombre')} className="w-full rounded-lg border border-admin-border px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="Nombre y Apellido" />
+                          {errors.nuevo_inquilino?.nombre && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.nombre.message}</p>}
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-renta-600 uppercase">DNI</label>
+                          <input {...register('nuevo_inquilino.dni')} className="w-full rounded-lg border border-admin-border px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="12345678" />
+                          {errors.nuevo_inquilino?.dni && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.dni.message}</p>}
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-renta-600 uppercase">Email</label>
+                          <input {...register('nuevo_inquilino.email')} className="w-full rounded-lg border border-admin-border px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="inquilino@email.com" />
+                          {errors.nuevo_inquilino?.email && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.email.message}</p>}
+                        </div>
+
+                        <div className="col-span-2 space-y-1">
+                          <label className="text-[10px] font-bold text-renta-600 uppercase">Celular (E.164)</label>
+                          <input {...register('nuevo_inquilino.celular')} className="w-full rounded-lg border border-admin-border px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="+54911..." />
+                        </div>
+
+                        <div className="space-y-1">
+                           <label className="text-[10px] font-bold text-renta-600 uppercase">DNI Adjunto</label>
+                           <input type="file" {...register('nuevo_inquilino.dni_url')} className="w-full text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-renta-50 file:text-renta-700 hover:file:bg-renta-100" />
+                        </div>
+
+                        <div className="space-y-1">
+                           <label className="text-[10px] font-bold text-renta-600 uppercase">Contrato Base</label>
+                           <input type="file" {...register('nuevo_inquilino.contrato_url')} className="w-full text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-renta-50 file:text-renta-700 hover:file:bg-renta-100" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                </div>
             </div>
 
