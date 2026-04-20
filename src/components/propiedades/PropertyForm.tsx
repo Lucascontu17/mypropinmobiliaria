@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { propertySchema, type PropertyFormData } from '@/types/property';
-import { useInmobiliaria } from '../../hooks/useInmobiliaria';
-import { Save, X, Home, Map, Zap, DollarSign, Loader2, CheckCircle2 } from 'lucide-react';
+import { Save, X, Home, Map, Zap, DollarSign, Loader2, CheckCircle2, Tag, RefreshCw, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useRegion } from '@/hooks/useRegion';
 import { GalleryUploader } from './GalleryUploader';
 import { MapPicker } from './MapPicker';
 import { eden } from '@/services/eden';
@@ -23,6 +25,7 @@ interface PropertyFormProps {
 
 export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }: PropertyFormProps) {
   const { inmobiliaria_id } = useInmobiliaria();
+  const { currency_code } = useRegion();
 
   const methods = useForm<PropertyFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,20 +49,31 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
       has_agua: false,
       has_expensas: false,
       has_abl: false,
+      moneda: currency_code as any,
+      operacion: 'alquiler',
+      valor_venta: '0',
       provincia: '',
       ciudad: '',
       barrio: ''
     }
   });
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, watch } = methods;
+  const { register, handleSubmit, formState: { errors, isSubmitting }, watch, setValue } = methods;
 
   const onSubmit = async (data: PropertyFormData) => {
     try {
       // 🚨 MUX SECURITY (ZERO LEAKS): Force inmobiliaria_id
+      // 🔄 LÓGICA DE TRANSICIÓN: Vendida -> Alquiler (Requested by User)
+      const isTransition = data.operacion === 'venta' && data.status === 'VENDIDA' && gestionaAlquiler;
+      
       const payload = {
         ...data,
-        inmobiliaria_id
+        inmobiliaria_id,
+        ...(isTransition ? {
+          operacion: 'alquiler',
+          status: 'DISPONIBLE',
+          // valor_alquiler ya fue actualizado vía setValue
+        } : {})
       };
 
       // 🛠️ PERSISTENCIA EN EL BÚNKERA (v3.4.5 protocol)
@@ -94,6 +108,11 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
   };
 
   const currentStatus = watch('status');
+  const currentOperacion = watch('operacion');
+  const currentMoneda = watch('moneda');
+
+  // Estado local para el flujo de transformación Venta -> Alquiler
+  const [gestionaAlquiler, setGestionaAlquiler] = useState(false);
 
   return (
     <FormProvider {...methods}>
@@ -113,6 +132,30 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
               <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-3">
                 <DollarSign className="h-4 w-4" /> Datos Comerciales
               </h3>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-renta-900">Tipo de Operación <span className="text-red-500">*</span></label>
+                  <select 
+                    {...register('operacion')}
+                    className="w-full rounded-xl border border-admin-border bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950 font-bold"
+                  >
+                    <option value="alquiler">🔑 Alquiler</option>
+                    <option value="venta">💰 Venta</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-renta-900">Divisa de Negocio <span className="text-red-500">*</span></label>
+                  <select 
+                    {...register('moneda')}
+                    className="w-full rounded-xl border border-admin-border bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950"
+                  >
+                    <option value={currency_code}>{currency_code} (Local)</option>
+                    <option value="USD">USD (Dólares)</option>
+                  </select>
+                </div>
+              </div>
 
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-renta-900">Tipo de Inmueble <span className="text-red-500">*</span></label>
@@ -155,41 +198,115 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-renta-900">Valor Alquiler</label>
+                  <label className="text-sm font-semibold text-renta-900">
+                    {currentOperacion === 'alquiler' ? 'Valor Alquiler' : 'Valor de Venta'}
+                  </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-renta-500 font-semibold">$</span>
+                    <span className="absolute left-3 top-2.5 text-renta-500 font-semibold">{currentMoneda === 'USD' ? 'US$' : '$'}</span>
                     <input
-                      {...register('valor_alquiler')}
+                      {...register(currentOperacion === 'alquiler' ? 'valor_alquiler' : 'valor_venta')}
                       type="text"
                       className={cn(
-                        "w-full rounded-xl border bg-white pl-8 pr-4 py-2 text-sm focus:outline-none focus:ring-1 text-renta-950",
-                        errors.valor_alquiler ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                        "w-full rounded-xl border bg-white pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 text-renta-950 font-bold",
+                        (currentOperacion === 'alquiler' ? errors.valor_alquiler : errors.valor_venta) ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
                       )}
                       placeholder="0.00"
                     />
                   </div>
-                  {errors.valor_alquiler && <p className="text-xs text-red-500 font-medium">{errors.valor_alquiler.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-renta-900">Estado</label>
+                  <label className="text-sm font-semibold text-renta-900 text-right block">Estado del Inmueble</label>
                   <select 
                     {...register('status')}
                     className={cn(
-                      "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none font-semibold focus:ring-1",
+                      "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none font-bold focus:ring-1",
                       currentStatus === 'DISPONIBLE' && "text-green-700 bg-green-50 border-green-200",
                       currentStatus === 'ALQUILADA' && "text-blue-700 bg-blue-50 border-blue-200",
-                      ["VENTA","RESERVADA","VENDIDA"].includes(currentStatus) && "text-renta-700 bg-renta-50 border-renta-200"
+                      currentStatus === 'RESERVADA' && "text-yellow-700 bg-yellow-50 border-yellow-200",
+                      currentStatus === 'VENDIDA' && "text-gray-700 bg-gray-50 border-gray-300",
+                      currentStatus === 'VENTA' && "text-orange-700 bg-orange-50 border-orange-200"
                     )}
                   >
-                    <option value="DISPONIBLE">🟢 Disponible</option>
-                    <option value="ALQUILADA">🔵 Alquilada</option>
-                    <option value="VENTA">🟠 En Venta</option>
-                    <option value="RESERVADA">🟡 Reservada</option>
-                    <option value="VENDIDA">⚫ Vendida</option>
+                    {currentOperacion === 'alquiler' ? (
+                      <>
+                        <option value="DISPONIBLE">🟢 Disponible</option>
+                        <option value="ALQUILADA">🔴 No Disponible (Alquilada)</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="DISPONIBLE">🟢 Disponible (Publicar)</option>
+                        <option value="RESERVADA">🟡 Reservado</option>
+                        <option value="VENDIDA">⚫ Vendido</option>
+                      </>
+                    )}
                   </select>
                 </div>
               </div>
+
+              {/* FLUJO DINÁMICO: "VENDIDO" -> ¿TRANSICIÓN A ALQUILER? */}
+              {currentOperacion === 'venta' && currentStatus === 'VENDIDA' && (
+                <div className="mt-4 p-4 rounded-xl border-2 border-dashed border-admin-border bg-slate-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                       <RefreshCw className="h-4 w-4 text-renta-600 animate-spin-slow" />
+                       <h4 className="text-xs font-bold text-renta-900 uppercase tracking-wider">Cierre de Venta y Transmisión</h4>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                       <span className="text-[10px] font-bold text-renta-500">¿PASAR A GESTIÓN DE ALQUILER?</span>
+                       <input 
+                         type="checkbox" 
+                         checked={gestionaAlquiler} 
+                         onChange={(e) => {
+                            setGestionaAlquiler(e.target.checked);
+                            if (e.target.checked) {
+                              toast.info("Modo Transmisión Activado", {
+                                description: "La propiedad se convertirá automáticamente a Alquiler al guardar."
+                              });
+                            }
+                         }} 
+                         className="w-4 h-4 rounded text-renta-600" 
+                       />
+                    </label>
+                  </div>
+
+                  {gestionaAlquiler && (
+                    <div className="space-y-4 pt-2 border-t border-admin-border-subtle">
+                        <div className="space-y-1.5">
+                           <label className="text-[10px] font-bold text-renta-700 uppercase flex items-center gap-1">
+                              <UserPlus className="h-3 w-3" /> Nuevo Propietario (Titular Adquiriente)
+                           </label>
+                           <select 
+                             className="w-full rounded-lg border border-admin-border bg-white px-3 py-2 text-xs"
+                             onChange={(e) => setValue('owner_id', e.target.value)}
+                           >
+                              <option value="">-- Seleccionar Comprador --</option>
+                              {owners.map(o => <option key={o.uid_propietario} value={o.uid_propietario}>{o.nombre}</option>)}
+                           </select>
+                        </div>
+                        <div className="space-y-1.5">
+                           <label className="text-[10px] font-bold text-renta-700 uppercase">Valor de Alquiler Inicial</label>
+                           <div className="relative">
+                              <span className="absolute left-2.5 top-1.5 text-renta-500 font-bold text-xs">$</span>
+                              <input 
+                                type="text"
+                                className="w-full rounded-lg border border-admin-border bg-white pl-6 pr-3 py-1.5 text-xs font-bold"
+                                placeholder="Monto para la nueva ficha"
+                                onChange={(e) => setValue('valor_alquiler', e.target.value)}
+                              />
+                           </div>
+                        </div>
+                        <div className="bg-emerald-50 p-2.5 rounded-lg border border-emerald-100 flex items-center gap-2">
+                           <CheckCircle2 className="h-3.3 w-3.3 text-emerald-600" />
+                           <p className="text-[9px] text-emerald-800 leading-tight">
+                              Al guardar, la propiedad será cargada como <strong>DISPONIBLE</strong> en modo <strong>ALQUILER</strong> 
+                              bajo la titularidad del nuevo propietario seleccionado.
+                           </p>
+                        </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="bg-renta-50/30 p-5 rounded-2xl border border-admin-border space-y-4">
