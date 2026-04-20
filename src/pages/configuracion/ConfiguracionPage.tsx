@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { COUNTRY_FLAG, type CountryCode } from '@/types/region';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 import { useShepherd } from '@/providers/ShepherdProvider';
+import { CountryPhoneSelector } from '@/components/common/CountryPhoneSelector';
 
 const configSchema = z.object({
   enviar_whatsapp_rollover: z.boolean(),
@@ -265,15 +266,12 @@ export function ConfiguracionPage() {
                <label className="text-sm font-bold text-renta-950">
                  {t('config_telefono', 'Teléfono Corporativo para respuestas (WS/SMS)')}
                </label>
-               <input 
-                 type="text"
-                 value={telefono}
-                 onChange={e => setTelefono(e.target.value)}
-                 className={cn(
-                   "w-full max-w-sm rounded-xl border px-3 py-2 text-sm outline-none focus:ring-1 bg-admin-surface",
-                   errorTelefono ? "border-red-400 focus:border-red-500" : "border-admin-border focus:border-renta-400"
-                 )}
-               />
+               <div className="max-w-sm">
+                 <CountryPhoneSelector 
+                   value={telefono}
+                   onChange={setTelefono}
+                 />
+               </div>
                {errorTelefono && <p className="text-[10px] text-red-500 font-medium">{errorTelefono}</p>}
                <p className="text-[10px] text-renta-500">
                  {t('config_telefono_e164', 'Es obligatorio utilizar el estándar E.164.')} {t('config_telefono_e164', '')} Ejemplo: {config.phone_prefix}12345678.

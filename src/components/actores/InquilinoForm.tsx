@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { tenantSchema, type TenantFormValues } from '@/lib/validations/actores';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Save, X, AlertTriangle, Search, Link as LinkIcon, UserCheck } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { CountryPhoneSelector } from '../common/CountryPhoneSelector';
 
 interface InquilinoFormProps {
   initialData?: TenantFormValues;
@@ -33,6 +34,7 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
     register,
     handleSubmit,
     setValue,
+    control,
     formState: { errors, isSubmitting }
   } = useForm<TenantFormValues>({
     resolver: zodResolver(tenantSchema),
@@ -217,14 +219,15 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
         {/* Celular E164 */}
         <div className="space-y-1.5 md:col-span-2">
           <label className="text-sm font-semibold text-renta-900">Celular (E.164 Twilio)</label>
-          <input
-            {...register('celular')}
-            type="tel"
-            className={cn(
-              "w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
-              errors.celular ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+          <Controller
+            name="celular"
+            control={control}
+            render={({ field: { value, onChange } }) => (
+              <CountryPhoneSelector
+                value={value}
+                onChange={onChange}
+              />
             )}
-            placeholder="+5491100000000"
           />
           {errors.celular && <p className="text-xs text-red-500 font-medium">{errors.celular.message}</p>}
         </div>

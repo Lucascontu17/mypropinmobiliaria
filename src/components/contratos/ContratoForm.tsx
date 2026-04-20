@@ -4,6 +4,11 @@ import { useState } from 'react';
 import { eden } from '@/services/eden';
 import { toast } from 'sonner';
 import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info, Search, Link as LinkIcon, UserCheck } from 'lucide-react';
+import { useForm, FormProvider, useWatch, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { contratoSchema, type ContratoFormData } from '@/types/contrato';
+import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { CountryPhoneSelector } from '../common/CountryPhoneSelector';
 
 interface ContratoFormProps {
   propiedadesDisponibles: { uid_prop: string; direccion: string }[];
@@ -259,7 +264,16 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
 
                         <div className="col-span-2 space-y-1">
                           <label className="text-[10px] font-bold text-renta-600 uppercase">Celular (E.164)</label>
-                          <input {...register('nuevo_inquilino.celular')} className="w-full rounded-lg border border-admin-border px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="+54911..." />
+                          <Controller
+                            name="nuevo_inquilino.celular"
+                            control={control}
+                            render={({ field: { value, onChange } }) => (
+                              <CountryPhoneSelector
+                                value={value}
+                                onChange={onChange}
+                              />
+                            )}
+                          />
                         </div>
 
                         <div className="space-y-1">
