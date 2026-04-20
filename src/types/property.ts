@@ -23,6 +23,9 @@ export const propertySchema = z.object({
   tipo_inmueble: z.enum(["departamento", "casa", "ph", "terreno", "habitacion", "otro"], {
     errorMap: () => ({ message: "Debe seleccionar un tipo de inmueble." })
   }),
+  operacion: z.enum(["alquiler", "venta"]).default("alquiler"),
+  moneda: z.enum(["ARS", "MXN", "USD"]).default("ARS"),
+  valor_venta: z.string().optional(),
 
   // Soporte Geoespacial
   latitud: z.coerce.number()
@@ -66,7 +69,10 @@ export interface PropertyResponse {
   inmobiliaria_id: string;
   direccion: string;
   status: 'DISPONIBLE' | 'ALQUILADA' | 'VENTA' | 'RESERVADA' | 'VENDIDA';
+  operacion: 'alquiler' | 'venta';
+  moneda: 'ARS' | 'MXN' | 'USD';
   valor_alquiler: string; // numeric(12,2) returned as string
+  valor_venta: string | null;
   latitud: number | null;
   longitud: number | null;
   provincia?: string | null;
