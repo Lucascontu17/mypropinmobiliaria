@@ -1,7 +1,7 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ownerSchema, type OwnerFormValues } from '@/lib/validations/actores';
-import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { useInmobiliaria } from '../../hooks/useInmobiliaria';
 import { eden } from '@/services/eden';
 import { toast } from 'sonner';
 import { Save, X, AlertTriangle } from 'lucide-react';

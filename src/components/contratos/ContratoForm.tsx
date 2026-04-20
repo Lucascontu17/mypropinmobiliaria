@@ -7,7 +7,7 @@ import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle,
 import { useForm, FormProvider, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { contratoSchema, type ContratoFormData } from '@/types/contrato';
-import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { useInmobiliaria } from '../../hooks/useInmobiliaria';
 import { CountryPhoneSelector } from '../common/CountryPhoneSelector';
 
 interface ContratoFormProps {

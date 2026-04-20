@@ -1,7 +1,7 @@
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { propertySchema, type PropertyFormData } from '@/types/property';
-import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { useInmobiliaria } from '../../hooks/useInmobiliaria';
 import { Save, X, Home, Map, Zap, DollarSign, Loader2, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GalleryUploader } from './GalleryUploader';
