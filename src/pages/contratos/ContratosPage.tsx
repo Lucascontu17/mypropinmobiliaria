@@ -5,7 +5,7 @@ import { Plus, Search, FileText, Trash2, StopCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { eden } from '@/services/eden';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { ContratoDetailsModal } from '@/components/contratos/ContratoDetailsModal';
 
 // Mock Data
