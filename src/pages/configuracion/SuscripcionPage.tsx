@@ -23,7 +23,7 @@ if (mpPublicKey) {
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
 export function SuscripcionPage() {
-  const { t, formatCurrency } = useRegion();
+  const { t, formatCurrency, currency_code } = useRegion();
   
   const [summary, setSummary] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -137,7 +137,8 @@ export function SuscripcionPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-xs font-bold text-renta-400 uppercase tracking-widest mb-1">Total a Abonar</p>
-                  <div className="text-5xl font-black text-renta-950 tracking-tighter">
+                  <div className="text-5xl font-black text-renta-950 tracking-tighter flex items-baseline justify-end gap-2">
+                    <span className="text-2xl text-renta-400 font-bold">{currency_code}</span>
                     {formatCurrency(summary?.total_amount || 0)}
                   </div>
                 </div>
