@@ -9,19 +9,38 @@ import { toast } from 'react-hot-toast';
 import { ContratoDetailsModal } from '@/components/contratos/ContratoDetailsModal';
 
 // Mock Data
-const MOCK_CONTRATOS = [
-  { id: '1', propiedad: 'Av. Callao 1234, CABA', inquilino: 'Martin Lopez', fecha_inicio: '2026-04-01', precio: 450000, estado: 'ACTIVO' },
-];
-
+// Delete MOCK_CONTRATOS as we will fetch real data
 export function ContratosPage() {
   const { hasPermission } = useInmobiliaria();
   const { t } = useRegion();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedContrato, setSelectedContrato] = useState<typeof MOCK_CONTRATOS[0] | null>(null);
+  const [allContratos, setAllContratos] = useState<any[]>([]);
+  const [selectedContrato, setSelectedContrato] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchContratos();
+  }, []);
+
+  const fetchContratos = async () => {
+    setIsLoading(true);
+    try {
+      // @ts-ignore
+      const res = await eden.admin.contratos.get();
+      if (res.data?.success) {
+        setAllContratos(res.data.data || []);
+      }
+    } catch (e) {
+      console.error('Error fetching contratos', e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
-  const contratos = MOCK_CONTRATOS.filter(c => 
-    c.propiedad.toLowerCase().includes(searchTerm.toLowerCase()) || c.inquilino.toLowerCase().includes(searchTerm.toLowerCase())
+  const contratos = allContratos.filter(c => 
+    c.propiedad.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    c.inquilino.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleFinalizar = async (contratoId: string) => {
@@ -30,6 +49,7 @@ export function ContratosPage() {
       await eden.admin.contratos[contratoId].finalizar.post();
       toast.success('Contrato finalizado exitosamente.');
       setSelectedContrato(null);
+      await fetchContratos();
     } catch (e: any) {
       toast.error('Error al finalizar el contrato: ' + e.message);
     }
@@ -84,6 +104,9 @@ export function ContratosPage() {
       {/* ── Data Table ── */}
       <div className="rounded-2xl border border-admin-border bg-white shadow-sm overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
         <div className="overflow-x-auto">
+          {isLoading ? (
+            <div className="p-12 text-center text-renta-500">Cargando contratos...</div>
+          ) : (
           <table className="w-full text-left text-sm font-inter">
             <thead className="bg-renta-50/50 text-renta-600 border-b border-admin-border">
               <tr>
@@ -140,6 +163,7 @@ export function ContratosPage() {
               )}
             </tbody>
           </table>
+          )}
         </div>
       </div>
 
