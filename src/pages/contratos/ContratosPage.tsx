@@ -4,6 +4,9 @@ import { useRegion } from '@/hooks/useRegion';
 import { Plus, Search, FileText, Trash2, StopCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { eden } from '@/services/eden';
+import { toast } from 'react-hot-toast';
+import { ContratoDetailsModal } from '@/components/contratos/ContratoDetailsModal';
 
 // Mock Data
 const MOCK_CONTRATOS = [
@@ -14,11 +17,33 @@ export function ContratosPage() {
   const { hasPermission } = useInmobiliaria();
   const { t } = useRegion();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedContrato, setSelectedContrato] = useState<typeof MOCK_CONTRATOS[0] | null>(null);
   const navigate = useNavigate();
   
   const contratos = MOCK_CONTRATOS.filter(c => 
     c.propiedad.toLowerCase().includes(searchTerm.toLowerCase()) || c.inquilino.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleFinalizar = async (contratoId: string) => {
+    try {
+      // @ts-ignore
+      await eden.admin.contratos[contratoId].finalizar.post();
+      toast.success('Contrato finalizado exitosamente.');
+      setSelectedContrato(null);
+    } catch (e: any) {
+      toast.error('Error al finalizar el contrato: ' + e.message);
+    }
+  };
+
+  const handleReunion = async (contratoId: string) => {
+    try {
+      // @ts-ignore
+      await eden.admin.contratos[contratoId].reunion.post();
+      toast.success('Notificación de reunión enviada al inquilino.');
+    } catch (e: any) {
+      toast.error('Error al solicitar reunión: ' + e.message);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -96,7 +121,11 @@ export function ContratosPage() {
                       <div className="flex justify-end gap-2">
                         {hasPermission(['superadmin', 'admin']) && (
                           <>
-                            <button title="Finalizar Contrato" className="p-2 text-renta-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
+                            <button 
+                              onClick={() => setSelectedContrato(c)}
+                              title="Gestionar Contrato" 
+                              className="p-2 text-renta-400 hover:text-renta-600 hover:bg-renta-50 rounded-lg transition-colors"
+                            >
                               <StopCircle className="h-4 w-4" />
                             </button>
                             <button title="Eliminar Contrato (Rollback)" className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
@@ -113,6 +142,15 @@ export function ContratosPage() {
           </table>
         </div>
       </div>
+
+      {selectedContrato && (
+        <ContratoDetailsModal 
+          contrato={selectedContrato}
+          onClose={() => setSelectedContrato(null)}
+          onFinalizar={handleFinalizar}
+          onReunion={handleReunion}
+        />
+      )}
     </div>
   );
 }
