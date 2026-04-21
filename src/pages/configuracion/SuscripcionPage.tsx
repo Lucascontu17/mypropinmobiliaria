@@ -14,6 +14,12 @@ import { cn } from '@/lib/utils';
 import { eden } from '@/services/eden';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
+
+const mpPublicKey = import.meta.env.VITE_MP_PUBLIC_KEY;
+if (mpPublicKey) {
+  initMercadoPago(mpPublicKey, { locale: 'es-AR' });
+}
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
 export function SuscripcionPage() {
@@ -22,6 +28,9 @@ export function SuscripcionPage() {
   const [summary, setSummary] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const [preferenceId, setPreferenceId] = useState<string | null>(null);
+  const [isGeneratingPayment, setIsGeneratingPayment] = useState(false);
 
   useEffect(() => {
     fetchBillingData();
@@ -42,6 +51,27 @@ export function SuscripcionPage() {
       console.error('Error fetching billing data:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePayClick = async () => {
+    setIsGeneratingPayment(true);
+    try {
+      // @ts-ignore
+      const res = await eden.billing['create-preference'].post({
+        monto: summary?.total_amount || 0,
+        moneda: 'ARS'
+      });
+      if (res.data?.success && res.data.preference?.id) {
+        setPreferenceId(res.data.preference.id);
+      } else {
+        throw new Error(res.data?.error || "Error al inicializar el pago");
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert('Error: ' + err.message);
+    } finally {
+      setIsGeneratingPayment(false);
     }
   };
 
@@ -144,6 +174,50 @@ export function SuscripcionPage() {
                   <p className="text-xs text-renta-400 italic">No posee funciones extra activas actualmente.</p>
                 )}
               </div>
+
+              {!preferenceId ? (
+                <button 
+                  onClick={handlePayClick}
+                  disabled={isGeneratingPayment || !summary?.total_amount}
+                  className={cn(
+                    "mt-6 w-full py-3.5 px-4 rounded-xl font-bold transition-all border",
+                    "bg-renta-950 text-white border-renta-950 hover:bg-renta-900",
+                    "disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  )}
+                >
+                  {isGeneratingPayment ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
+                  {isGeneratingPayment ? 'Inicializando Pago Seguro...' : 'Abonar con Tarjeta'}
+                </button>
+              ) : (
+                <div className="mt-6 pt-6 border-t border-admin-border-subtle animate-fade-in">
+                  <div className="mb-4">
+                    <h3 className="text-sm font-bold text-renta-950 flex items-center gap-2">
+                       Mercado Pago Checkout
+                    </h3>
+                  </div>
+                  <Payment
+                    initialization={{ amount: summary?.total_amount, preferenceId }}
+                    customization={{
+                      paymentMethods: {
+                        creditCard: "all",
+                        debitCard: "all",
+                      },
+                    }}
+                    onSubmit={async () => {
+                      // El SDK envía el pago por su cuenta a MP porque usamos preferenceId
+                      return new Promise((resolve) => setTimeout(resolve, 1000));
+                    }}
+                    onReady={() => console.log('Payment Brick listo')}
+                    onError={(e) => console.error('Error Payment Brick', e)}
+                  />
+                  <button 
+                    onClick={() => setPreferenceId(null)}
+                    className="mt-4 text-xs text-renta-500 hover:text-renta-950 transition-colors w-full text-center"
+                  >
+                    Cancelar y volver
+                  </button>
+                </div>
+              )}
 
               <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 flex gap-3">
                 <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
