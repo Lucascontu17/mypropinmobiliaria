@@ -170,6 +170,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                   <option value="departamento">🏢 Departamento</option>
                   <option value="casa">🏡 Casa</option>
                   <option value="ph">🏘️ PH</option>
+                  <option value="local">🏬 Local</option>
                   <option value="terreno">🌱 Terreno</option>
                   <option value="habitacion">🛌 Habitación</option>
                   <option value="otro">❓ Otro</option>
@@ -365,6 +366,43 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                 </div>
                 Especificaciones Técnicas
               </h3>
+
+              {watch('tipo_inmueble') === 'departamento' && (
+                <div className="grid grid-cols-2 gap-4 pb-2">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Piso</label>
+                    <input
+                      {...register('piso')}
+                      type="text"
+                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      placeholder="Ej: 2"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Departamento</label>
+                    <input
+                      {...register('departamento_unidad')}
+                      type="text"
+                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      placeholder="Ej: B"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {watch('tipo_inmueble') === 'ph' && (
+                <div className="grid grid-cols-1 gap-4 pb-2">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Interno</label>
+                    <input
+                      {...register('interno')}
+                      type="text"
+                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      placeholder="Ej: PB, 1er Piso al fondo"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-x-4 gap-y-4">
                 <div className="space-y-1.5">
