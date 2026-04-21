@@ -45,7 +45,16 @@ export function SuscripcionPage() {
         eden.billing.history.get()
       ]);
 
-      if (summaryRes.data) setSummary(summaryRes.data);
+      if (summaryRes.data) {
+        let finalSummary = { ...summaryRes.data };
+        // MOCK DEV OBLIGATORIO: Forzar deuda 1000 para probar pasarela MP en staging/dev
+        const isDevOrStaging = import.meta.env.DEV || window.location.hostname.includes('staging') || window.location.hostname.includes('railway');
+        if (isDevOrStaging && (!finalSummary.total_amount || finalSummary.total_amount === 0)) {
+          finalSummary.total_amount = 1000;
+          finalSummary.base_price = 1000; // Mockeamos el precio base visualmente también
+        }
+        setSummary(finalSummary);
+      }
       if (historyRes.data) setHistory(historyRes.data);
     } catch (err) {
       console.error('Error fetching billing data:', err);
