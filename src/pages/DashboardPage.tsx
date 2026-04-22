@@ -30,9 +30,8 @@ interface StatCardProps {
 function StatCard({ label, value, change, trend, icon: Icon, delay }: StatCardProps) {
   return (
     <div
-      className="admin-card group p-6 opacity-0 animate-fade-in-up"
-      style={{ animationDelay: `${delay}ms` }}
-    >
+      className="admin-card-interactive group p-6 opacity-0 animate-fade-in-up"
+      style={{ animationDelay: `${delay}ms` }}>
       <div className="flex items-start justify-between">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-renta-100 to-renta-200/50 transition-transform duration-300 group-hover:scale-110">
           <Icon className="h-5 w-5 text-renta-700" />
