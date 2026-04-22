@@ -260,8 +260,8 @@ export function PropiedadesPage() {
 
       {/* ── Modal: Asignar Puntos ── */}
       {boosterModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-fade-in-up">
+        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in overflow-y-auto p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md my-auto overflow-hidden animate-fade-in-up">
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-renta-950 to-renta-800 px-6 py-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
