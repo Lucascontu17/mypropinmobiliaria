@@ -14,9 +14,11 @@ import {
   Store,
   RotateCcw,
   CreditCard,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInmobiliaria, type UserRole } from '@/hooks/useInmobiliaria';
+import { useClerk } from '@clerk/clerk-react';
 import { useRegion } from '@/hooks/useRegion';
 import { useShepherd } from '@/providers/ShepherdProvider';
 import { useNavigate } from 'react-router-dom';
@@ -60,6 +62,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const { hasPermission } = useInmobiliaria();
   const { t, flag, country_code, isAuditOverride } = useRegion();
   const { resetTour } = useShepherd();
+  const { signOut } = useClerk();
 
   // Filter items based on user role
   const visibleNavItems = NAV_ITEMS.filter(item => hasPermission(item.allowedRoles));
@@ -151,6 +154,13 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             >
               <RotateCcw className="h-3 w-3" />
               {t('reiniciar_tutorial', 'Reiniciar tutorial')}
+            </button>
+            <button
+              onClick={() => signOut({ redirectUrl: window.location.origin })}
+              className="flex items-center gap-2 rounded-lg py-1 px-0 text-[10px] font-bold uppercase tracking-wider text-red-400 transition-colors hover:text-red-500"
+            >
+              <LogOut className="h-3 w-3" />
+              Cerrar Sesión
             </button>
           </div>
         </div>
