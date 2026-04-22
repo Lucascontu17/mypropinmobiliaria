@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { useSignIn } from '@clerk/clerk-react';
+import { useState, useEffect } from 'react';
+import { useSignIn, useClerk } from '@clerk/clerk-react';
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 const SignInSchema = z.object({
@@ -10,10 +11,24 @@ const SignInSchema = z.object({
 
 export const CustomSignIn = () => {
   const { isLoaded, signIn, setActive } = useSignIn();
+  const clerk = useClerk();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Clear zombie sessions on mount
+  useEffect(() => {
+    const cleanStale = async () => {
+      if (!clerk.loaded) return;
+      const activeSessions = clerk.client?.sessions || [];
+      if (activeSessions.length > 0 && !clerk.user) {
+        try { await clerk.signOut(); } catch (_) {}
+      }
+    };
+    cleanStale();
+  }, [clerk.loaded]);
 
   const handleSignIn = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -31,11 +46,25 @@ export const CustomSignIn = () => {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        window.location.href = "/";
+        navigate("/");
       } else {
         console.warn("SignIn incompleto", result);
       }
     } catch (err: any) {
+      // Handle zombie session conflict
+      if (err.errors?.[0]?.code === "session_exists" || err.message?.includes("already exists")) {
+        try {
+          const existingSessions = clerk.client?.sessions || [];
+          if (existingSessions.length > 0) {
+            await setActive({ session: existingSessions[0].id });
+            navigate("/");
+            return;
+          }
+        } catch (_) {}
+        await clerk.signOut();
+        setErrorMsg("Sesión anterior limpiada. Intentá de nuevo.");
+        return;
+      }
       if (err instanceof z.ZodError) {
         setErrorMsg(err.issues[0].message);
       } else {
