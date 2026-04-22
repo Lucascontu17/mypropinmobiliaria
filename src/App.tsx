@@ -19,6 +19,7 @@ import { MarketplacePage } from '@/pages/marketplace/MarketplacePage';
 import { ConfiguracionPage } from '@/pages/configuracion/ConfiguracionPage';
 import { EquipoPage } from '@/pages/equipo/EquipoPage';
 import { SuscripcionPage } from '@/pages/configuracion/SuscripcionPage';
+import VisitasPage from '@/pages/VisitasPage';
 
 function App() {
   return (
@@ -74,6 +75,15 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={['superadmin', 'admin', 'vendedor']}>
                       <ContratosPage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/visitas" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin', 'vendedor']}>
+                      <VisitasPage />
                     </ProtectedRoute>
                   } 
                 />

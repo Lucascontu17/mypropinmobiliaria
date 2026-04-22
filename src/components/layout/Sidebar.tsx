@@ -15,6 +15,7 @@ import {
   RotateCcw,
   CreditCard,
   LogOut,
+  Calendar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInmobiliaria, type UserRole } from '@/hooks/useInmobiliaria';
@@ -42,6 +43,7 @@ const NAV_ITEMS: NavItem[] = [
   { dialectKey: 'nav_dashboard', fallbackLabel: 'Dashboard', href: '/', icon: LayoutDashboard, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
   { dialectKey: 'nav_propietarios', fallbackLabel: 'Propietarios', href: '/propietarios', icon: UserCheck, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
   { dialectKey: 'nav_propiedades', fallbackLabel: 'Propiedades', href: '/propiedades', icon: Building2, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
+  { dialectKey: 'nav_visitas', fallbackLabel: 'Visitas', href: '/visitas', icon: Calendar, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
   { dialectKey: 'nav_contratos', fallbackLabel: 'Contratos', href: '/contratos', icon: Handshake, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
   { dialectKey: 'nav_inquilinos', fallbackLabel: 'Inquilinos', href: '/inquilinos', icon: Users, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_cobranzas', fallbackLabel: 'Cobranzas', href: '/cobranzas', icon: Wallet, allowedRoles: ['superadmin', 'admin'] },
