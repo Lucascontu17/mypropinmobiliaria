@@ -15,7 +15,7 @@ interface ProtectedRouteProps {
  * @param children El contenido a renderizar si el usuario pasa la jerarquía.
  */
 export function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) {
-  const { isLoaded, isSignedIn, hasPermission } = useInmobiliaria();
+  const { isLoaded, isSignedIn, hasPermission, inmobiliaria_id } = useInmobiliaria();
 
   // 1. Mostrar Spinner Global o un Luxury Skeleton mientras Clerk hidrata localmente el state
   if (!isLoaded) {
@@ -26,8 +26,8 @@ export function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) 
     );
   }
 
-  // 2. Si no esta firmado, interceptamos a modal de Single-Sign-On / Auth login
-  if (!isSignedIn) {
+  // 2. Si no esta firmado o no tiene vinculacion a inmobiliaria, al login
+  if (!isSignedIn || !inmobiliaria_id) {
     return <Navigate to="/login" replace />;
   }
 

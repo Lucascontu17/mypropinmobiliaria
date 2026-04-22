@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "vite preview --port $PORT --host 0.0.0.0"
+    "start": "serve dist -s -l 8081"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.25.10",
@@ -34,6 +34,7 @@
     "react-dom": "^19.2.4",
     "react-hook-form": "^7.72.0",
     "react-router-dom": "7",
+    "serve": "^14.2.6",
     "shepherd.js": "^15.2.2",
     "sonner": "^1.7.4",
     "swr": "^2.4.1",
