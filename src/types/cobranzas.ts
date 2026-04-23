@@ -44,19 +44,12 @@ export interface PagoEnCuenta {
   nombre_inquilino: string;
   detalle_propiedad: string;
   
-<<<<<<< Updated upstream
-  monto_a_abonar: number; // Monto Base + Mora N + Deuda Arrastrada N-1 + Expensas
-  monto_abonado: number;  // Sumatoria real pagada
-  monto_alquiler_base?: number; // Desglose: Alquiler puro
-  monto_expensas?: number;      // Desglose: Expensas Comunes
-=======
   monto_a_abonar: number; // Monto Base + Mora N + Deuda Arrastrada N-1 + Expensas + ABL Fijo
   monto_abonado: number;  // Sumatoria real pagada
   monto_alquiler_base?: number; // Desglose: Alquiler puro
   monto_expensas?: number;      // Desglose: Expensas Comunes
   tipo_abl?: 'fijo' | 'variable' | null;
   monto_abl?: number;           // Desglose: ABL (Fijo si tipo='fijo')
->>>>>>> Stashed changes
   
   // Estado Dinámico: 
   // 'PAGADO' (a_abonar <= abonado), 

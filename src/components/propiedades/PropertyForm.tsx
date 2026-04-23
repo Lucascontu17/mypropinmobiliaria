@@ -526,8 +526,6 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                           {errors.valor_expensas && <p className="text-[10px] text-red-500 font-medium mt-1">{errors.valor_expensas.message}</p>}
                         </div>
                       )}
-<<<<<<< Updated upstream
-=======
 
                       {/* Despliegue condicional para ABL */}
                       {servicio.key === 'has_abl' && watch('has_abl') && (
@@ -569,7 +567,6 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                           )}
                         </div>
                       )}
->>>>>>> Stashed changes
                     </div>
                  ))}
                </div>

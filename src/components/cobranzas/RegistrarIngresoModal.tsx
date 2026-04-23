@@ -71,28 +71,21 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
              <p className="text-xs text-renta-600">{pagoDestino.detalle_propiedad}</p>
           </div>
 
-<<<<<<< Updated upstream
-=======
           {/* Desglose Interactivo */}
->>>>>>> Stashed changes
           <div className="bg-admin-surface-hover border border-admin-border-subtle p-4 rounded-xl space-y-3">
              <div className="space-y-2 text-sm border-b border-admin-border-subtle pb-3">
                 <div className="flex justify-between items-center">
                   <span className="text-renta-600">Alquiler Base</span>
                   <span className="font-medium text-renta-900">${(pagoDestino.monto_alquiler_base || pagoDestino.monto_a_abonar).toLocaleString('es-AR')}</span>
                 </div>
-<<<<<<< Updated upstream
-=======
-                
->>>>>>> Stashed changes
+
+
                 {pagoDestino.monto_expensas ? (
                   <div className="flex justify-between items-center">
                     <span className="text-renta-600">Expensas Comunes</span>
                     <span className="font-medium text-renta-900">${pagoDestino.monto_expensas.toLocaleString('es-AR')}</span>
                   </div>
                 ) : null}
-<<<<<<< Updated upstream
-=======
 
                 {pagoDestino.tipo_abl === 'fijo' && pagoDestino.monto_abl ? (
                   <div className="flex justify-between items-center">
@@ -120,24 +113,10 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
                     </div>
                   </div>
                 )}
->>>>>>> Stashed changes
              </div>
              
              <div className="flex justify-between items-center text-sm pt-1">
                <span className="font-bold text-renta-900">Total a Abonar (Cuota {pagoDestino.periodo})</span>
-<<<<<<< Updated upstream
-               <span className="font-bold text-renta-950">${pagoDestino.monto_a_abonar.toLocaleString('es-AR')}</span>
-             </div>
-             
-             {pagoDestino.monto_abonado > 0 ? (
-               <div className="flex justify-between items-center text-sm bg-renta-100/50 p-2 rounded-lg mt-2 border border-renta-200">
-                 <span className="font-medium text-renta-700">Saldo Pendiente (Restante)</span>
-                 <span className="font-bold text-renta-950">${saldoRestante.toLocaleString('es-AR')}</span>
-               </div>
-             ) : (
-               <div className="flex justify-between items-center text-sm bg-renta-100/50 p-2 rounded-lg mt-2 border border-renta-200">
-                 <span className="font-medium text-renta-700">Saldo Pendiente</span>
-=======
                <span className="font-bold text-renta-950">${totalConImpuestos.toLocaleString('es-AR')}</span>
              </div>
              
@@ -149,7 +128,6 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
              ) : (
                <div className="flex justify-between items-center text-sm bg-renta-100/50 p-2 rounded-lg mt-2 border border-renta-200">
                  <span className="font-medium text-renta-800">Saldo Pendiente</span>
->>>>>>> Stashed changes
                  <span className="font-bold text-renta-950">${saldoRestante.toLocaleString('es-AR')}</span>
                </div>
              )}
