@@ -193,7 +193,10 @@ export function CobranzasPage() {
                    const tieneSaldoFavor = saldoRestante < 0;
 
                    return (
-                    <tr key={p.pago_id} className="hover:bg-admin-surface-hover transition-colors">
+                     <tr key={p.pago_id} className={cn(
+                       "hover:bg-admin-surface-hover transition-colors",
+                       saldoRestante <= 0 ? "opacity-60 grayscale-[0.2]" : ""
+                     )}>
                       <td className="px-6 py-4">
                         <div className="font-bold text-renta-950">{p.nombre_inquilino}</div>
                         <div className="text-[11px] text-renta-500 mt-0.5">{p.detalle_propiedad}</div>
@@ -226,14 +229,20 @@ export function CobranzasPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-2">
-                           <button 
-                             data-shepherd="btn-registrar-pago"
-                             onClick={() => setSelectedPago(p)}
-                             className="text-[11px] uppercase tracking-wider font-bold text-renta-600 bg-white border border-admin-border hover:bg-renta-50 hover:text-renta-900 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
-                           >
-                             <Plus className="h-3 w-3" /> {t('cobranza_cobrar', 'Cobrar')}
-                           </button>
+                        <div className="flex justify-end gap-2 items-center">
+                           {saldoRestante > 0 ? (
+                             <button 
+                               data-shepherd="btn-registrar-pago"
+                               onClick={() => setSelectedPago(p)}
+                               className="text-[11px] uppercase tracking-wider font-bold text-renta-600 bg-white border border-admin-border hover:bg-renta-50 hover:text-renta-900 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+                             >
+                               <Plus className="h-3 w-3" /> {t('cobranza_cobrar', 'Cobrar')}
+                             </button>
+                           ) : (
+                             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 font-bold text-[10px] uppercase tracking-wider animate-in fade-in zoom-in duration-300">
+                               <CheckCircle2 className="h-3 w-3" /> {t('cobranza_completado', 'Cobrado')}
+                             </div>
+                           )}
                            <button 
                              title="Ver Recibos"
                              className="text-renta-400 bg-white border border-transparent hover:border-admin-border hover:text-renta-900 px-2 rounded-lg transition-colors"
