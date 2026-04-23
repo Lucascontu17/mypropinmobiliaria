@@ -116,19 +116,25 @@ export default function VisitasPage() {
     fetchVisitas();
   }, []);
 
-  const handleUpdateStatus = async (id: string, newStatus: 'PROGRAMADA' | 'REALIZADA' | 'CANCELADA') => {
+  const handleUpdateStatus = async (id: string, newStatus: string, newDate?: string) => {
     setUpdatingId(id);
 
     // Lógica para modo Demo (Mock)
     const isDemo = window.location.hostname.includes('staging') || window.location.hostname.includes('localhost');
     if (isDemo) {
       setTimeout(() => {
-        const updatedVisitas = visitas.map(v => v.id === id ? { ...v, status: newStatus } : v);
+        const updatedVisitas = visitas.map(v => 
+          v.id === id ? { 
+            ...v, 
+            status: newStatus as any, 
+            fecha_programada: newDate ? new Date(newDate).toISOString() : v.fecha_programada 
+          } : v
+        );
         setVisitas(updatedVisitas as any);
         localStorage.setItem('mock_visitas', JSON.stringify(updatedVisitas));
         
-        let msg = 'Estado actualizado';
-        if (newStatus === 'PROGRAMADA') msg = '¡Visita agendada correctamente!';
+        let msg = newDate ? 'Visita reprogramada y confirmada' : 'Estado actualizado';
+        if (newStatus === 'PROGRAMADA' && !newDate) msg = '¡Visita agendada correctamente!';
         if (newStatus === 'REALIZADA') msg = '¡Visita marcada como realizada!';
         if (newStatus === 'CANCELADA') msg = 'Visita cancelada';
         toast.success(msg);
@@ -138,10 +144,13 @@ export default function VisitasPage() {
     }
 
     try {
-      const res = await eden.v1.visitas({ id }).status.patch({ status: newStatus });
+      const updateData: any = { status: newStatus };
+      if (newDate) updateData.fecha_programada = new Date(newDate).toISOString();
+
+      const res = await eden.v1.visitas({ id }).status.patch(updateData);
       if (!res.error) {
-        let msg = 'Estado actualizado';
-        if (newStatus === 'PROGRAMADA') msg = '¡Visita agendada correctamente!';
+        let msg = newDate ? 'Visita reprogramada y confirmada' : 'Estado actualizado';
+        if (newStatus === 'PROGRAMADA' && !newDate) msg = '¡Visita agendada correctamente!';
         if (newStatus === 'REALIZADA') msg = '¡Visita marcada como realizada!';
         if (newStatus === 'CANCELADA') msg = 'Visita cancelada';
         
@@ -327,10 +336,19 @@ export default function VisitasPage() {
 
 // ── COMPONENTE AUXILIAR PARA LA CARD ──
 function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate: any, updatingId: string | null }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [newDate, setNewDate] = useState(visita.fecha_programada.split('.')[0]); // Formato para datetime-local
+
+  const handleConfirmReschedule = () => {
+    onUpdate(visita.id, 'PROGRAMADA', newDate);
+    setIsEditing(false);
+  };
+
   return (
     <div className={cn(
       "group bg-white rounded-[32px] border transition-all duration-300 hover:shadow-xl hover:shadow-renta-900/5",
-      visita.status === 'PROGRAMADA' ? 'border-emerald-100 shadow-sm' : 'border-slate-100 shadow-sm'
+      visita.status === 'PROGRAMADA' ? 'border-emerald-100 shadow-sm' : 'border-slate-100 shadow-sm',
+      isEditing && "ring-2 ring-renta-500 border-transparent"
     )}>
       <div className="p-8">
         <div className="flex items-start justify-between mb-8">
@@ -351,9 +369,22 @@ function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate
               )}>
                 {visita.status === 'PENDIENTE' ? 'POR CONFIRMAR' : visita.status}
               </span>
-              <h3 className="text-lg font-jakarta font-bold text-renta-950 mt-1">
-                {new Date(visita.fecha_programada).toLocaleDateString()} — {new Date(visita.fecha_programada).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}hs
-              </h3>
+              
+              {!isEditing ? (
+                <h3 className="text-lg font-jakarta font-bold text-renta-950 mt-1">
+                  {new Date(visita.fecha_programada).toLocaleDateString()} — {new Date(visita.fecha_programada).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}hs
+                </h3>
+              ) : (
+                <div className="mt-2 flex flex-col gap-1">
+                  <span className="text-[10px] text-renta-600 font-bold uppercase tracking-widest">Nuevo Horario Acordado</span>
+                  <input 
+                    type="datetime-local" 
+                    value={newDate}
+                    onChange={(e) => setNewDate(e.target.value)}
+                    className="text-sm font-bold text-renta-950 bg-renta-50 border-none rounded-lg p-1 focus:ring-0"
+                  />
+                </div>
+              )}
             </div>
           </div>
           <button className="p-2 hover:bg-slate-50 rounded-full transition-colors">
@@ -410,21 +441,41 @@ function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate
         <div className="flex items-center gap-3 pt-6 border-t border-slate-50">
           {visita.status === 'PENDIENTE' && (
             <>
-              <button 
-                onClick={() => onUpdate(visita.id, 'PROGRAMADA')}
-                disabled={updatingId === visita.id}
-                className="flex-1 bg-renta-950 text-white font-jakarta font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 hover:bg-renta-800 transition-all active:scale-[0.98] disabled:opacity-50"
-              >
-                {updatingId === visita.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}
-                Confirmar Visita
-              </button>
-              <button 
-                onClick={() => onUpdate(visita.id, 'CANCELADA')}
-                disabled={updatingId === visita.id}
-                className="px-6 py-3.5 border border-slate-200 text-slate-600 font-jakarta font-bold rounded-2xl hover:bg-slate-50 transition-all"
-              >
-                Rechazar
-              </button>
+              {!isEditing ? (
+                <>
+                  <button 
+                    onClick={() => onUpdate(visita.id, 'PROGRAMADA')}
+                    disabled={updatingId === visita.id}
+                    className="flex-1 bg-renta-950 text-white font-jakarta font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 hover:bg-renta-800 transition-all active:scale-[0.98] disabled:opacity-50"
+                  >
+                    {updatingId === visita.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}
+                    Confirmar Visita
+                  </button>
+                  <button 
+                    onClick={() => setIsEditing(true)}
+                    disabled={updatingId === visita.id}
+                    className="px-6 py-3.5 border border-slate-200 text-slate-600 font-jakarta font-bold rounded-2xl hover:bg-slate-50 transition-all flex items-center gap-2"
+                  >
+                    <Clock className="w-4 h-4" />
+                    Reprogramar
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    onClick={handleConfirmReschedule}
+                    className="flex-1 bg-renta-600 text-white font-jakarta font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 hover:bg-renta-700 transition-all active:scale-[0.98]"
+                  >
+                    Guardar y Confirmar
+                  </button>
+                  <button 
+                    onClick={() => setIsEditing(false)}
+                    className="px-6 py-3.5 text-slate-400 font-jakarta font-bold hover:text-slate-600"
+                  >
+                    Cancelar
+                  </button>
+                </>
+              )}
             </>
           )}
           {visita.status === 'PROGRAMADA' && (
@@ -451,3 +502,4 @@ function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate
     </div>
   );
 }
+
