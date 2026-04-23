@@ -4,7 +4,8 @@ import { useRegion } from '@/hooks/useRegion';
 import { type PagoEnCuenta } from '@/types/cobranzas';
 import { RegistrarIngresoModal } from '@/components/cobranzas/RegistrarIngresoModal';
 import { CierrePeriodoModal } from '@/components/cobranzas/CierrePeriodoModal';
-import { Search, FolderSync, Plus, FileText, CheckCircle2, AlertCircle, Clock, Check, Wallet } from 'lucide-react';
+import { VerBoletasModal } from '@/components/cobranzas/VerBoletasModal';
+import { Search, FolderSync, Plus, FileText, CheckCircle2, AlertCircle, Clock, Check, Wallet, FileUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Mock Data representativo de la DB (Mes en curso)
@@ -52,6 +53,7 @@ export function CobranzasPage() {
   // Modals state
   const [selectedPago, setSelectedPago] = useState<PagoEnCuenta | null>(null);
   const [showCierreModal, setShowCierreModal] = useState(false);
+  const [boletasPagoId, setBoletasPagoId] = useState<{ id: string, nombre: string } | null>(null);
 
   // Business Logic Filtering
   const pagosVisibles = useMemo(() => {
@@ -253,6 +255,13 @@ export function CobranzasPage() {
                            >
                              <FileText className="h-4 w-4" />
                            </button>
+                           <button 
+                             title="Ver Boletas de Servicios"
+                             onClick={() => setBoletasPagoId({ id: p.pago_id, nombre: p.nombre_inquilino })}
+                             className="text-renta-400 bg-white border border-transparent hover:border-admin-border hover:text-renta-900 px-2 rounded-lg transition-colors"
+                           >
+                             <FileUp className="h-4 w-4" />
+                           </button>
                         </div>
                       </td>
                     </tr>
@@ -283,6 +292,14 @@ export function CobranzasPage() {
              alert('El mes ha sido cerrado. En Integración esto forzará una recarga atómica en mypropAPI.');
            }}
          />
+      )}
+
+      {boletasPagoId && (
+        <VerBoletasModal
+          pagoId={boletasPagoId.id}
+          inquilinoNombre={boletasPagoId.nombre}
+          onClose={() => setBoletasPagoId(null)}
+        />
       )}
 
     </div>
