@@ -78,6 +78,7 @@ export default function VisitasPage() {
   const [visitas, setVisitas] = useState<Visita[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'SOLICITUDES' | 'AGENDADAS' | 'HISTORIAL'>('SOLICITUDES');
 
   const fetchVisitas = async () => {
     // Detección de entorno para usar Mock Data en DEV/STAGING
@@ -163,7 +164,6 @@ export default function VisitasPage() {
     );
   }
 
-  const [activeTab, setActiveTab] = useState<'SOLICITUDES' | 'AGENDADAS' | 'HISTORIAL'>('SOLICITUDES');
 
   const solicitudes = visitas.filter(v => v.status === 'PENDIENTE');
   const agendadas = visitas.filter(v => v.status === 'PROGRAMADA');
