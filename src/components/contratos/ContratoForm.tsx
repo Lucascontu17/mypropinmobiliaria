@@ -414,14 +414,41 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                         className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm outline-none focus:border-emerald-400 text-emerald-950 font-bold"
                       >
                         <option value="">Seleccione Modalidad...</option>
-                        <option value="INDICE_ICL_IPC">Actualización por Índices Oficiales (ICL/IPC)</option>
-                        <option value="PORCENTAJE_MANUAL">Porcentaje Manual / Fijo</option>
+                        {country_code === 'AR' ? (
+                          <>
+                            <option value="INDICE_IPC">Aumento por IPC (Consumidor)</option>
+                            <option value="INDICE_ICL">Aumento por ICL (Locación)</option>
+                          </>
+                        ) : (
+                          <option value="INDICE_ICL_IPC">Actualización por Índices Oficiales (ICL/IPC)</option>
+                        )}
+                        <option value="PORCENTAJE_MANUAL">Porcentaje Personalizado</option>
                       </select>
                       {errors.reglas_aumento?.tipo_aumento && <p className="text-[10px] text-red-500 font-medium">{errors.reglas_aumento.tipo_aumento.message}</p>}
-                      {tipoAumento === 'INDICE_ICL_IPC' && (
-                        <p className="text-[10px] text-emerald-700 bg-emerald-100 p-2 rounded-lg mt-2">
-                           El valor del ICL/IPC deberá ser introducido en cada periodo de ajuste por la Inmobiliaria. 
-                           El sistema notificará a todos los administradores.
+                      
+                      {/* Porcentaje Personalizado Input */}
+                      {tipoAumento === 'PORCENTAJE_MANUAL' && (
+                        <div className="pt-2 animate-fade-in">
+                          <label className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Valor del Porcentaje Fijo</label>
+                          <div className="relative mt-1">
+                            <input 
+                              type="number" step="0.1"
+                              {...register('reglas_aumento.porcentaje')}
+                              className="w-full rounded-xl border border-emerald-200 bg-white pr-8 pl-3 py-2 text-sm outline-none focus:border-emerald-400 text-renta-950"
+                              placeholder="Ej: 15"
+                            />
+                            <span className="absolute right-3 top-2 text-emerald-500 font-bold">%</span>
+                          </div>
+                          {errors.reglas_aumento?.porcentaje && <p className="text-[10px] text-red-500 font-medium">{errors.reglas_aumento.porcentaje.message}</p>}
+                        </div>
+                      )}
+
+                      {(tipoAumento === 'INDICE_ICL_IPC' || tipoAumento === 'INDICE_IPC' || tipoAumento === 'INDICE_ICL') && (
+                        <p className="text-[10px] text-emerald-700 bg-emerald-100 p-2 rounded-lg mt-2 font-semibold">
+                           {country_code === 'AR' 
+                            ? "IMPORTANTE: Los valores de IPC/ICL se gestionan manualmente desde el Panel Central. El sistema tomará el valor vigente al momento del ajuste."
+                            : "El valor del ICL/IPC deberá ser introducido en cada periodo de ajuste por la Inmobiliaria."
+                           }
                         </p>
                       )}
                     </div>

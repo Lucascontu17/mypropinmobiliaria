@@ -12,7 +12,7 @@ export const PenaltyPeriodEnum = z.enum([
   'diario', 'semanal', 'mensual'
 ]);
 
-export const TipoAumentoEnum = z.enum(['PORCENTAJE_MANUAL', 'INDICE_ICL_IPC']);
+export const TipoAumentoEnum = z.enum(['PORCENTAJE_MANUAL', 'INDICE_ICL_IPC', 'INDICE_IPC', 'INDICE_ICL']);
 
 /**
  * Zod Schema para Contratos (Transacción Atómica de Alquiler)
@@ -57,6 +57,7 @@ export const contratoSchema = z.object({
     aplicar_aumento: z.boolean().default(false),
     tipo_aumento: TipoAumentoEnum.optional(), // Switch entre Manual y Referencia IPC/ICL
     periodicidad: IncreasePeriodEnum.optional(),
+    porcentaje: z.coerce.number().min(0.1, "El porcentaje debe ser mayor a 0").optional(),
   }),
 
   // Reglas de Rentabilidad: Intereses Morosos (Deuda)
