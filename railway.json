@@ -1,7 +1,14 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
   "deploy": {
     "startCommand": "npm run start",
-    "healthcheckTimeout": 120
+    "healthcheckTimeout": 120,
+    "resources": {
+      "cpu": 0.1,
+      "memory": 256
+    }
   }
 }
