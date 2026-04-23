@@ -19,14 +19,23 @@ const MOCK_PAGOS: PagoEnCuenta[] = [
   {
     pago_id: 'p2', contrato_id: 'c2', inmobiliaria_id: 'inmo1',
     periodo: PERIODO_ACTUAL, nombre_inquilino: 'Estudio Jurídico R&M', detalle_propiedad: 'Oficina 3B, Centro',
+<<<<<<< Updated upstream
     monto_alquiler_base: 650000, monto_expensas: 150000,
+=======
+    monto_alquiler_base: 650000, monto_expensas: 150000, tipo_abl: 'variable', monto_abl: 0,
+>>>>>>> Stashed changes
     monto_a_abonar: 800000, monto_abonado: 300000, status: 'PARCIAL' // Pagó de menos
   },
   {
     pago_id: 'p3', contrato_id: 'c3', inmobiliaria_id: 'inmo1',
     periodo: PERIODO_ACTUAL, nombre_inquilino: 'Carlos Gomez', detalle_propiedad: 'San Salvador 332',
+<<<<<<< Updated upstream
     monto_alquiler_base: 300000, monto_expensas: 0,
     monto_a_abonar: 300000, monto_abonado: 0, status: 'PENDIENTE' 
+=======
+    monto_alquiler_base: 300000, monto_expensas: 0, tipo_abl: 'fijo', monto_abl: 15000,
+    monto_a_abonar: 315000, monto_abonado: 0, status: 'PENDIENTE' 
+>>>>>>> Stashed changes
   },
   { // Saldo a favor simulación
     pago_id: 'p4', contrato_id: 'c4', inmobiliaria_id: 'inmo1',

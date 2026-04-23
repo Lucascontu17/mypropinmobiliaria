@@ -526,6 +526,50 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                           {errors.valor_expensas && <p className="text-[10px] text-red-500 font-medium mt-1">{errors.valor_expensas.message}</p>}
                         </div>
                       )}
+<<<<<<< Updated upstream
+=======
+
+                      {/* Despliegue condicional para ABL */}
+                      {servicio.key === 'has_abl' && watch('has_abl') && (
+                        <div className="pl-4 pr-3 py-1 animate-in fade-in slide-in-from-top-1 space-y-3">
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-renta-700 uppercase tracking-wider mb-1 block">
+                              Modalidad de ABL <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              {...register('tipo_abl', { required: watch('has_abl') ? "Seleccione la modalidad" : false })}
+                              className="w-full rounded-xl border border-admin-border bg-white px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950 font-bold"
+                            >
+                              <option value="">-- Seleccionar --</option>
+                              <option value="fijo">Monto Fijo Mensual</option>
+                              <option value="variable">Monto Variable (A cargar cada mes)</option>
+                            </select>
+                            {errors.tipo_abl && <p className="text-[10px] text-red-500 font-medium">{errors.tipo_abl.message}</p>}
+                          </div>
+                          
+                          {watch('tipo_abl') === 'fijo' && (
+                            <div className="animate-in fade-in slide-in-from-top-1">
+                              <label className="text-[10px] font-bold text-renta-700 uppercase tracking-wider mb-1.5 block">
+                                Valor Fijo Mensual de ABL <span className="text-red-500">*</span>
+                              </label>
+                              <div className="relative">
+                                <span className="absolute left-3 top-2.5 text-renta-500 font-semibold">{currentMoneda === 'USD' ? 'US$' : '$'}</span>
+                                <input
+                                  {...register('valor_abl', { required: watch('tipo_abl') === 'fijo' ? "Ingrese el valor fijo" : false })}
+                                  type="text"
+                                  placeholder="0.00"
+                                  className={cn(
+                                    "w-full rounded-xl border bg-white pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 text-renta-950 font-bold",
+                                    errors.valor_abl ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                                  )}
+                                />
+                              </div>
+                              {errors.valor_abl && <p className="text-[10px] text-red-500 font-medium mt-1">{errors.valor_abl.message}</p>}
+                            </div>
+                          )}
+                        </div>
+                      )}
+>>>>>>> Stashed changes
                     </div>
                  ))}
                </div>

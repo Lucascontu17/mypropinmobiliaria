@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { transaccionSchema, type TransaccionFormData, type PagoEnCuenta } from '@/types/cobranzas';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
-import { X, Save, Wallet } from 'lucide-react';
+import { X, Save, Wallet, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface RegistrarIngresoModalProps {
@@ -13,7 +14,11 @@ interface RegistrarIngresoModalProps {
 
 export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: RegistrarIngresoModalProps) {
   const { inmobiliaria_id } = useInmobiliaria();
-  const saldoRestante = pagoDestino.monto_a_abonar - pagoDestino.monto_abonado;
+  const [montoAblVariable, setMontoAblVariable] = useState<number | ''>('');
+  
+  const ablDinamico = Number(montoAblVariable) || 0;
+  const totalConImpuestos = pagoDestino.monto_a_abonar + (pagoDestino.tipo_abl === 'variable' ? ablDinamico : 0);
+  const saldoRestante = totalConImpuestos - pagoDestino.monto_abonado;
   
   const { register, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<TransaccionFormData>({
     resolver: zodResolver(transaccionSchema),
@@ -66,22 +71,61 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
              <p className="text-xs text-renta-600">{pagoDestino.detalle_propiedad}</p>
           </div>
 
+<<<<<<< Updated upstream
+=======
+          {/* Desglose Interactivo */}
+>>>>>>> Stashed changes
           <div className="bg-admin-surface-hover border border-admin-border-subtle p-4 rounded-xl space-y-3">
              <div className="space-y-2 text-sm border-b border-admin-border-subtle pb-3">
                 <div className="flex justify-between items-center">
                   <span className="text-renta-600">Alquiler Base</span>
                   <span className="font-medium text-renta-900">${(pagoDestino.monto_alquiler_base || pagoDestino.monto_a_abonar).toLocaleString('es-AR')}</span>
                 </div>
+<<<<<<< Updated upstream
+=======
+                
+>>>>>>> Stashed changes
                 {pagoDestino.monto_expensas ? (
                   <div className="flex justify-between items-center">
                     <span className="text-renta-600">Expensas Comunes</span>
                     <span className="font-medium text-renta-900">${pagoDestino.monto_expensas.toLocaleString('es-AR')}</span>
                   </div>
                 ) : null}
+<<<<<<< Updated upstream
+=======
+
+                {pagoDestino.tipo_abl === 'fijo' && pagoDestino.monto_abl ? (
+                  <div className="flex justify-between items-center">
+                    <span className="text-renta-600">ABL / Impuesto Municipal</span>
+                    <span className="font-medium text-renta-900">${pagoDestino.monto_abl.toLocaleString('es-AR')}</span>
+                  </div>
+                ) : null}
+
+                {/* ABL Variable: Input Interactivo */}
+                {pagoDestino.tipo_abl === 'variable' && (
+                  <div className="flex justify-between items-center bg-renta-50 p-2 rounded-lg border border-renta-100 -mx-2 px-2 mt-1">
+                    <span className="text-renta-800 font-medium flex items-center gap-1.5">
+                      <AlertCircle className="h-3.5 w-3.5 text-renta-500" />
+                      ABL Mes en Curso
+                    </span>
+                    <div className="relative w-28">
+                      <span className="absolute left-2 top-1 text-renta-500 font-semibold text-xs">$</span>
+                      <input 
+                        type="number" 
+                        placeholder="0"
+                        value={montoAblVariable}
+                        onChange={(e) => setMontoAblVariable(Number(e.target.value))}
+                        className="w-full text-right pl-6 pr-2 py-1 bg-white border border-admin-border rounded-md text-xs font-bold focus:outline-none focus:border-renta-400 focus:ring-1 focus:ring-renta-400"
+                      />
+                    </div>
+                  </div>
+                )}
+>>>>>>> Stashed changes
              </div>
              
              <div className="flex justify-between items-center text-sm pt-1">
                <span className="font-bold text-renta-900">Total a Abonar (Cuota {pagoDestino.periodo})</span>
+<<<<<<< Updated upstream
                <span className="font-bold text-renta-950">${pagoDestino.monto_a_abonar.toLocaleString('es-AR')}</span>
              </div>
              
@@ -93,6 +137,19 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
              ) : (
                <div className="flex justify-between items-center text-sm bg-renta-100/50 p-2 rounded-lg mt-2 border border-renta-200">
                  <span className="font-medium text-renta-700">Saldo Pendiente</span>
+=======
+               <span className="font-bold text-renta-950">${totalConImpuestos.toLocaleString('es-AR')}</span>
+             </div>
+             
+             {pagoDestino.monto_abonado > 0 ? (
+               <div className="flex justify-between items-center text-sm bg-emerald-50/50 p-2 rounded-lg mt-2 border border-emerald-100">
+                 <span className="font-medium text-emerald-800">Saldo Pendiente (Restante)</span>
+                 <span className="font-bold text-emerald-950">${saldoRestante.toLocaleString('es-AR')}</span>
+               </div>
+             ) : (
+               <div className="flex justify-between items-center text-sm bg-renta-100/50 p-2 rounded-lg mt-2 border border-renta-200">
+                 <span className="font-medium text-renta-800">Saldo Pendiente</span>
+>>>>>>> Stashed changes
                  <span className="font-bold text-renta-950">${saldoRestante.toLocaleString('es-AR')}</span>
                </div>
              )}

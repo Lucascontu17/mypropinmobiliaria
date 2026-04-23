@@ -62,6 +62,8 @@ export const propertySchema = z.object({
   has_expensas: z.boolean().default(false),
   valor_expensas: z.string().optional(),
   has_abl: z.boolean().default(false),
+  tipo_abl: z.enum(["fijo", "variable"]).optional().nullable(),
+  valor_abl: z.string().optional(),
 });
 
 export type PropertyFormData = z.infer<typeof propertySchema>;
@@ -103,6 +105,8 @@ export interface PropertyResponse {
   has_expensas: boolean;
   valor_expensas?: string | null;
   has_abl: boolean;
+  tipo_abl?: "fijo" | "variable" | null;
+  valor_abl?: string | null;
 
   created_at: string;
   updated_at: string;
