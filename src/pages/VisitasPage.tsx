@@ -16,6 +16,46 @@ import { eden } from '@/services/eden';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
+// --- MOCK DATA PARA DESARROLLO / STAGING ---
+const MOCK_VISITAS: Visita[] = [
+  {
+    id: 'mock-1',
+    fecha_programada: new Date(Date.now() + 86400000).toISOString(), // Mañana
+    status: 'PENDIENTE',
+    mensaje_visitante: 'Me interesa ver el estado de la cocina y el balcón. ¿Es apto crédito?',
+    created_at: new Date().toISOString(),
+    propiedad: { id: 'p1', direccion: 'Av. Callao 1234, 4to B, CABA' },
+    cliente: { id: 'c1', nombre: 'Juan Ignacio Pérez', celular: '+54 11 4455-6677', email: 'juan.perez@example.com' }
+  },
+  {
+    id: 'mock-2',
+    fecha_programada: new Date(Date.now() + 172800000).toISOString(), // En 2 días
+    status: 'PENDIENTE',
+    mensaje_visitante: 'Solicito visita por la tarde si es posible.',
+    created_at: new Date().toISOString(),
+    propiedad: { id: 'p2', direccion: 'GÃ¼emes 2100, Mar del Plata' },
+    cliente: { id: 'c2', nombre: 'LucÃ­a FernÃ¡ndez', celular: '+54 223 556-7788', email: 'lucia.f@example.com' }
+  },
+  {
+    id: 'mock-3',
+    fecha_programada: new Date(Date.now() + 43200000).toISOString(), // En 12 horas
+    status: 'PROGRAMADA',
+    mensaje_visitante: null,
+    created_at: new Date().toISOString(),
+    propiedad: { id: 'p3', direccion: 'San Salvador 332, Corrientes' },
+    cliente: { id: 'c3', nombre: 'Roberto Thompson', celular: '+54 379 455-1122', email: 'r.thompson@example.com' }
+  },
+  {
+    id: 'mock-4',
+    fecha_programada: new Date(Date.now() - 86400000).toISOString(), // Ayer
+    status: 'REALIZADA',
+    mensaje_visitante: 'Muy interesado.',
+    created_at: new Date().toISOString(),
+    propiedad: { id: 'p1', direccion: 'Av. Callao 1234, 4to B, CABA' },
+    cliente: { id: 'c4', nombre: 'MarÃ­a GarcÃ­a', celular: '+54 11 9988-7766', email: 'm.garcia@example.com' }
+  }
+];
+
 interface Visita {
   id: string;
   fecha_programada: string;
@@ -40,6 +80,25 @@ export default function VisitasPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const fetchVisitas = async () => {
+    // Detección de entorno para usar Mock Data en DEV/STAGING
+    const isDemo = window.location.hostname.includes('staging') || window.location.hostname.includes('localhost');
+    
+    if (isDemo) {
+      console.log('[Visitas] Modo Demo Activo: Cargando Mocks');
+      // Simulamos un delay de red
+      setTimeout(() => {
+        const stored = localStorage.getItem('mock_visitas');
+        if (stored) {
+          setVisitas(JSON.parse(stored));
+        } else {
+          setVisitas(MOCK_VISITAS);
+          localStorage.setItem('mock_visitas', JSON.stringify(MOCK_VISITAS));
+        }
+        setLoading(false);
+      }, 800);
+      return;
+    }
+
     try {
       const res = await eden.v1.visitas.admin.get();
       if (res.data) {
@@ -58,6 +117,25 @@ export default function VisitasPage() {
 
   const handleUpdateStatus = async (id: string, newStatus: 'PROGRAMADA' | 'REALIZADA' | 'CANCELADA') => {
     setUpdatingId(id);
+
+    // Lógica para modo Demo (Mock)
+    const isDemo = window.location.hostname.includes('staging') || window.location.hostname.includes('localhost');
+    if (isDemo) {
+      setTimeout(() => {
+        const updatedVisitas = visitas.map(v => v.id === id ? { ...v, status: newStatus } : v);
+        setVisitas(updatedVisitas as any);
+        localStorage.setItem('mock_visitas', JSON.stringify(updatedVisitas));
+        
+        let msg = 'Estado actualizado';
+        if (newStatus === 'PROGRAMADA') msg = '¡Visita agendada correctamente!';
+        if (newStatus === 'REALIZADA') msg = '¡Visita marcada como realizada!';
+        if (newStatus === 'CANCELADA') msg = 'Visita cancelada';
+        toast.success(msg);
+        setUpdatingId(null);
+      }, 500);
+      return;
+    }
+
     try {
       const res = await eden.v1.visitas({ id }).status.patch({ status: newStatus });
       if (!res.error) {
