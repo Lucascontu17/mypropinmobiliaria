@@ -44,8 +44,10 @@ export interface PagoEnCuenta {
   nombre_inquilino: string;
   detalle_propiedad: string;
   
-  monto_a_abonar: number; // Monto Base + Mora N + Deuda Arrastrada N-1
+  monto_a_abonar: number; // Monto Base + Mora N + Deuda Arrastrada N-1 + Expensas
   monto_abonado: number;  // Sumatoria real pagada
+  monto_alquiler_base?: number; // Desglose: Alquiler puro
+  monto_expensas?: number;      // Desglose: Expensas Comunes
   
   // Estado Dinámico: 
   // 'PAGADO' (a_abonar <= abonado), 
