@@ -163,107 +163,164 @@ export default function VisitasPage() {
     );
   }
 
+  const [activeTab, setActiveTab] = useState<'SOLICITUDES' | 'AGENDADAS' | 'HISTORIAL'>('SOLICITUDES');
+
   const solicitudes = visitas.filter(v => v.status === 'PENDIENTE');
   const agendadas = visitas.filter(v => v.status === 'PROGRAMADA');
   const historico = visitas.filter(v => v.status === 'REALIZADA' || v.status === 'CANCELADA');
 
+  const tabs = [
+    { id: 'SOLICITUDES', label: 'Solicitudes', count: solicitudes.length, icon: Clock, color: 'amber' },
+    { id: 'AGENDADAS', label: 'Agenda Confirmada', count: agendadas.length, icon: Calendar, color: 'emerald' },
+    { id: 'HISTORIAL', label: 'Historial', count: historico.length, icon: CheckCircle2, color: 'slate' },
+  ] as const;
+
   return (
-    <div className="space-y-12 animate-fade-in pb-20">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-10 animate-fade-in pb-20">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-jakarta font-extrabold text-renta-950 tracking-tight">Gestión de Visitas</h1>
-          <p className="text-slate-500 text-base mt-1">Coordina y confirma los encuentros con tus clientes.</p>
+          <p className="text-slate-500 text-base mt-1">Administra tus encuentros y solicitudes desde un solo lugar.</p>
         </div>
-        <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm">
-          <Calendar className="w-5 h-5 text-renta-500" />
-          <span className="text-sm font-bold text-renta-900">{new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+        
+        {/* Luxury Tab Switcher */}
+        <div className="bg-slate-100/50 p-1.5 rounded-[22px] flex items-center gap-1 border border-slate-200/60 backdrop-blur-sm self-start md:self-center">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "relative flex items-center gap-2.5 px-5 py-2.5 rounded-[18px] text-sm font-bold transition-all duration-300",
+                  isActive 
+                    ? "bg-white text-renta-950 shadow-sm shadow-renta-900/5 border border-slate-200/50" 
+                    : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+                )}
+              >
+                <Icon className={cn(
+                  "w-4 h-4 transition-colors",
+                  isActive ? `text-${tab.color}-600` : "text-slate-400"
+                )} />
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className={cn(
+                    "ml-0.5 px-2 py-0.5 rounded-full text-[10px] font-black tracking-tighter transition-colors",
+                    isActive ? `bg-${tab.color}-100 text-${tab.color}-700` : "bg-slate-200 text-slate-500"
+                  )}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </header>
 
-      {/* ── SECCIÓN 1: SOLICITUDES PENDIENTES ── */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-100">
-            <Clock className="w-5 h-5 text-amber-600" />
-          </div>
-          <h2 className="text-xl font-jakarta font-bold text-renta-950">Solicitudes por Confirmar</h2>
-          <span className="bg-amber-100 text-amber-700 text-xs font-black px-2 py-0.5 rounded-full">
-            {solicitudes.length}
-          </span>
-        </div>
+      {/* ── CONTENIDO DINÁMICO SEGÚN TAB ── */}
+      <div className="min-h-[400px]">
+        {activeTab === 'SOLICITUDES' && (
+          <section className="space-y-6 animate-slide-up">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-100">
+                <Clock className="w-5 h-5 text-amber-600" />
+              </div>
+              <h2 className="text-xl font-jakarta font-bold text-renta-950">Solicitudes por Confirmar</h2>
+            </div>
 
-        {solicitudes.length === 0 ? (
-          <div className="bg-slate-50/50 border border-dashed border-slate-200 rounded-[32px] p-12 text-center">
-            <p className="text-slate-400 text-sm font-medium">No hay nuevas solicitudes de visita desde la landing.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {solicitudes.map((visita) => (
-              <VisitaCard 
-                key={visita.id} 
-                visita={visita} 
-                onUpdate={handleUpdateStatus}
-                updatingId={updatingId}
-              />
-            ))}
-          </div>
+            {solicitudes.length === 0 ? (
+              <div className="bg-white border border-dashed border-slate-200 rounded-[32px] p-20 text-center shadow-sm">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Clock className="w-8 h-8 text-slate-200" />
+                </div>
+                <h3 className="text-lg font-jakarta font-bold text-renta-900">Bandeja de entrada vacía</h3>
+                <p className="text-slate-400 text-sm mt-2 max-w-xs mx-auto">No hay solicitudes pendientes de confirmación en este momento.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                {solicitudes.map((visita) => (
+                  <VisitaCard 
+                    key={visita.id} 
+                    visita={visita} 
+                    onUpdate={handleUpdateStatus}
+                    updatingId={updatingId}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
         )}
-      </section>
 
-      {/* ── SECCIÓN 2: AGENDA CONFIRMADA ── */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center border border-emerald-100">
-            <Calendar className="w-5 h-5 text-emerald-600" />
-          </div>
-          <h2 className="text-xl font-jakarta font-bold text-renta-950">Agenda Confirmada</h2>
-          <span className="bg-emerald-100 text-emerald-700 text-xs font-black px-2 py-0.5 rounded-full">
-            {agendadas.length}
-          </span>
-        </div>
+        {activeTab === 'AGENDADAS' && (
+          <section className="space-y-6 animate-slide-up">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center border border-emerald-100">
+                <Calendar className="w-5 h-5 text-emerald-600" />
+              </div>
+              <h2 className="text-xl font-jakarta font-bold text-renta-950">Agenda Confirmada</h2>
+            </div>
 
-        {agendadas.length === 0 ? (
-          <div className="bg-white border border-dashed border-slate-200 rounded-[32px] p-12 text-center">
-            <p className="text-slate-400 text-sm font-medium">No tenés visitas programadas para los próximos días.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {agendadas.map((visita) => (
-              <VisitaCard 
-                key={visita.id} 
-                visita={visita} 
-                onUpdate={handleUpdateStatus}
-                updatingId={updatingId}
-              />
-            ))}
-          </div>
+            {agendadas.length === 0 ? (
+              <div className="bg-white border border-dashed border-slate-200 rounded-[32px] p-20 text-center shadow-sm">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Calendar className="w-8 h-8 text-slate-200" />
+                </div>
+                <h3 className="text-lg font-jakarta font-bold text-renta-900">Sin visitas programadas</h3>
+                <p className="text-slate-400 text-sm mt-2 max-w-xs mx-auto">Coordiná tus solicitudes pendientes para que aparezcan en tu agenda.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                {agendadas.map((visita) => (
+                  <VisitaCard 
+                    key={visita.id} 
+                    visita={visita} 
+                    onUpdate={handleUpdateStatus}
+                    updatingId={updatingId}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
         )}
-      </section>
 
-      {/* ── SECCIÓN 3: HISTORIAL (Opcional, más compacto) ── */}
-      {historico.length > 0 && (
-        <section className="space-y-6 opacity-60">
-           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-jakarta font-bold text-slate-500">Historial Reciente</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-             {historico.slice(0, 6).map(v => (
-               <div key={v.id} className="bg-white border border-slate-100 p-4 rounded-2xl flex items-center justify-between">
-                 <div className="flex flex-col">
-                   <span className="text-xs font-bold text-slate-700">{v.cliente.nombre}</span>
-                   <span className="text-[10px] text-slate-400">{new Date(v.fecha_programada).toLocaleDateString()}</span>
-                 </div>
-                 <span className={cn(
-                   "text-[10px] font-bold px-2 py-0.5 rounded-full",
-                   v.status === 'REALIZADA' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-500'
-                 )}>
-                   {v.status}
-                 </span>
-               </div>
-             ))}
-          </div>
-        </section>
-      )}
+        {activeTab === 'HISTORIAL' && (
+          <section className="space-y-6 animate-slide-up">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
+                <CheckCircle2 className="w-5 h-5 text-slate-600" />
+              </div>
+              <h2 className="text-xl font-jakarta font-bold text-renta-950">Historial de Visitas</h2>
+            </div>
+
+            {historico.length === 0 ? (
+              <div className="bg-white border border-dashed border-slate-200 rounded-[32px] p-20 text-center shadow-sm">
+                <p className="text-slate-400 text-sm font-medium">Aún no hay visitas en el historial.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 {historico.map(v => (
+                   <div key={v.id} className="bg-white border border-slate-100 p-6 rounded-[24px] flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
+                     <div className="flex items-center justify-between">
+                        <span className={cn(
+                          "text-[10px] font-black px-3 py-1 rounded-full",
+                          v.status === 'REALIZADA' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+                        )}>
+                          {v.status}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-bold">{new Date(v.fecha_programada).toLocaleDateString()}</span>
+                     </div>
+                     <div>
+                       <h4 className="font-bold text-renta-950 text-sm">{v.cliente.nombre}</h4>
+                       <p className="text-xs text-slate-500 truncate mt-0.5">{v.propiedad.direccion}</p>
+                     </div>
+                   </div>
+                 ))}
+              </div>
+            )}
+          </section>
+        )}
+      </div>
     </div>
   );
 }
