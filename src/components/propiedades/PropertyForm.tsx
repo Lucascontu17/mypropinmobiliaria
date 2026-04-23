@@ -495,14 +495,38 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                    { key: 'has_expensas', label: 'Expensas Comunes' },
                    { key: 'has_abl', label: 'Impuesto ABL / Municipal' }
                  ].map((servicio) => (
-                    <label key={servicio.key} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-admin-border-subtle cursor-pointer hover:bg-renta-50 transition-colors">
-                      <input 
-                        type="checkbox"
-                        {...register(servicio.key as keyof PropertyFormData)}
-                        className="w-4 h-4 text-renta-600 rounded border-gray-300 focus:ring-renta-500"
-                      />
-                      <span className="text-sm font-semibold text-renta-900">{servicio.label}</span>
-                    </label>
+                    <div key={servicio.key} className="space-y-2">
+                      <label className="flex items-center gap-3 p-3 bg-white rounded-xl border border-admin-border-subtle cursor-pointer hover:bg-renta-50 transition-colors">
+                        <input 
+                          type="checkbox"
+                          {...register(servicio.key as keyof PropertyFormData)}
+                          className="w-4 h-4 text-renta-600 rounded border-gray-300 focus:ring-renta-500"
+                        />
+                        <span className="text-sm font-semibold text-renta-900">{servicio.label}</span>
+                      </label>
+                      
+                      {/* Despliegue condicional para Expensas */}
+                      {servicio.key === 'has_expensas' && watch('has_expensas') && (
+                        <div className="pl-4 pr-3 py-1 animate-in fade-in slide-in-from-top-1">
+                          <label className="text-[10px] font-bold text-renta-700 uppercase tracking-wider mb-1.5 block">
+                            Valor Mensual de Expensas <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-2.5 text-renta-500 font-semibold">{currentMoneda === 'USD' ? 'US$' : '$'}</span>
+                            <input
+                              {...register('valor_expensas', { required: watch('has_expensas') ? "Ingrese el valor de las expensas" : false })}
+                              type="text"
+                              placeholder="0.00"
+                              className={cn(
+                                "w-full rounded-xl border bg-white pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 text-renta-950 font-bold",
+                                errors.valor_expensas ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                              )}
+                            />
+                          </div>
+                          {errors.valor_expensas && <p className="text-[10px] text-red-500 font-medium mt-1">{errors.valor_expensas.message}</p>}
+                        </div>
+                      )}
+                    </div>
                  ))}
                </div>
             </div>

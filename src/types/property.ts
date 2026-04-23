@@ -60,6 +60,7 @@ export const propertySchema = z.object({
   has_gas: z.boolean().default(false),
   has_agua: z.boolean().default(false),
   has_expensas: z.boolean().default(false),
+  valor_expensas: z.string().optional(),
   has_abl: z.boolean().default(false),
 });
 
@@ -100,6 +101,7 @@ export interface PropertyResponse {
   has_gas: boolean;
   has_agua: boolean;
   has_expensas: boolean;
+  valor_expensas?: string | null;
   has_abl: boolean;
 
   created_at: string;
