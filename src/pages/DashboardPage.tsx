@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
+import { useEden } from '@/services/eden';
 
 /**
  * DashboardPage — Vista principal del Panel Administrativo.
@@ -113,6 +114,7 @@ export function DashboardPage() {
   const { t, formatCurrency } = useRegion();
   const [metrics, setMetrics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const eden = useEden();
 
   useEffect(() => {
     const fetchMetrics = async () => {
