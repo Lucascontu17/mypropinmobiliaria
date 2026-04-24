@@ -86,20 +86,65 @@ export function MarketplacePage() {
     }
   };
 
+  // --- Payment Form State ---
+  const [cardData, setCardData] = useState({
+    cardNumber: '',
+    expirationDate: '',
+    cvv: '',
+    cardholderName: '',
+    email: ''
+  });
+
   const handleProcessPayment = async (puntos: number, monto: number) => {
+    if (!cardData.email || !cardData.cardNumber) {
+      alert("Por favor complete todos los campos de pago.");
+      return;
+    }
+
     setIsProcessing('points_purchase');
+    
     try {
+      // 1. Initialize Mercado Pago
       // @ts-ignore
-      await eden.marketplace['buy-points'].post({ 
+      const mp = new window.MercadoPago('APP_USR-d74eb23f-78f0-42e0-88d0-78f682072e4c', {
+        locale: 'es-AR'
+      });
+
+      // 2. Tokenize Card
+      const [month, year] = cardData.expirationDate.split('/');
+      const tokenResponse = await mp.createCardToken({
+        cardNumber: cardData.cardNumber.replace(/\s/g, ''),
+        cardholderName: cardData.cardholderName,
+        cardExpirationMonth: month,
+        cardExpirationYear: "20" + year,
+        securityCode: cardData.cvv,
+        identificationType: "DNI", // Default for AR demo, should be a selector in prod
+        identificationNumber: "12345678" // Default for AR demo
+      });
+
+      if (!tokenResponse.id) {
+        throw new Error("No se pudo generar el token de seguridad de la tarjeta.");
+      }
+
+      // 3. Send to API
+      // @ts-ignore
+      const { data, error } = await eden.marketplace['buy-points'].post({ 
         puntos, 
         monto: monto.toString(),
-        metodo: 'Mercado Pago (Credit Card)'
+        token: tokenResponse.id,
+        payment_method_id: 'visa', // This should ideally be detected via bin, but hardcoded for demo simplicity
+        installments: 1,
+        email: cardData.email
       });
-      alert(t('marketplace_success_points', `Has comprado ${puntos} puntos. Ya están disponibles en tu balance.`));
+
+      if (error) throw new Error((error as any).value?.error || 'Error en el cobro');
+
+      alert(t('marketplace_success_points', `¡Compra Exitosa! Has adquirido ${puntos} puntos. Balance actualizado.`));
       setShowPaymentModal(null);
       fetchCatalog();
-    } catch (err) {
-      alert('Error en la transacción.');
+    } catch (err: any) {
+      console.error('Payment Error:', err);
+      alert('Error en la transacción: ' + (err.message || 'Verifique sus datos'));
     } finally {
       setIsProcessing(null);
     }
@@ -343,11 +388,24 @@ export function MarketplacePage() {
 
                  <div className="space-y-4">
                     <div className="space-y-1.5">
+                       <label className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Email del Pagador</label>
+                       <input 
+                         type="email" 
+                         placeholder="ejemplo@email.com"
+                         value={cardData.email}
+                         onChange={(e) => setCardData({...cardData, email: e.target.value})}
+                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all"
+                       />
+                    </div>
+
+                    <div className="space-y-1.5">
                        <label className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Número de Tarjeta</label>
                        <div className="relative">
                           <input 
                             type="text" 
                             placeholder="0000 0000 0000 0000"
+                            value={cardData.cardNumber}
+                            onChange={(e) => setCardData({...cardData, cardNumber: e.target.value})}
                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all"
                           />
                           <WalletCards className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
@@ -360,6 +418,8 @@ export function MarketplacePage() {
                           <input 
                             type="text" 
                             placeholder="MM/AA"
+                            value={cardData.expirationDate}
+                            onChange={(e) => setCardData({...cardData, expirationDate: e.target.value})}
                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all"
                           />
                        </div>
@@ -368,6 +428,8 @@ export function MarketplacePage() {
                           <input 
                             type="password" 
                             placeholder="***"
+                            value={cardData.cvv}
+                            onChange={(e) => setCardData({...cardData, cvv: e.target.value})}
                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all"
                           />
                        </div>
@@ -378,6 +440,8 @@ export function MarketplacePage() {
                        <input 
                          type="text" 
                          placeholder="EJ. JUAN PEREZ"
+                         value={cardData.cardholderName}
+                         onChange={(e) => setCardData({...cardData, cardholderName: e.target.value})}
                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all uppercase"
                        />
                     </div>
