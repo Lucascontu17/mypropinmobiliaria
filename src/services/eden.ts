@@ -54,15 +54,47 @@ export function useEden() {
                    localStorage.getItem('zonatia_audit_region') || 'AR';
     const inmobiliariaId = (user?.publicMetadata?.inmobiliaria_id as string) || '';
 
-    console.log('[EDEN] Creating client with token:', token ? 'YES' : 'NO', 'inmo:', inmobiliariaId);
-
-    // PLAIN OBJECT headers — no async, no function, guaranteed to be injected
-    return treaty<App>(API_URL, {
+    const realClient = treaty<App>(API_URL, {
       headers: {
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         'x-inmobiliaria-id': inmobiliariaId,
         'x-region': region,
       }
+    });
+
+    // MOCK INTERCEPTION FOR DEV BRANCH
+    // We wrap the client in a Proxy to catch calls to .admin.<route>.get()
+    return new Proxy(realClient, {
+        get(target, prop) {
+            const val = target[prop as keyof typeof target];
+            if (prop === 'admin') {
+                return new Proxy(val, {
+                    get(adminTarget, adminProp) {
+                        const route = adminTarget[adminProp as keyof typeof adminTarget];
+                        return new Proxy(route, {
+                            get(routeTarget, routeProp) {
+                                if (routeProp === 'get') {
+                                    return async (...args: any[]) => {
+                                        // IMPORT MOCK_DATA dynamically to avoid circular dependencies if any
+                                        const { MOCK_DATA } = await import('./mockData');
+                                        const mockKey = adminProp as keyof typeof MOCK_DATA;
+                                        
+                                        if (MOCK_DATA[mockKey]) {
+                                            console.log(`[MOCK] Returning mock data for admin.${adminProp}`);
+                                            return { data: MOCK_DATA[mockKey], error: null };
+                                        }
+                                        
+                                        return (routeTarget as any).get(...args);
+                                    };
+                                }
+                                return routeTarget[routeProp as keyof typeof routeTarget];
+                            }
+                        });
+                    }
+                });
+            }
+            return val;
+        }
     });
   }, [token, user]);
 
