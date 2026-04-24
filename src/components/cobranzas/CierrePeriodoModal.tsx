@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { cierrePeriodoSchema, type CierrePeriodoData } from '@/types/cobranzas';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { AlertCircle, LockKeyhole, FolderSync, ShieldAlert } from 'lucide-react';
+import { useEden } from '@/services/eden';
 
 interface CierrePeriodoModalProps {
   periodoActual: string; // Ej. 2026-04
@@ -14,6 +15,7 @@ interface CierrePeriodoModalProps {
 
 export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEstimado, onClose, onSuccess }: CierrePeriodoModalProps) {
   const { inmobiliaria_id } = useInmobiliaria();
+  const eden = useEden();
   
   const { handleSubmit, formState: { isSubmitting } } = useForm<CierrePeriodoData>({
     resolver: zodResolver(cierrePeriodoSchema),
