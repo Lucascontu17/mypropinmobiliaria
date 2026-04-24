@@ -45,18 +45,29 @@ export function useEden() {
   const client = useMemo(() => {
     return treaty<App>(API_URL, {
       async headers() {
-        const token = await getToken();
-        // Extract metadata for headers
-        const inmobiliariaId = (user?.publicMetadata?.inmobiliaria_id as string) || '';
-        const region = (user?.publicMetadata?.country_code as string) || 
-                       localStorage.getItem('zonatia_audit_region') || 
-                       'AR';
+        try {
+          const token = await getToken();
+          console.log('[EDEN] getToken result:', token ? `Bearer ${token.substring(0, 20)}...` : 'NULL');
+          
+          const inmobiliariaId = (user?.publicMetadata?.inmobiliaria_id as string) || '';
+          const region = (user?.publicMetadata?.country_code as string) || 
+                         localStorage.getItem('zonatia_audit_region') || 
+                         'AR';
 
-        return {
-          Authorization: `Bearer ${token}`,
-          'x-inmobiliaria-id': inmobiliariaId,
-          'x-region': region,
-        };
+          if (!token) {
+            console.warn('[EDEN] No token from Clerk! Requests will fail with 401.');
+            return { 'x-region': region };
+          }
+
+          return {
+            Authorization: `Bearer ${token}`,
+            'x-inmobiliaria-id': inmobiliariaId,
+            'x-region': region,
+          };
+        } catch (err) {
+          console.error('[EDEN] Error getting token:', err);
+          return {};
+        }
       },
     });
   }, [getToken, user]);
