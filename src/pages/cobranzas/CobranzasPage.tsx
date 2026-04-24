@@ -1,63 +1,57 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
 import { type PagoEnCuenta } from '@/types/cobranzas';
 import { RegistrarIngresoModal } from '@/components/cobranzas/RegistrarIngresoModal';
 import { CierrePeriodoModal } from '@/components/cobranzas/CierrePeriodoModal';
 import { VerBoletasModal } from '@/components/cobranzas/VerBoletasModal';
-import { Search, FolderSync, Plus, FileText, CheckCircle2, AlertCircle, Clock, Check, Wallet, FileUp } from 'lucide-react';
+import { Search, FolderSync, Plus, FileText, CheckCircle2, AlertCircle, Clock, Check, Wallet, FileUp, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-// Mock Data representativo de la DB (Mes en curso)
-const PERIODO_ACTUAL = '2026-04';
-const MOCK_PAGOS: PagoEnCuenta[] = [
-  {
-    pago_id: 'p1', contrato_id: 'c1', inmobiliaria_id: 'inmo1',
-    periodo: PERIODO_ACTUAL, nombre_inquilino: 'Martin Lopez', detalle_propiedad: 'Av. Callao 1234, CABA',
-    monto_alquiler_base: 450000, monto_expensas: 0,
-    monto_a_abonar: 450000, monto_abonado: 450000, status: 'PAGADO'
-  },
-  {
-    pago_id: 'p2', contrato_id: 'c2', inmobiliaria_id: 'inmo1',
-    periodo: PERIODO_ACTUAL, nombre_inquilino: 'Estudio Jurídico R&M', detalle_propiedad: 'Oficina 3B, Centro',
-    monto_alquiler_base: 650000, monto_expensas: 150000, tipo_abl: 'variable', monto_abl: 0,
-    monto_a_abonar: 800000, monto_abonado: 300000, status: 'PARCIAL' // Pagó de menos
-  },
-  {
-    pago_id: 'p3', contrato_id: 'c3', inmobiliaria_id: 'inmo1',
-    periodo: PERIODO_ACTUAL, nombre_inquilino: 'Carlos Gomez', detalle_propiedad: 'San Salvador 332',
-    monto_alquiler_base: 300000, monto_expensas: 0, tipo_abl: 'fijo', monto_abl: 15000,
-    monto_a_abonar: 315000, monto_abonado: 0, status: 'PENDIENTE' 
-  },
-  { // Saldo a favor simulación
-    pago_id: 'p4', contrato_id: 'c4', inmobiliaria_id: 'inmo1',
-    periodo: PERIODO_ACTUAL, nombre_inquilino: 'Maria Perez', detalle_propiedad: 'Local Comercial Güemes',
-    monto_alquiler_base: 400000, monto_expensas: 100000,
-    monto_a_abonar: 500000, monto_abonado: 550000, status: 'PAGADO' 
-  }
-];
+import { useEden } from '@/services/eden';
+import { toast } from 'sonner';
 
 type FiltroEstado = 'TODOS' | 'AL_DIA' | 'CON_DEUDA' | 'SALDOS_A_FAVOR';
 
-/**
- * CobranzasPage — Cuenta Corriente Global con moneda regionalizada.
- * Todos los importes formateados via useRegion().formatCurrency().
- * Textos localizados via useRegion().t() desde archivos de dialectos .md.
- */
 export function CobranzasPage() {
   const { hasPermission } = useInmobiliaria();
   const { t, formatCurrency } = useRegion();
   const [searchTerm, setSearchTerm] = useState('');
   const [filtro, setFiltro] = useState<FiltroEstado>('TODOS');
+  const [pagos, setPagos] = useState<PagoEnCuenta[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const eden = useEden();
+  const [periodoActual, setPeriodoActual] = useState(new Date().toISOString().slice(0, 7));
   
   // Modals state
   const [selectedPago, setSelectedPago] = useState<PagoEnCuenta | null>(null);
   const [showCierreModal, setShowCierreModal] = useState(false);
   const [boletasPagoId, setBoletasPagoId] = useState<{ id: string, nombre: string } | null>(null);
 
+  const fetchPagos = async () => {
+    setIsLoading(true);
+    try {
+        const { data, error } = await eden.admin.pagos.get({
+            query: { periodo: periodoActual }
+        });
+        if (error) {
+            toast.error('No se pudo cargar la cobranza');
+        } else {
+            setPagos(data.data as PagoEnCuenta[]);
+        }
+    } catch (err) {
+        toast.error('Error al conectar con el servidor');
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPagos();
+  }, [periodoActual, eden]);
+
   // Business Logic Filtering
   const pagosVisibles = useMemo(() => {
-    return MOCK_PAGOS.filter(p => {
+    return pagos.filter(p => {
       // Search
       const matchText = p.nombre_inquilino.toLowerCase().includes(searchTerm.toLowerCase()) || 
                         p.detalle_propiedad.toLowerCase().includes(searchTerm.toLowerCase());
@@ -70,16 +64,16 @@ export function CobranzasPage() {
       if (filtro === 'CON_DEUDA') return saldoRestante > 0;
       return true;
     });
-  }, [searchTerm, filtro]);
+  }, [searchTerm, filtro, pagos]);
 
   // Totales Financieros Header
-  const totalRecaudado = MOCK_PAGOS.reduce((acc, p) => acc + p.monto_abonado, 0);
-  const totalEsperado = MOCK_PAGOS.reduce((acc, p) => acc + p.monto_a_abonar, 0);
-  const deudaEstimadaCierre = MOCK_PAGOS.reduce((acc, p) => {
+  const totalRecaudado = pagos.reduce((acc, p) => acc + p.monto_abonado, 0);
+  const totalEsperado = pagos.reduce((acc, p) => acc + p.monto_a_abonar, 0);
+  const deudaEstimadaCierre = pagos.reduce((acc, p) => {
      const dif = p.monto_a_abonar - p.monto_abonado;
      return acc + (dif > 0 ? dif : 0);
   }, 0);
-  const saldoFavorEstimado = MOCK_PAGOS.reduce((acc, p) => {
+  const saldoFavorEstimado = pagos.reduce((acc, p) => {
      const dif = p.monto_a_abonar - p.monto_abonado;
      return acc + (dif < 0 ? Math.abs(dif) : 0); // Excedente Absoluto
   }, 0);
@@ -94,7 +88,7 @@ export function CobranzasPage() {
             {t('cobranza_titulo', 'Cuenta Corriente Global')}
           </h1>
           <p className="text-sm text-renta-600 font-inter mt-1 flex items-center gap-2">
-            {t('cobranza_periodo', 'Periodo Activo')}: <span className="font-bold text-renta-900 bg-renta-100 px-2 py-0.5 rounded-md">{PERIODO_ACTUAL}</span>
+            {t('cobranza_periodo', 'Periodo Activo')}: <span className="font-bold text-renta-900 bg-renta-100 px-2 py-0.5 rounded-md">{periodoActual}</span>
           </p>
         </div>
         
@@ -186,7 +180,14 @@ export function CobranzasPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-admin-border-subtle">
-              {pagosVisibles.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <Loader2 className="mx-auto h-8 w-8 text-renta-400 animate-spin mb-2" />
+                    <p className="text-sm text-renta-500">Cargando cobranzas reales...</p>
+                  </td>
+                </tr>
+              ) : pagosVisibles.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-renta-500">
                     <Wallet className="mx-auto h-8 w-8 text-renta-200 mb-3" />
@@ -278,18 +279,22 @@ export function CobranzasPage() {
         <RegistrarIngresoModal 
           pagoDestino={selectedPago} 
           onClose={() => setSelectedPago(null)}
-          onSuccess={() => alert('¡Ingreso procesado correctamente! En la integración final esto actualizará la DB.')}
+          onSuccess={() => {
+            setSelectedPago(null);
+            fetchPagos();
+          }}
         />
       )}
 
       {showCierreModal && (
          <CierrePeriodoModal
-           periodoActual={PERIODO_ACTUAL}
+           periodoActual={periodoActual}
            deudaEstimada={deudaEstimadaCierre}
            saldoAFavorEstimado={saldoFavorEstimado}
            onClose={() => setShowCierreModal(false)}
            onSuccess={() => {
-             alert('El mes ha sido cerrado. En Integración esto forzará una recarga atómica en mypropAPI.');
+             fetchPagos();
+             toast.success('El periodo ha sido procesado.');
            }}
          />
       )}

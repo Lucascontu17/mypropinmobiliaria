@@ -5,7 +5,7 @@ import { transaccionSchema, type TransaccionFormData, type PagoEnCuenta } from '
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { X, Save, Wallet, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { eden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 import { generateReceiptPDF } from '@/utils/receiptGenerator';
 import { numeroALetras } from '@/utils/numberToWords';
@@ -19,6 +19,7 @@ interface RegistrarIngresoModalProps {
 
 export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: RegistrarIngresoModalProps) {
   const { inmobiliaria_id, nombre: nombreInmobiliaria } = useInmobiliaria();
+  const eden = useEden();
   const [montoAblVariable, setMontoAblVariable] = useState<number | ''>('');
   
   const ablDinamico = Number(montoAblVariable) || 0;

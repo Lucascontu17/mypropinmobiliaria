@@ -5,6 +5,7 @@ import { Plus, Search, Building2, Edit2, Trash2, X, Loader2 } from 'lucide-react
 import { cn } from '@/lib/utils';
 import { PropietarioForm } from '@/components/actores/PropietarioForm';
 import { useEden } from '@/services/eden';
+
 export function PropietariosPage() {
   const { hasPermission } = useInmobiliaria();
   const { t } = useRegion();
@@ -13,6 +14,7 @@ export function PropietariosPage() {
   const [editingData, setEditingData] = useState<any | null>(null);
   const [propietarios, setPropietarios] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const eden = useEden();
   
   useEffect(() => {
     const fetchOwners = async () => {

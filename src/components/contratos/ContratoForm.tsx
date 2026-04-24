@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { eden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info, Search, Link as LinkIcon, UserCheck } from 'lucide-react';
 import { useForm, FormProvider, useWatch, Controller } from 'react-hook-form';
@@ -19,6 +19,7 @@ interface ContratoFormProps {
 
 export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables, onCancel, onSubmitSuccess }: ContratoFormProps) {
   const { inmobiliaria_id, country_code } = useInmobiliaria();
+  const eden = useEden();
   const navigate = useNavigate();
 
   const [isLinking, setIsLinking] = useState(false);

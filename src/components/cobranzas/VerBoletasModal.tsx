@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { eden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { X, Zap, Flame, Droplets, Eye, Loader2, FileX } from 'lucide-react';
 
 interface Boleta {
@@ -36,6 +36,7 @@ const COLOR_MAP: Record<string, string> = {
 export function VerBoletasModal({ pagoId, inquilinoNombre, onClose }: Props) {
   const [boletas, setBoletas] = useState<Boleta[]>([]);
   const [loading, setLoading] = useState(true);
+  const eden = useEden();
 
   useEffect(() => {
     fetchBoletas();

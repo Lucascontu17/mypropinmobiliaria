@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { useRegion } from '@/hooks/useRegion';
-import { X, Save, UserPlus, Shield, ShieldCheck, Briefcase } from 'lucide-react';
+import { X, Save, UserPlus, Shield, ShieldCheck, Briefcase, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
 import { CountryPhoneSelector } from '../common/CountryPhoneSelector';
 import type { UserRole } from '@/hooks/useInmobiliaria';
+import { useEden } from '@/services/eden';
+import { toast } from 'sonner';
 
 const miembroSchema = z.object({
   nombre: z.string().min(2, 'Nombre debe tener al menos 2 caracteres.'),
   email: z.string().email('Email inválido.'),
   celular: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Formato E.164 requerido (Ej: +5491112345678)'),
   role: z.enum(['admin', 'vendedor']),
+  password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres.').optional(),
 });
 
 export interface MiembroData {
@@ -48,23 +51,32 @@ const ROLE_OPTIONS: { value: UserRole; label: string; description: string; icon:
 
 export function MiembroForm({ initialData, onCancel, onSuccess }: MiembroFormProps) {
   const { t, config } = useRegion();
+  const eden = useEden();
   const isEditing = !!initialData?.id;
 
   const [nombre, setNombre] = useState(initialData?.nombre ?? '');
   const [email, setEmail] = useState(initialData?.email ?? '');
   const [celular, setCelular] = useState(initialData?.celular ?? config.phone_prefix);
   const [role, setRole] = useState<UserRole>(initialData?.role ?? 'vendedor');
+  const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
 
-    const result = miembroSchema.safeParse({ nombre, email, celular, role });
-    if (!result.success) {
+    const validation = miembroSchema.safeParse({ 
+        nombre, 
+        email, 
+        celular, 
+        role, 
+        password: isEditing ? undefined : password 
+    });
+
+    if (!validation.success) {
       const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((issue) => {
+      validation.error.issues.forEach((issue) => {
         const field = issue.path[0] as string;
         fieldErrors[field] = issue.message;
       });
@@ -73,11 +85,31 @@ export function MiembroForm({ initialData, onCancel, onSuccess }: MiembroFormPro
     }
 
     setIsSaving(true);
-    // Simular API call — reemplazar con Eden/SWR
-    setTimeout(() => {
-      setIsSaving(false);
-      onSuccess();
-    }, 800);
+    
+    try {
+        if (isEditing) {
+            // Edit logic not yet fully implemented in backend for Team
+            toast.error('La edición de miembros estará disponible pronto.');
+        } else {
+            const { data, error } = await eden.admin.equipo.post({
+                nombre,
+                email,
+                role,
+                password
+            });
+
+            if (error) {
+                toast.error(error.value?.error || 'Error al crear miembro');
+            } else {
+                toast.success('Miembro invitado correctamente');
+                onSuccess();
+            }
+        }
+    } catch (err) {
+        toast.error('Error crítico al conectar con el Búnker');
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   return (
@@ -171,16 +203,35 @@ export function MiembroForm({ initialData, onCancel, onSuccess }: MiembroFormPro
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="maria@inmobiliaria.com"
+            disabled={isEditing}
             className={cn(
-              'w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-1 bg-admin-surface transition-all',
+              'w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-1 bg-admin-surface transition-all disabled:opacity-50',
               errors.email ? 'border-red-400 focus:border-red-500' : 'border-admin-border focus:border-renta-400'
             )}
           />
           {errors.email && <p className="text-[10px] text-red-500 font-medium">{errors.email}</p>}
-          <p className="text-[10px] text-renta-500">
-            {t('equipo_form_email_desc', 'Se enviará una invitación por email para unirse al Búnker.')}
-          </p>
         </div>
+
+          {/* Password (Sólo nuevo) */}
+          {!isEditing && (
+            <div className="space-y-2">
+                <label className="text-sm font-bold text-renta-950 flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-renta-600" />
+                    {t('equipo_form_pass', 'Contraseña Temporal')}
+                </label>
+                <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Al menos 8 caracteres"
+                    className={cn(
+                        'w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-1 bg-admin-surface transition-all',
+                        errors.password ? 'border-red-400 focus:border-red-500' : 'border-admin-border focus:border-renta-400'
+                    )}
+                />
+                {errors.password && <p className="text-[10px] text-red-500 font-medium">{errors.password}</p>}
+            </div>
+          )}
 
           {/* Celular */}
           <div className="space-y-2">

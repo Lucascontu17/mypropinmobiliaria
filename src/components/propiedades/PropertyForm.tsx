@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { useRegion } from '@/hooks/useRegion';
 import { GalleryUploader } from './GalleryUploader';
 import { MapPicker } from './MapPicker';
-import { eden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 
 interface ProveedorOpcion {
@@ -26,6 +26,7 @@ interface PropertyFormProps {
 export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }: PropertyFormProps) {
   const { inmobiliaria_id } = useInmobiliaria();
   const { currency_code } = useRegion();
+  const eden = useEden();
 
   const methods = useForm<PropertyFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

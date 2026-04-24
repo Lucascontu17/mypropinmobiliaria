@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phone, Rocket, X } from 'lucide-react';
+import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phone, Rocket, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { eden, useEden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
 export function PropiedadesPage() {
@@ -13,6 +13,7 @@ export function PropiedadesPage() {
   const [filterTipo, setFilterTipo] = useState<string>('todos');
   const { t, formatCurrency } = useRegion();
   const navigate = useNavigate();
+  const eden = useEden();
 
   const [properties, setProperties] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +38,7 @@ export function PropiedadesPage() {
       }, 1000);
     };
     fetchProperties();
-  }, []);
+  }, [eden]);
 
   const filteredProperties = properties.filter(p => {
     const matchesSearch = (p.direccion || '').toLowerCase().includes(searchTerm.toLowerCase()) || (p.titulo || '').toLowerCase().includes(searchTerm.toLowerCase());

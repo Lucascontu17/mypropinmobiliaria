@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { Plus, Search, Users, Edit2, Trash2, FileText, X } from 'lucide-react';
+import { Plus, Search, Users, Edit2, Trash2, FileText, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { InquilinoForm } from '@/components/actores/InquilinoForm';
 import { useEden } from '@/services/eden';
@@ -14,6 +14,7 @@ export function InquilinosPage() {
   const [editingData, setEditingData] = useState<any | null>(null);
   const [inquilinos, setInquilinos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const eden = useEden();
   
   useEffect(() => {
     const fetchInquilinos = async () => {

@@ -4,7 +4,7 @@ import { useRegion } from '@/hooks/useRegion';
 import { Plus, Search, FileText, Trash2, StopCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { eden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 import { ContratoDetailsModal } from '@/components/contratos/ContratoDetailsModal';
 
@@ -18,10 +18,11 @@ export function ContratosPage() {
   const [selectedContrato, setSelectedContrato] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const eden = useEden();
 
   useEffect(() => {
     fetchContratos();
-  }, []);
+  }, [eden]);
 
   const fetchContratos = async () => {
     setIsLoading(true);
