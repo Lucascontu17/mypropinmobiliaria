@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { MiembroForm, type MiembroData } from '@/components/equipo/MiembroForm';
 import type { UserRole } from '@/hooks/useInmobiliaria';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
-import { eden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 
 const ROLE_META = {
@@ -52,6 +52,7 @@ export function EquipoPage() {
   const [contextMenu, setContextMenu] = useState<string | null>(null);
   const [miembros, setMiembros] = useState<MiembroData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const eden = useEden();
 
   const fetchEquipo = async () => {
     setIsLoading(true);
@@ -71,7 +72,7 @@ export function EquipoPage() {
 
   useEffect(() => {
     fetchEquipo();
-  }, []);
+  }, [eden]);
 
   const equipo = miembros.filter((m) => {
     const matchesSearch =

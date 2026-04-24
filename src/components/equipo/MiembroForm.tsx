@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { z } from 'zod';
 import { CountryPhoneSelector } from '../common/CountryPhoneSelector';
 import type { UserRole } from '@/hooks/useInmobiliaria';
-import { eden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 
 const miembroSchema = z.object({
@@ -51,6 +51,7 @@ const ROLE_OPTIONS: { value: UserRole; label: string; description: string; icon:
 
 export function MiembroForm({ initialData, onCancel, onSuccess }: MiembroFormProps) {
   const { t, config } = useRegion();
+  const eden = useEden();
   const isEditing = !!initialData?.id;
 
   const [nombre, setNombre] = useState(initialData?.nombre ?? '');

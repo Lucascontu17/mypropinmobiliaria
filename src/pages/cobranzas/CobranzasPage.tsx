@@ -7,7 +7,7 @@ import { CierrePeriodoModal } from '@/components/cobranzas/CierrePeriodoModal';
 import { VerBoletasModal } from '@/components/cobranzas/VerBoletasModal';
 import { Search, FolderSync, Plus, FileText, CheckCircle2, AlertCircle, Clock, Check, Wallet, FileUp, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { eden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 
 type FiltroEstado = 'TODOS' | 'AL_DIA' | 'CON_DEUDA' | 'SALDOS_A_FAVOR';
@@ -19,6 +19,7 @@ export function CobranzasPage() {
   const [filtro, setFiltro] = useState<FiltroEstado>('TODOS');
   const [pagos, setPagos] = useState<PagoEnCuenta[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const eden = useEden();
   const [periodoActual, setPeriodoActual] = useState(new Date().toISOString().slice(0, 7));
   
   // Modals state
@@ -46,7 +47,7 @@ export function CobranzasPage() {
 
   useEffect(() => {
     fetchPagos();
-  }, [periodoActual]);
+  }, [periodoActual, eden]);
 
   // Business Logic Filtering
   const pagosVisibles = useMemo(() => {

@@ -2,7 +2,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ownerSchema, type OwnerFormValues } from '@/lib/validations/actores';
 import { useInmobiliaria } from '../../hooks/useInmobiliaria';
-import { eden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 import { Save, X, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,7 @@ interface PropietarioFormProps {
  */
 export function PropietarioForm({ initialData, onSuccess, onCancel }: PropietarioFormProps) {
   const { inmobiliaria_id, country_code } = useInmobiliaria();
+  const eden = useEden();
 
   // 🛡️ BÚNKER GUARD (GRACEFUL DEGRADATION)
   // Bloquea el componente si no hay country_code, previniendo corrupción regional.

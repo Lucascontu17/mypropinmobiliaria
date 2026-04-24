@@ -14,12 +14,13 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { eden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
 export function MarketplacePage() {
   const { hasPermission, inmobiliaria_id } = useInmobiliaria();
   const { t, formatCurrency, country_code, config } = useRegion();
+  const eden = useEden();
 
   const [activeTab, setActiveTab] = useState<'addons' | 'points'>('addons');
   
@@ -39,7 +40,7 @@ export function MarketplacePage() {
 
   useEffect(() => {
     fetchCatalog();
-  }, []);
+  }, [eden]);
 
   const fetchCatalog = async () => {
     setIsLoading(true);

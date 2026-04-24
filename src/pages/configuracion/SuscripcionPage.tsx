@@ -11,7 +11,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { eden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
@@ -24,6 +24,7 @@ import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShe
 
 export function SuscripcionPage() {
   const { t, formatCurrency, currency_code } = useRegion();
+  const eden = useEden();
   
   const [summary, setSummary] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -34,7 +35,7 @@ export function SuscripcionPage() {
 
   useEffect(() => {
     fetchBillingData();
-  }, []);
+  }, [eden]);
 
   const fetchBillingData = async () => {
     setIsLoading(true);

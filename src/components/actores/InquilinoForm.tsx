@@ -2,7 +2,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { tenantSchema, type TenantFormValues } from '@/lib/validations/actores';
 import { useInmobiliaria } from '../../hooks/useInmobiliaria';
-import { eden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 import { Save, X, AlertTriangle, Search, Link as LinkIcon, UserCheck } from 'lucide-react';
 import { useState } from 'react';
@@ -21,6 +21,7 @@ interface InquilinoFormProps {
  */
 export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFormProps) {
   const { inmobiliaria_id, country_code } = useInmobiliaria();
+  const eden = useEden();
 
   // 🛡️ BÚNKER GUARD (GRACEFUL DEGRADATION)
   // Bloquea el componente si no hay country_code, previniendo corrupción regional.

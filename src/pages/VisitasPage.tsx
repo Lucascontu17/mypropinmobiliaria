@@ -12,7 +12,7 @@ import {
   MoreVertical,
   Loader2
 } from 'lucide-react';
-import { eden } from '@/services/eden';
+import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -39,6 +39,7 @@ export default function VisitasPage() {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'SOLICITUDES' | 'AGENDADAS' | 'HISTORIAL'>('SOLICITUDES');
+  const eden = useEden();
 
   const fetchVisitas = async () => {
     try {
@@ -56,7 +57,7 @@ export default function VisitasPage() {
 
   useEffect(() => {
     fetchVisitas();
-  }, []);
+  }, [eden]);
 
   const handleUpdateStatus = async (id: string, newStatus: string, newDate?: string) => {
     setUpdatingId(id);
