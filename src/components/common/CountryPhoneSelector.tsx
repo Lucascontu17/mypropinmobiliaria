@@ -69,13 +69,13 @@ export function CountryPhoneSelector({ value, onChange, className, disabled }: C
   }, []);
 
   const handleCountrySelect = (country: Country) => {
-    onChange(`${country.dial_code} ${rawNumber}`);
+    onChange(`${country.dial_code}${rawNumber}`);
     setIsOpen(false);
     setSearch("");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(`${selectedCountry.dial_code} ${e.target.value}`);
+    onChange(`${selectedCountry.dial_code}${e.target.value}`);
   };
 
   return (
