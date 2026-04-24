@@ -226,7 +226,7 @@ export function PropiedadesPage() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-1.5">
                         {/* Booster Button — Solo para propiedades DISPONIBLE o VENTA */}
-                        {(() => { const BOOSTABLE_STATUSES = ['DISPONIBLE', 'VENTA']; return BOOSTABLE_STATUSES.includes(p.status) && (
+                        {['DISPONIBLE', 'VENTA'].includes(p.status) && (
                           <button 
                             data-shepherd="booster-action"
                             onClick={() => setBoosterModal({ uid: p.uid_prop, direccion: p.direccion })}
