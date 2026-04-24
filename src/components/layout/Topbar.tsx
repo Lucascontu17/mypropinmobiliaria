@@ -1,6 +1,7 @@
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, LogOut } from 'lucide-react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
+import { useClerk } from '@clerk/clerk-react';
 import { cn } from '@/lib/utils';
 
 interface TopbarProps {
@@ -15,6 +16,7 @@ interface TopbarProps {
 export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps) {
   const { nombre, role, isSignedIn } = useInmobiliaria();
   const { t, flag, country_code, isAuditOverride } = useRegion();
+  const { signOut } = useClerk();
 
   return (
     <header className="admin-topbar flex h-16 shrink-0 items-center justify-between px-6">
@@ -79,6 +81,15 @@ export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps)
             </p>
           </div>
         </div>
+
+        {/* Logout Action */}
+        <button
+          onClick={() => signOut({ redirectUrl: window.location.origin })}
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-red-50 text-red-600 transition-all hover:bg-red-100 hover:shadow-sm"
+          title={t('cerrar_sesion', 'Cerrar Sesión')}
+        >
+          <LogOut className="h-4 w-4" />
+        </button>
       </div>
     </header>
   );
