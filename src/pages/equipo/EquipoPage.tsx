@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
 import {
@@ -15,11 +15,14 @@ import {
   Phone,
   UserX,
   UserCheck as UserCheckIcon,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MiembroForm, type MiembroData } from '@/components/equipo/MiembroForm';
 import type { UserRole } from '@/hooks/useInmobiliaria';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
+import { eden } from '@/services/eden';
+import { toast } from 'sonner';
 
 const ROLE_META = {
   superadmin: {
@@ -39,36 +42,6 @@ const ROLE_META = {
   },
 };
 
-const MOCK_EQUIPO: Partial<MiembroData>[] = [
-  {
-    id: 'u_1',
-    nombre: 'Ana Martinez',
-    email: 'ana@inmobiliaria.com',
-    celular: '+5491122334455',
-    role: 'superadmin',
-    estado: 'activo',
-    fecha_alta: new Date('2023-01-15').toISOString(),
-  },
-  {
-    id: 'u_2',
-    nombre: 'Carlos Lopez',
-    email: 'carlos@inmobiliaria.com',
-    celular: '+5491122334466',
-    role: 'admin',
-    estado: 'activo',
-    fecha_alta: new Date('2023-03-10').toISOString(),
-  },
-  {
-    id: 'u_3',
-    nombre: 'Maria Gomez',
-    email: 'maria@inmobiliaria.com',
-    celular: '+5491122334477',
-    role: 'vendedor',
-    estado: 'inactivo',
-    fecha_alta: new Date('2023-06-20').toISOString(),
-  },
-];
-
 export function EquipoPage() {
   const { hasPermission, role: currentRole } = useInmobiliaria();
   const { t } = useRegion();
@@ -77,8 +50,30 @@ export function EquipoPage() {
   const [editingData, setEditingData] = useState<MiembroData | null>(null);
   const [filterRole, setFilterRole] = useState<UserRole | 'todos'>('todos');
   const [contextMenu, setContextMenu] = useState<string | null>(null);
+  const [miembros, setMiembros] = useState<MiembroData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const equipo = MOCK_EQUIPO.filter((m) => {
+  const fetchEquipo = async () => {
+    setIsLoading(true);
+    try {
+        const { data, error } = await eden.admin.equipo.get();
+        if (error) {
+            toast.error('No se pudo cargar el equipo');
+        } else {
+            setMiembros(data.data as MiembroData[]);
+        }
+    } catch (err) {
+        toast.error('Error al conectar con el servidor');
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEquipo();
+  }, []);
+
+  const equipo = miembros.filter((m) => {
     const matchesSearch =
       m.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       m.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -87,9 +82,9 @@ export function EquipoPage() {
   });
 
   // Stats
-  const totalAdmins = MOCK_EQUIPO.filter((m) => m.role === 'admin').length;
-  const totalVendedores = MOCK_EQUIPO.filter((m) => m.role === 'vendedor').length;
-  const totalActivos = MOCK_EQUIPO.filter((m) => m.estado === 'activo').length;
+  const totalAdmins = miembros.filter((m) => m.role === 'admin' || m.role === 'superadmin').length;
+  const totalVendedores = miembros.filter((m) => m.role === 'vendedor').length;
+  const totalActivos = miembros.filter((m) => m.estado === 'activo').length;
 
   const shepherdSteps: ShepherdStep[] = [
     {
@@ -184,7 +179,7 @@ export function EquipoPage() {
             </p>
             <p className="text-xl font-bold text-renta-950 font-jakarta">
               {totalActivos}
-              <span className="text-sm font-medium text-renta-400 ml-1">/ {MOCK_EQUIPO.length}</span>
+              <span className="text-sm font-medium text-renta-400 ml-1">/ {miembros.length}</span>
             </p>
           </div>
         </div>
@@ -245,7 +240,14 @@ export function EquipoPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-admin-border-subtle">
-              {equipo.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <Loader2 className="mx-auto h-8 w-8 text-renta-400 animate-spin mb-2" />
+                    <p className="text-sm text-renta-500">Cargando equipo real...</p>
+                  </td>
+                </tr>
+              ) : equipo.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-renta-500">
                     <UsersRound className="mx-auto h-8 w-8 text-renta-200 mb-3" />
@@ -460,7 +462,10 @@ export function EquipoPage() {
             <MiembroForm
               initialData={editingData}
               onCancel={() => setIsFormOpen(false)}
-              onSuccess={() => setIsFormOpen(false)}
+              onSuccess={() => {
+                setIsFormOpen(false);
+                fetchEquipo();
+              }}
             />
           </div>
         </div>
