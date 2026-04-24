@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
+import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { useRegion } from '@/hooks/useRegion';
 
 interface AdminLayoutProps {
   children?: React.ReactNode;
@@ -13,6 +15,16 @@ interface AdminLayoutProps {
  */
 export function AdminLayout({ children }: AdminLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { country_code } = useInmobiliaria();
+  const { setAuditRegion } = useRegion();
+
+  // Sincronización inmutable de región post-login
+  useEffect(() => {
+    if (country_code) {
+      localStorage.setItem('zonatia_audit_region', country_code);
+      setAuditRegion(country_code);
+    }
+  }, [country_code, setAuditRegion]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-renta-50">
