@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "serve -s dist -l $PORT"
+    "start": "serve dist --single -l $PORT"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.25.10",
