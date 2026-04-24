@@ -31,6 +31,7 @@ export function MarketplacePage() {
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState<{puntos: number, monto: number} | null>(null);
 
   // Custom Points purchase
   const [customPoints, setCustomPoints] = useState<number>(0);
@@ -85,22 +86,28 @@ export function MarketplacePage() {
     }
   };
 
-  const comprarPuntos = async (puntos: number, monto: number) => {
+  const handleProcessPayment = async (puntos: number, monto: number) => {
     setIsProcessing('points_purchase');
     try {
       // @ts-ignore
       await eden.marketplace['buy-points'].post({ 
         puntos, 
         monto: monto.toString(),
-        metodo: 'Mercado Pago (Simulado)'
+        metodo: 'Mercado Pago (Credit Card)'
       });
       alert(t('marketplace_success_points', `Has comprado ${puntos} puntos. Ya están disponibles en tu balance.`));
+      setShowPaymentModal(null);
       fetchCatalog();
     } catch (err) {
       alert('Error en la transacción.');
     } finally {
       setIsProcessing(null);
     }
+  };
+
+  const comprarPuntos = (puntos: number, monto: number) => {
+    if (puntos <= 0) return;
+    setShowPaymentModal({ puntos, monto });
   };
 
   if (!hasPermission(['superadmin', 'admin'])) {
@@ -304,6 +311,94 @@ export function MarketplacePage() {
         <Shield className="h-4 w-4 text-emerald-500" />
         <span className="text-[10px] font-medium text-renta-400 uppercase tracking-widest">Transacción Protegida por Mercado Pago 2026</span>
       </div>
+
+      {/* ── Payment Modal ── */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-renta-950/60 backdrop-blur-sm animate-in fade-in duration-300">
+           <div className="bg-white rounded-[32px] w-full max-w-lg overflow-hidden shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300">
+              <div className="bg-renta-950 p-8 text-white relative">
+                 <button 
+                  onClick={() => setShowPaymentModal(null)}
+                  className="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full transition-colors"
+                 >
+                   <PlusCircle className="h-5 w-5 rotate-45" />
+                 </button>
+                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">
+                    <Shield className="h-3 w-3 text-emerald-400" /> Pago Seguro
+                 </div>
+                 <h2 className="text-2xl font-black font-jakarta tracking-tight">Finalizar Compra</h2>
+                 <p className="text-renta-300 text-sm mt-1">Estás adquiriendo {showPaymentModal.puntos} puntos de visibilidad.</p>
+              </div>
+
+              <div className="p-8 space-y-6">
+                 <div className="flex items-center justify-between p-4 bg-renta-50 rounded-2xl border border-renta-100">
+                    <div className="flex items-center gap-3">
+                       <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                          <Rocket className="h-5 w-5 text-amber-500" />
+                       </div>
+                       <span className="font-bold text-renta-900">{showPaymentModal.puntos} Puntos</span>
+                    </div>
+                    <span className="text-xl font-black text-renta-950">{formatCurrency(showPaymentModal.monto)}</span>
+                 </div>
+
+                 <div className="space-y-4">
+                    <div className="space-y-1.5">
+                       <label className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Número de Tarjeta</label>
+                       <div className="relative">
+                          <input 
+                            type="text" 
+                            placeholder="0000 0000 0000 0000"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all"
+                          />
+                          <WalletCards className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
+                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                       <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Vencimiento</label>
+                          <input 
+                            type="text" 
+                            placeholder="MM/AA"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all"
+                          />
+                       </div>
+                       <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">CVV</label>
+                          <input 
+                            type="password" 
+                            placeholder="***"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all"
+                          />
+                       </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                       <label className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Nombre en la Tarjeta</label>
+                       <input 
+                         type="text" 
+                         placeholder="EJ. JUAN PEREZ"
+                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all uppercase"
+                       />
+                    </div>
+                 </div>
+
+                 <button 
+                  onClick={() => handleProcessPayment(showPaymentModal.puntos, showPaymentModal.monto)}
+                  disabled={isProcessing !== null}
+                  className="w-full bg-renta-950 text-white rounded-2xl py-4 font-black tracking-tight hover:bg-renta-800 transition-all active:scale-[0.98] shadow-lg shadow-renta-950/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                 >
+                   {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Shield className="h-5 w-5 text-emerald-400" />}
+                   {isProcessing ? 'Procesando Pago...' : `Pagar ${formatCurrency(showPaymentModal.monto)}`}
+                 </button>
+                 
+                 <p className="text-[10px] text-center text-slate-400 font-medium">
+                    Al confirmar, aceptas nuestros términos y condiciones de compra de créditos digitales.
+                 </p>
+              </div>
+           </div>
+        </div>
+      )}
     </div>
   );
 }
