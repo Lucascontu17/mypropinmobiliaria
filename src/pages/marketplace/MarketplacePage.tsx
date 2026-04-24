@@ -43,66 +43,59 @@ export function MarketplacePage() {
 
   const fetchCatalog = async () => {
     setIsLoading(true);
-    try {
-      // @ts-ignore
-      const { data, error } = await eden.marketplace.catalog.get();
-      if (data) setCatalog(data);
-    } catch (err) {
-      console.error('Error fetching catalog:', err);
-    } finally {
+    // Modo Demo: Mocks
+    setTimeout(() => {
+      const storedBalance = localStorage.getItem('mock_balance_dev');
+      setCatalog({
+        addons: [
+          { id: 'a1', nombre: 'Firma Digital Premium', descripcion: 'Legalmente vinculante en toda la región.', costo_mensual: '4500', is_acquired: false },
+          { id: 'a2', nombre: 'Reportes de Rentabilidad AI', descripcion: 'Análisis predictivo de tus activos.', costo_mensual: '2500', is_acquired: true },
+        ],
+        packages: [
+          { id: 'p1', nombre: 'Pack Inicial', puntos: 1000, precio: '5000' },
+          { id: 'p2', nombre: 'Pack Profesional', puntos: 5000, precio: '22000' },
+        ],
+        balance: storedBalance ? parseInt(storedBalance) : 1500
+      });
       setIsLoading(false);
-    }
+    }, 800);
   };
 
   const aquirirAddon = async (addonId: string) => {
     if (!confirm(t('marketplace_confirm_addon', '¿Desea adquirir esta función? El cobro se verá reflejado a partir de su próxima cuota mensual de suscripción.'))) return;
     
     setIsProcessing(addonId);
-    try {
-      // @ts-ignore
-      await eden.marketplace['acquire-addon'].post({ addon_id: addonId });
-      alert(t('marketplace_success_addon', 'Función adquirida con éxito. Se activará de inmediato.'));
-      fetchCatalog();
-    } catch (err) {
-      alert('Error al adquirir la función.');
-    } finally {
-      setIsProcessing(null);
-    }
+    setTimeout(() => {
+        alert(t('marketplace_success_addon', 'Función adquirida con éxito. Se activará de inmediato.'));
+        setIsProcessing(null);
+    }, 1000);
   };
 
   const cancelarAddon = async (addonId: string) => {
     if (!confirm('¿Desea dar de baja esta función? Dejará de cobrarse en la próxima facturación mensual.')) return;
     
     setIsProcessing(addonId);
-    try {
-      // @ts-ignore
-      await eden.marketplace['cancel-addon'].post({ addon_id: addonId });
-      alert('Función dada de baja exitosamente.');
-      fetchCatalog();
-    } catch (err) {
-      alert('Error al dar de baja la función.');
-    } finally {
-      setIsProcessing(null);
-    }
+    setTimeout(() => {
+        alert('Función dada de baja exitosamente.');
+        setIsProcessing(null);
+    }, 1000);
   };
 
   const handleProcessPayment = async (puntos: number, monto: number) => {
     setIsProcessing('points_purchase');
-    try {
-      // @ts-ignore
-      await eden.marketplace['buy-points'].post({ 
-        puntos, 
-        monto: monto.toString(),
-        metodo: 'Mercado Pago (Credit Card)'
-      });
+    
+    // Modo Demo: Simular éxito local
+    setTimeout(() => {
+      const currentBalance = catalog?.balance || 0;
+      const newBalance = currentBalance + puntos;
+      localStorage.setItem('mock_balance_dev', newBalance.toString());
+      
+      setCatalog(prev => prev ? { ...prev, balance: newBalance } : null);
+      
       alert(t('marketplace_success_points', `Has comprado ${puntos} puntos. Ya están disponibles en tu balance.`));
       setShowPaymentModal(null);
-      fetchCatalog();
-    } catch (err) {
-      alert('Error en la transacción.');
-    } finally {
       setIsProcessing(null);
-    }
+    }, 2000);
   };
 
   const comprarPuntos = (puntos: number, monto: number) => {
