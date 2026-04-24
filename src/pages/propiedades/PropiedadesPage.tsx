@@ -7,34 +7,6 @@ import { useNavigate } from 'react-router-dom';
 import { eden } from '@/services/eden';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
-// Mock Data Enriquecido para Vendedor (v1.2.3)
-const MOCK_PROPIEDADES = [
-  { 
-    uid_prop: '1', 
-    direccion: 'Av. Callao 1234, CABA', 
-    status: 'DISPONIBLE', 
-    valor_alquiler: 450000, 
-    dormitorios: 2,
-    tipo_inmueble: 'departamento',
-    servicios: { luz: true, gas: true, agua: true, expensas: false, abl: true }
-  },
-  { 
-    uid_prop: '2', 
-    direccion: 'Las Heras 3400, CABA', 
-    status: 'ALQUILADA', 
-    valor_alquiler: 350000, 
-    propietario: 'Inversiones Global',
-    celular_contacto: '+5491198765432',
-    superficie_total: 60,
-    ambientes: 2,
-    dormitorios: 1,
-    tipo_inmueble: 'departamento',
-    servicios: { luz: true, gas: false, agua: true, expensas: true, abl: false }
-  },
-];
-
-const BOOSTABLE_STATUSES = ['DISPONIBLE', 'VENTA'];
-
 export function PropiedadesPage() {
   const { hasPermission, role } = useInmobiliaria();
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,13 +14,35 @@ export function PropiedadesPage() {
   const { t, formatCurrency } = useRegion();
   const navigate = useNavigate();
 
+  const [properties, setProperties] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   // Booster Modal State
   const [boosterModal, setBoosterModal] = useState<{ uid: string; direccion: string } | null>(null);
   const [boosterPuntos, setBoosterPuntos] = useState(5);
   const [isAssigning, setIsAssigning] = useState(false);
   
-  const properties = MOCK_PROPIEDADES.filter(p => {
-    const matchesSearch = p.direccion.toLowerCase().includes(searchTerm.toLowerCase()) || p.propietario.toLowerCase().includes(searchTerm.toLowerCase());
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await eden.admin.propiedades.get();
+        if (error) {
+           console.error("Error fetching properties:", error);
+        } else {
+           setProperties((data as any).data || []);
+        }
+      } catch (err) {
+        console.error("Critical error fetching properties:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProperties();
+  }, []);
+
+  const filteredProperties = properties.filter(p => {
+    const matchesSearch = (p.direccion || '').toLowerCase().includes(searchTerm.toLowerCase()) || (p.titulo || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTipo = filterTipo === 'todos' || p.tipo_inmueble === filterTipo;
     return matchesSearch && matchesTipo;
   });
@@ -171,7 +165,14 @@ export function PropiedadesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-admin-border-subtle">
-              {properties.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-renta-500">
+                    <Loader2 className="mx-auto h-8 w-8 text-renta-200 mb-3 animate-spin" />
+                    {t('prop_cargando', 'Sincronizando inventario real...')}
+                  </td>
+                </tr>
+              ) : filteredProperties.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-renta-500">
                     <MapPin className="mx-auto h-8 w-8 text-renta-200 mb-3" />
@@ -179,20 +180,20 @@ export function PropiedadesPage() {
                   </td>
                 </tr>
               ) : (
-                properties.map((p) => (
+                filteredProperties.map((p) => (
                   <tr key={p.uid_prop} className="hover:bg-admin-surface-hover transition-colors group">
                     <td className="px-6 py-4">
                        <div className="flex items-center gap-2 font-medium text-renta-950">
-                          <Home className="h-4 w-4 text-renta-400" /> {p.direccion}
+                          <Home className="h-4 w-4 text-renta-400" /> {p.direccion || p.titulo}
                        </div>
-                       <div className="text-[10px] text-renta-500 mt-0.5 uppercase tracking-wider">{p.propietario}</div>
+                       <div className="text-[10px] text-renta-500 mt-0.5 uppercase tracking-wider">{p.propietario_nombre || 'Sin propietario'}</div>
                     </td>
                     
                     <td className="px-6 py-4">
                       <div className="flex flex-col items-center justify-center gap-0.5">
-                         <div className="text-xs font-bold text-renta-950">{p.superficie_total} m²</div>
+                         <div className="text-xs font-bold text-renta-950">{p.mts2 || 0} m²</div>
                          <div className="text-[10px] text-renta-500 flex items-center gap-1 font-semibold">
-                            <span>{p.ambientes} AMB</span> • <span>{p.dormitorios} DORM</span>
+                            <span>{p.ambientes || 0} AMB</span> • <span>{p.habitaciones || 0} DORM</span>
                          </div>
                       </div>
                     </td>
@@ -202,10 +203,10 @@ export function PropiedadesPage() {
                        <div 
                          data-shepherd="service-icons"
                          className="flex items-center gap-1.5">
-                          <Zap className={cn("h-3.5 w-3.5", p.servicios.luz ? "text-amber-500" : "text-gray-200")} />
-                          <Flame className={cn("h-3.5 w-3.5", p.servicios.gas ? "text-orange-500" : "text-gray-200")} />
-                          <Droplets className={cn("h-3.5 w-3.5", p.servicios.agua ? "text-blue-500" : "text-gray-200")} />
-                          <FileText className={cn("h-3.5 w-3.5", p.servicios.expensas ? "text-purple-500" : "text-gray-200")} />
+                          <Zap className={cn("h-3.5 w-3.5", p.has_luz ? "text-amber-500" : "text-gray-200")} />
+                          <Flame className={cn("h-3.5 w-3.5", p.has_gas ? "text-orange-500" : "text-gray-200")} />
+                          <Droplets className={cn("h-3.5 w-3.5", p.has_agua ? "text-blue-500" : "text-gray-200")} />
+                          <FileText className={cn("h-3.5 w-3.5", p.has_expensas ? "text-purple-500" : "text-gray-200")} />
                        </div>
                     </td>
 
@@ -220,12 +221,12 @@ export function PropiedadesPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-renta-900 font-bold">
-                      ${p.valor_alquiler.toLocaleString('es-AR')}
+                      ${Number(p.valor_alquiler || 0).toLocaleString('es-AR')}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-1.5">
                         {/* Booster Button — Solo para propiedades DISPONIBLE o VENTA */}
-                        {BOOSTABLE_STATUSES.includes(p.status) && (
+                        {(() => { const BOOSTABLE_STATUSES = ['DISPONIBLE', 'VENTA']; return BOOSTABLE_STATUSES.includes(p.status) && (
                           <button 
                             data-shepherd="booster-action"
                             onClick={() => setBoosterModal({ uid: p.uid_prop, direccion: p.direccion })}

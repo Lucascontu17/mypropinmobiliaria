@@ -1,27 +1,40 @@
 import { useState } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { Plus, Search, Building2, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Search, Building2, Edit2, Trash2, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PropietarioForm } from '@/components/actores/PropietarioForm';
-
-// Mock Data para probar UI mientras conectamos con SWR
-const MOCK_PROPIETARIOS = [
-  { id: '1', nombre: 'Juan Perez', dni: '12345678', celular: '+5491112345678', email: 'juan@example.com', comision_tipo: 'percent', comision_valor: 10 },
-  { id: '2', nombre: 'Inversiones Global', dni: '30712345678', celular: '+5491198765432', email: 'contacto@iglobal.com', comision_tipo: 'fixed', comision_valor: 50000 },
-];
 
 export function PropietariosPage() {
   const { hasPermission } = useInmobiliaria();
   const { t } = useRegion();
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingData, setEditingData] = useState<typeof MOCK_PROPIETARIOS[0] | null>(null);
+  const [editingData, setEditingData] = useState<any | null>(null);
+  const [propietarios, setPropietarios] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  
-  // Stale-while-revalidate fetcher (a implementar con Eden)
-  const propietarios = MOCK_PROPIETARIOS.filter(p => 
-    p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || p.dni.includes(searchTerm)
+  useEffect(() => {
+    const fetchOwners = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await eden.admin.owners.get();
+        if (error) {
+           console.error("Error fetching owners:", error);
+        } else {
+           setPropietarios((data as any).data || []);
+        }
+      } catch (err) {
+        console.error("Critical error fetching owners:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchOwners();
+  }, []);
+
+  const filteredPropietarios = propietarios.filter(p => 
+    (p.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni || '').includes(searchTerm)
   );
 
   return (
@@ -74,7 +87,14 @@ export function PropietariosPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-admin-border-subtle">
-              {propietarios.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-renta-500">
+                    <Loader2 className="mx-auto h-8 w-8 text-renta-200 mb-3 animate-spin" />
+                    {t('propietarios_cargando', 'Sincronizando legajos reales...')}
+                  </td>
+                </tr>
+              ) : filteredPropietarios.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-renta-500">
                     <Building2 className="mx-auto h-8 w-8 text-renta-200 mb-3" />
@@ -82,7 +102,7 @@ export function PropietariosPage() {
                   </td>
                 </tr>
               ) : (
-                propietarios.map((p) => (
+                filteredPropietarios.map((p) => (
                   <tr key={p.id} className="hover:bg-admin-surface-hover transition-colors">
                     <td className="px-6 py-4 font-medium text-renta-950">{p.nombre}</td>
                     <td className="px-6 py-4 text-renta-600">{p.dni}</td>
@@ -97,7 +117,7 @@ export function PropietariosPage() {
                         "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold",
                         p.comision_tipo === 'percent' ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700"
                       )}>
-                        {p.comision_tipo === 'percent' ? `${p.comision_valor}%` : `$${p.comision_valor}`}
+                        {p.commission_type === 'percent' ? `${p.commission_value}%` : `$${p.commission_value || 0}`}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">

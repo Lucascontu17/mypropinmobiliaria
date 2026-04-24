@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   Building2,
   Users,
@@ -109,10 +110,68 @@ const STAT_DEFS: StatDef[] = [
 
 export function DashboardPage() {
   const { role, hasPermission } = useInmobiliaria();
-  const { t } = useRegion();
+  const { t, formatCurrency } = useRegion();
+  const [metrics, setMetrics] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await eden.admin.metrics.get();
+        if (!error) {
+          setMetrics((data as any).data);
+        }
+      } catch (err) {
+        console.error("Dashboard metrics error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMetrics();
+  }, []);
+
+  const getStats = (): StatDef[] => [
+    {
+      dialectKey: 'kpi_propiedades',
+      fallbackLabel: 'Propiedades Activas',
+      value: isLoading ? '...' : (metrics?.totalPropiedades?.toString() || '0'),
+      change: '+0%',
+      trend: 'neutral',
+      icon: Building2,
+      requiresAdmin: false,
+    },
+    {
+      dialectKey: 'kpi_inquilinos',
+      fallbackLabel: 'Inquilinos Registrados',
+      value: isLoading ? '...' : (metrics?.totalInquilinos?.toString() || '0'),
+      change: '+0%',
+      trend: 'neutral',
+      icon: Users,
+      requiresAdmin: false,
+    },
+    {
+      dialectKey: 'kpi_cobranza',
+      fallbackLabel: 'Cobranza del Mes',
+      value: isLoading ? '...' : (formatCurrency(metrics?.cobranzaMes || 0)),
+      change: '+0%',
+      trend: 'neutral',
+      icon: Wallet,
+      requiresAdmin: true,
+    },
+    {
+      dialectKey: 'kpi_ocupacion',
+      fallbackLabel: 'Tasa de Ocupación',
+      value: isLoading ? '...' : `${metrics?.tasaOcupacion || 0}%`,
+      change: 'Meta 95%',
+      trend: 'neutral',
+      icon: TrendingUp,
+      requiresAdmin: true,
+    },
+  ];
 
   // Vendedores no ven finanzas / cobranza
-  const visibleStats = STAT_DEFS.filter(stat => {
+  const visibleStats = getStats().filter(stat => {
     if (stat.requiresAdmin && !hasPermission(['superadmin', 'admin'])) return false;
     return true;
   });

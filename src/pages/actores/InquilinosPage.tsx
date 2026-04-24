@@ -5,21 +5,36 @@ import { Plus, Search, Users, Edit2, Trash2, FileText, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { InquilinoForm } from '@/components/actores/InquilinoForm';
 
-// Mock Data para SWR preview
-const MOCK_INQUILILOS = [
-  { id: '1', client_number: '001', nombre: 'Andres Gomez', dni: '45678912', celular: '+5491144445555', email: 'andresg@example.com', dni_url: 'https://storage...', contrato_url: '', status: 'ACTIVE' },
-  { id: '2', client_number: '002', nombre: 'Mariana Sosa', dni: '32456789', celular: '+525512345678', email: 'mariana@prospect.com', dni_url: '', contrato_url: '', status: 'CLIENT' },
-];
-
 export function InquilinosPage() {
   const { hasPermission } = useInmobiliaria();
   const { t } = useRegion();
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingData, setEditingData] = useState<typeof MOCK_INQUILILOS[0] | null>(null);
+  const [editingData, setEditingData] = useState<any | null>(null);
+  const [inquilinos, setInquilinos] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  const inquilinos = MOCK_INQUILILOS.filter(p => 
-    p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || p.dni.includes(searchTerm)
+  useEffect(() => {
+    const fetchInquilinos = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await eden.admin.inquilinos.get();
+        if (error) {
+           console.error("Error fetching inquilinos:", error);
+        } else {
+           setInquilinos((data as any).data || []);
+        }
+      } catch (err) {
+        console.error("Critical error fetching inquilinos:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchInquilinos();
+  }, []);
+
+  const filteredInquilinos = inquilinos.filter(p => 
+    (p.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni || '').includes(searchTerm)
   );
 
   return (
@@ -62,7 +77,14 @@ export function InquilinosPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-admin-border-subtle">
-              {inquilinos.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-renta-500">
+                    <Loader2 className="mx-auto h-8 w-8 text-renta-200 mb-3 animate-spin" />
+                    {t('inquilinos_cargando', 'Sincronizando legajos reales...')}
+                  </td>
+                </tr>
+              ) : filteredInquilinos.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-renta-500">
                     <Users className="mx-auto h-8 w-8 text-renta-200 mb-3" />
@@ -70,7 +92,7 @@ export function InquilinosPage() {
                   </td>
                 </tr>
               ) : (
-                inquilinos.map((t) => (
+                filteredInquilinos.map((t) => (
                   <tr key={t.id} className="hover:bg-admin-surface-hover transition-colors">
                     <td className="px-6 py-4">
                       <span className="font-mono font-bold text-renta-950 bg-slate-100 px-2 py-1 rounded text-xs border border-slate-200">

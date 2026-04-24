@@ -14,8 +14,22 @@ interface ProtectedRouteProps {
  * @param allowedRoles (Opcional) Array de roles autorizados. Si es nulo, permite a cualquier usuario logueado.
  * @param children El contenido a renderizar si el usuario pasa la jerarquía.
  */
+import { useAuth } from '@clerk/clerk-react';
+import { useEffect } from 'react';
+
 export function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) {
   const { isLoaded, isSignedIn, hasPermission, inmobiliaria_id } = useInmobiliaria();
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    if (isSignedIn) {
+      const syncToken = async () => {
+        const token = await getToken();
+        if (token) localStorage.setItem('zonatia_token', token);
+      };
+      syncToken();
+    }
+  }, [isSignedIn, getToken]);
 
   // 1. Mostrar Spinner Global o un Luxury Skeleton mientras Clerk hidrata localmente el state
   if (!isLoaded) {
