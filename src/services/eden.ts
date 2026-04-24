@@ -1,15 +1,10 @@
 import { treaty } from '@elysiajs/eden';
 import { useAuth, useUser } from '@clerk/clerk-react';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
-// Import the App namespace from the central mypropAPI (El Búnker)
-// Make sure 'mypropapi' is properly linked in package.json or published as a package.
 // @ts-ignore
 import type { App } from 'mypropapi';
 
-// The API Central uses /api/v1 prefix.
-// During development on localhost:5174, VITE_API_URL should point to http://localhost:3000/api/v1
-// In production, it will point to the public centralized domain (e.g. railway URL + /api/v1)
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
 /**
@@ -35,31 +30,41 @@ export const eden = treaty<App>(API_URL, {
 
 /**
  * useEden hook
- * Preferred way to use the Eden client within React components.
- * Automatically handles fresh tokens from Clerk and injects necessary headers.
+ * Pre-fetches the Clerk token synchronously and passes it as a plain
+ * headers object to bypass Eden 1.2.0's broken async headers support.
  */
 export function useEden() {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
+  const [token, setToken] = useState<string | null>(null);
 
+  // Pre-fetch the token as soon as Clerk is ready
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      getToken().then(t => {
+        console.log('[EDEN] Token cached:', t ? 'YES' : 'NO');
+        setToken(t);
+      });
+    }
+  }, [getToken, isLoaded, isSignedIn]);
+
+  // Recreate the Eden client whenever the token or user changes
   const client = useMemo(() => {
-    return treaty<App>(API_URL, {
-      async headers() {
-        const token = await getToken();
-        // Extract metadata for headers
-        const inmobiliariaId = (user?.publicMetadata?.inmobiliaria_id as string) || '';
-        const region = (user?.publicMetadata?.country_code as string) || 
-                       localStorage.getItem('zonatia_audit_region') || 
-                       'AR';
+    const region = (user?.publicMetadata?.country_code as string) || 
+                   localStorage.getItem('zonatia_audit_region') || 'AR';
+    const inmobiliariaId = (user?.publicMetadata?.inmobiliaria_id as string) || '';
 
-        return {
-          Authorization: `Bearer ${token}`,
-          'x-inmobiliaria-id': inmobiliariaId,
-          'x-region': region,
-        };
-      },
+    console.log('[EDEN] Creating client with token:', token ? 'YES' : 'NO', 'inmo:', inmobiliariaId);
+
+    // PLAIN OBJECT headers — no async, no function, guaranteed to be injected
+    return treaty<App>(API_URL, {
+      headers: {
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        'x-inmobiliaria-id': inmobiliariaId,
+        'x-region': region,
+      }
     });
-  }, [getToken, user]);
+  }, [token, user]);
 
   return client;
 }
