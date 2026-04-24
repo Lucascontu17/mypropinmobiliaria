@@ -118,17 +118,17 @@ export function DashboardPage() {
 
   useEffect(() => {
     const fetchMetrics = async () => {
-      try {
-        setIsLoading(true);
-        const { data, error } = await eden.admin.metrics.get();
-        if (!error) {
-          setMetrics((data as any).data);
-        }
-      } catch (err) {
-        console.error("Dashboard metrics error:", err);
-      } finally {
+      setIsLoading(true);
+      // Modo Demo: Mocks estáticos para presentación
+      setTimeout(() => {
+        setMetrics({
+          totalPropiedades: 42,
+          totalInquilinos: 38,
+          cobranzaMes: 1250000,
+          tasaOcupacion: 92
+        });
         setIsLoading(false);
-      }
+      }, 1000);
     };
     fetchMetrics();
   }, []);
