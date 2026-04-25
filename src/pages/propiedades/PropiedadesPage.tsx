@@ -176,7 +176,6 @@ export function PropiedadesPage() {
                   </td>
                 </tr>
               ) : (
-              ) : (
                 filteredProperties?.map((p) => (
                    <tr key={p?.uid_prop} className="hover:bg-admin-surface-hover transition-colors group">
                      <td className="px-6 py-4">
