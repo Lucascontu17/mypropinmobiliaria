@@ -119,19 +119,21 @@ export function DashboardPage() {
   useEffect(() => {
     const fetchMetrics = async () => {
       setIsLoading(true);
-      // Modo Demo: Mocks estáticos para presentación
-      setTimeout(() => {
-        setMetrics({
-          totalPropiedades: 42,
-          totalInquilinos: 38,
-          cobranzaMes: 1250000,
-          tasaOcupacion: 92
-        });
+      try {
+        const { data, error } = await eden.admin.metrics.get();
+        if (error) {
+          console.error("Error fetching metrics:", error);
+        } else {
+          setMetrics(data.data);
+        }
+      } catch (err) {
+        console.error("Critical error fetching metrics:", err);
+      } finally {
         setIsLoading(false);
-      }, 1000);
+      }
     };
     fetchMetrics();
-  }, []);
+  }, [eden]);
 
   const getStats = (): StatDef[] => [
     {
