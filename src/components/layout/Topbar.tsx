@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { Bell, Search, LogOut } from 'lucide-react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
 import { useClerk } from '@clerk/clerk-react';
 import { cn } from '@/lib/utils';
+import { BASE_URL } from '@/services/eden';
 
 interface TopbarProps {
   isSidebarCollapsed: boolean;
@@ -14,9 +16,19 @@ interface TopbarProps {
  * Textos localizados via useRegion().t() desde archivos de dialectos .md.
  */
 export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps) {
-  const { nombre, role, isSignedIn } = useInmobiliaria();
+  const { nombre, logo_url, role, isSignedIn } = useInmobiliaria();
   const { t, flag, country_code, isAuditOverride } = useRegion();
   const { signOut } = useClerk();
+
+  // Resolver URL del logo
+  const resolvedLogoUrl = useMemo(() => {
+    if (!logo_url) return null;
+    if (logo_url.startsWith('http')) return logo_url;
+    
+    const cleanPath = logo_url.startsWith('/') ? logo_url : `/${logo_url}`;
+    const publicPath = cleanPath.startsWith('/public') ? cleanPath : `/public${cleanPath}`;
+    return `${BASE_URL}${publicPath}`;
+  }, [logo_url]);
 
   return (
     <header className="admin-topbar flex h-16 shrink-0 items-center justify-between px-6">
@@ -69,8 +81,14 @@ export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps)
         <div 
           data-shepherd="user-profile"
           className="flex items-center gap-3 rounded-xl border border-admin-border bg-white px-3 py-1.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-renta-500 to-renta-700 text-xs font-bold text-white">
-            {nombre.charAt(0).toUpperCase()}
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white overflow-hidden border border-renta-100 text-xs font-bold text-renta-600">
+            {resolvedLogoUrl ? (
+              <img src={resolvedLogoUrl} alt={nombre} className="h-full w-full object-contain" />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-renta-500 to-renta-700 text-white">
+                {nombre.charAt(0).toUpperCase()}
+              </div>
+            )}
           </div>
           <div className="hidden sm:block">
             <p className="text-sm font-semibold text-renta-900 leading-tight">

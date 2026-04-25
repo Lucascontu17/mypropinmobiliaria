@@ -6,6 +6,7 @@ export type UserRole = 'superadmin' | 'admin' | 'vendedor';
 export interface InmobiliariaMetadata {
   inmobiliaria_id: string;
   nombre: string;
+  logo_url: string;
   role: UserRole;
   country_code: CountryCode;
 }
@@ -42,6 +43,7 @@ export function useInmobiliaria() {
   return {
     inmobiliaria_id: metadata.inmobiliaria_id ?? undefined,
     nombre: metadata.nombre ?? 'Mi Inmobiliaria',
+    logo_url: metadata.logo_url ?? undefined,
     country_code: metadata.country_code ?? undefined,
     role,
     isLoaded,
