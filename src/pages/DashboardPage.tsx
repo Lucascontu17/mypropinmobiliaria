@@ -114,10 +114,11 @@ export function DashboardPage() {
   const { t, formatCurrency } = useRegion();
   const [metrics, setMetrics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const eden = useEden();
+  const { client: eden, isReady } = useEden();
 
   useEffect(() => {
     const fetchMetrics = async () => {
+      if (!isReady) return;
       setIsLoading(true);
       try {
         const { data, error } = await eden.admin.metrics.get();
@@ -133,7 +134,7 @@ export function DashboardPage() {
       }
     };
     fetchMetrics();
-  }, [eden]);
+  }, [eden, isReady]);
 
   const getStats = (): StatDef[] => [
     {

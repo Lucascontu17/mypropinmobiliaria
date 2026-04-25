@@ -54,8 +54,6 @@ export function useEden() {
                    localStorage.getItem('zonatia_audit_region') || 'AR';
     const inmobiliariaId = (user?.publicMetadata?.inmobiliaria_id as string) || '';
 
-    console.log('[EDEN] Creating client with token:', token ? 'YES' : 'NO', 'inmo:', inmobiliariaId);
-
     // PLAIN OBJECT headers — no async, no function, guaranteed to be injected
     return treaty<App>(API_URL, {
       headers: {
@@ -66,5 +64,9 @@ export function useEden() {
     });
   }, [token, user]);
 
-  return client;
+  return {
+    client,
+    isReady: isLoaded && !!token,
+    token
+  };
 }

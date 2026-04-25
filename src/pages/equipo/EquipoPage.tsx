@@ -52,19 +52,20 @@ export function EquipoPage() {
   const [contextMenu, setContextMenu] = useState<string | null>(null);
   const [miembros, setMiembros] = useState<MiembroData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const eden = useEden();
+  const { client: eden, isReady } = useEden();
 
   const fetchEquipo = async () => {
+    if (!isReady) return;
     setIsLoading(true);
     try {
         const { data, error } = await eden.admin.equipo.get();
         if (error) {
-            toast.error('No se pudo cargar el equipo');
+            console.error('[EQUIPO] Error fetching:', error);
         } else {
             setMiembros(data.data as MiembroData[]);
         }
     } catch (err) {
-        toast.error('Error al conectar con el servidor');
+        console.error('[EQUIPO] Connection error:', err);
     } finally {
         setIsLoading(false);
     }
@@ -72,7 +73,7 @@ export function EquipoPage() {
 
   useEffect(() => {
     fetchEquipo();
-  }, [eden]);
+  }, [eden, isReady]);
 
   const equipo = miembros.filter((m) => {
     const matchesSearch =

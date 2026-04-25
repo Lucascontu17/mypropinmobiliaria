@@ -41,9 +41,10 @@ export default function VisitasPage() {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'SOLICITUDES' | 'AGENDADAS' | 'HISTORIAL'>('SOLICITUDES');
-  const eden = useEden();
+  const { client: eden, isReady } = useEden();
 
   const fetchVisitas = async () => {
+    if (!isReady) return;
     setLoading(true);
     try {
       const { data, error } = await eden.admin.visitas.get();
@@ -61,7 +62,7 @@ export default function VisitasPage() {
 
   useEffect(() => {
     fetchVisitas();
-  }, [eden]);
+  }, [eden, isReady]);
 
   const handleUpdateStatus = async (id: string, newStatus: string, newDate?: string) => {
     setUpdatingId(id);

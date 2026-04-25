@@ -13,7 +13,7 @@ export function PropiedadesPage() {
   const [filterTipo, setFilterTipo] = useState<string>('todos');
   const { t, formatCurrency } = useRegion();
   const navigate = useNavigate();
-  const eden = useEden();
+  const { client: eden, isReady } = useEden();
 
   const [properties, setProperties] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +25,8 @@ export function PropiedadesPage() {
   
   useEffect(() => {
     const fetchProperties = async () => {
+      if (!isReady) return; // Esperar a que el token esté listo
+
       setIsLoading(true);
       try {
         const { data, error } = await eden.admin.propiedades.get();
@@ -40,7 +42,7 @@ export function PropiedadesPage() {
       }
     };
     fetchProperties();
-  }, [eden]);
+  }, [eden, isReady]);
 
   const filteredProperties = properties.filter(p => {
     const matchesSearch = (p.direccion || '').toLowerCase().includes(searchTerm.toLowerCase()) || (p.titulo || '').toLowerCase().includes(searchTerm.toLowerCase());
