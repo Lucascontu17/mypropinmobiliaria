@@ -5,6 +5,7 @@ import { useRegion } from '@/hooks/useRegion';
 import { useClerk } from '@clerk/clerk-react';
 import { cn } from '@/lib/utils';
 import { BASE_URL } from '@/services/eden';
+import { useActiveAddons } from '@/hooks/useActiveAddons';
 
 interface TopbarProps {
   isSidebarCollapsed: boolean;
@@ -19,8 +20,10 @@ export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps)
   const { nombre, logo_url, role, isSignedIn } = useInmobiliaria();
   const { t, flag, country_code, isAuditOverride } = useRegion();
   const { signOut } = useClerk();
+  const { hasAddon } = useActiveAddons();
 
-  // Resolver URL del logo
+  // Resolver URL del logo — only show if the addon is active
+  const showCustomLogo = hasAddon('Logo Personalizado en Panel');
   const resolvedLogoUrl = useMemo(() => {
     if (!logo_url) return null;
     if (logo_url.startsWith('http')) return logo_url;
@@ -82,7 +85,7 @@ export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps)
           data-shepherd="user-profile"
           className="flex items-center gap-3 rounded-xl border border-admin-border bg-white px-3 py-1.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white overflow-hidden border border-renta-100 text-xs font-bold text-renta-600">
-            {resolvedLogoUrl ? (
+            {showCustomLogo && resolvedLogoUrl ? (
               <img src={resolvedLogoUrl} alt={nombre} className="h-full w-full object-contain" />
             ) : (
               <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-renta-500 to-renta-700 text-white">
