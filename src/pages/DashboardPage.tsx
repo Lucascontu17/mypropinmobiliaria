@@ -281,7 +281,7 @@ export function DashboardPage() {
             {t('boton_documentacion', 'Ver Documentación')}
           </button>
         </div>
-      </div>
+      )}
     </div>
   );
 }
