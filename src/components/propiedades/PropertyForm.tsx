@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -114,6 +114,16 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
 
   // Estado local para el flujo de transformación Venta -> Alquiler
   const [gestionaAlquiler, setGestionaAlquiler] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (currentStatus !== 'DISPONIBLE') {
+      setValue('titulo', null as any);
+      setValue('descripcion', null as any);
+    }
+  }, [currentStatus, setValue]);
+
+  const { onChange: rStatusOnChange, ...rStatusRest } = register('status');
 
   return (
     <FormProvider {...methods}>
@@ -220,7 +230,16 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-renta-900 text-right block">Estado del Inmueble</label>
                   <select 
-                    {...register('status')}
+                    {...rStatusRest}
+                    value={currentStatus}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (initialData && currentStatus !== 'DISPONIBLE' && val === 'DISPONIBLE') {
+                        setPendingStatusChange(val);
+                      } else {
+                        rStatusOnChange(e);
+                      }
+                    }}
                     className={cn(
                       "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none font-bold focus:ring-1",
                       currentStatus === 'DISPONIBLE' && "text-green-700 bg-green-50 border-green-200",
@@ -310,6 +329,36 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                 </div>
               )}
             </div>
+
+            {/* SECCIÓN DE PUBLICACIÓN CONDICIONAL */}
+            {currentStatus === 'DISPONIBLE' && (
+              <div id="datos-publicacion" className="bg-blue-50/30 p-5 rounded-2xl border border-blue-200 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <h3 className="text-sm font-jakarta font-bold text-blue-900 flex items-center gap-2 mb-3">
+                   <Tag className="h-4 w-4" /> Datos de Publicación (Landing Page)
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-1.5">
+                     <label className="text-sm font-semibold text-blue-900">Título Atractivo <span className="text-red-500">*</span></label>
+                     <input 
+                       {...register('titulo')} 
+                       className={cn("w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950 font-semibold", errors.titulo ? "border-red-400" : "border-blue-200 focus:border-blue-400 focus:ring-blue-100")} 
+                       placeholder="Ej: Espectacular Semipiso con Vista al Río" 
+                     />
+                     {errors.titulo && <p className="text-xs text-red-500 font-medium">{errors.titulo.message}</p>}
+                  </div>
+                  <div className="space-y-1.5">
+                     <label className="text-sm font-semibold text-blue-900">Descripción Detallada <span className="text-red-500">*</span></label>
+                     <textarea 
+                       {...register('descripcion')} 
+                       rows={4} 
+                       className={cn("w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950", errors.descripcion ? "border-red-400" : "border-blue-200 focus:border-blue-400 focus:ring-blue-100")} 
+                       placeholder="Describe las mejores características de la propiedad..." 
+                     />
+                     {errors.descripcion && <p className="text-xs text-red-500 font-medium">{errors.descripcion.message}</p>}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="bg-renta-50/30 p-5 rounded-2xl border border-admin-border space-y-4">
               <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-3">
@@ -609,6 +658,51 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
         )}
 
       </form>
+
+      {/* Modal de Transición de Estado a DISPONIBLE */}
+      {pendingStatusChange && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-renta-950/60 backdrop-blur-sm animate-fade-in">
+           <div className="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl animate-slide-up">
+              <div className="flex items-center gap-3 mb-4 text-blue-600">
+                 <div className="p-3 bg-blue-50 rounded-full">
+                    <Tag className="w-6 h-6" />
+                 </div>
+                 <h3 className="text-xl font-jakarta font-bold text-renta-950">Publicar Propiedad</h3>
+              </div>
+              <p className="font-inter text-renta-600 mb-6 leading-relaxed">
+                Estás por cambiar el estado a <strong>Disponible</strong>. Esto publicará la propiedad en la Landing Page a la vista de los clientes. Por favor, asegúrate de rellenar o revisar el <strong>Título</strong> y la <strong>Descripción</strong>.
+              </p>
+              <div className="flex justify-end gap-3 pt-4 border-t border-renta-100">
+                 <button 
+                   type="button" 
+                   onClick={() => setPendingStatusChange(null)} 
+                   className="px-5 py-2.5 text-sm font-semibold text-renta-600 hover:bg-renta-50 rounded-xl transition-colors"
+                 >
+                   Cancelar
+                 </button>
+                 <button 
+                   type="button" 
+                   onClick={() => {
+                      setValue('status', pendingStatusChange as any, { shouldValidate: true });
+                      setPendingStatusChange(null);
+                      setTimeout(() => {
+                         const element = document.getElementById('datos-publicacion');
+                         if (element) {
+                           element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                           element.classList.add('ring-4', 'ring-blue-100');
+                           setTimeout(() => element.classList.remove('ring-4', 'ring-blue-100'), 2000);
+                         }
+                      }, 150);
+                   }} 
+                   className="px-5 py-2.5 text-sm font-bold bg-renta-950 text-white rounded-xl hover:bg-renta-800 transition-colors shadow-md"
+                 >
+                   Entendido
+                 </button>
+              </div>
+           </div>
+        </div>
+      )}
+
     </FormProvider>
   );
 }

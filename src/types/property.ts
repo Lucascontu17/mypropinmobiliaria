@@ -64,6 +64,27 @@ export const propertySchema = z.object({
   has_abl: z.boolean().default(false),
   tipo_abl: z.enum(["fijo", "variable"]).optional().nullable(),
   valor_abl: z.string().optional(),
+  
+  status: z.enum(["DISPONIBLE", "ALQUILADA", "VENTA", "RESERVADA", "VENDIDA"]).default("DISPONIBLE"),
+  titulo: z.string().optional().nullable(),
+  descripcion: z.string().optional().nullable(),
+}).superRefine((data, ctx) => {
+  if (data.status === 'DISPONIBLE') {
+    if (!data.titulo || data.titulo.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "El título es obligatorio para publicar en la Landing Page.",
+        path: ["titulo"]
+      });
+    }
+    if (!data.descripcion || data.descripcion.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "La descripción es obligatoria para publicar en la Landing Page.",
+        path: ["descripcion"]
+      });
+    }
+  }
 });
 
 export type PropertyFormData = z.infer<typeof propertySchema>;
