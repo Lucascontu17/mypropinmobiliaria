@@ -187,7 +187,7 @@ export function CobranzasPage() {
                     <p className="text-sm text-renta-500">Cargando cobranzas reales...</p>
                   </td>
                 </tr>
-              ) : pagosVisibles.length === 0 ? (
+              ) : (pagosVisibles?.length === 0) ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-renta-500">
                     <Wallet className="mx-auto h-8 w-8 text-renta-200 mb-3" />

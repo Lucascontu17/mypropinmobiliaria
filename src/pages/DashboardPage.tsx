@@ -226,7 +226,7 @@ export function DashboardPage() {
       <div 
         data-shepherd="kpi-grid"
         className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {visibleStats.map((stat, index) => (
+        {visibleStats?.map((stat, index) => (
           <StatCard
             key={stat.dialectKey}
             label={t(stat.dialectKey, stat.fallbackLabel)}

@@ -176,8 +176,8 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                     )}
                   >
                     <option value="">-- Seleccione una Propiedad --</option>
-                    {propiedadesDisponibles.map(prop => (
-                      <option key={prop.uid_prop} value={prop.uid_prop}>{prop.direccion}</option>
+                    {propiedadesDisponibles?.map(prop => (
+                      <option key={prop.uid_prop} value={prop.uid_prop}>{prop.direccion || 'Sin dirección'}</option>
                     ))}
                   </select>
                   {errors.uid_propiedad && <p className="text-xs text-red-500 font-medium">{errors.uid_propiedad.message}</p>}
@@ -205,8 +205,8 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                         )}
                       >
                         <option value="">-- Seleccione un Inquilino --</option>
-                        {inquilinosSeleccionables.map(inq => (
-                          <option key={inq.uid_inq} value={inq.uid_inq}>{inq.nombre} (DNI: {inq.dni})</option>
+                        {inquilinosSeleccionables?.map(inq => (
+                          <option key={inq.uid_inq} value={inq.uid_inq}>{inq.nombre || 'Sin nombre'} (DNI: {inq.dni || '-'})</option>
                         ))}
                       </select>
                       {errors.uid_inquilino && <p className="text-xs text-red-500 font-medium">{errors.uid_inquilino.message}</p>}

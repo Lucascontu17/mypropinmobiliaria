@@ -249,7 +249,7 @@ export function EquipoPage() {
                     <p className="text-sm text-renta-500">Cargando equipo real...</p>
                   </td>
                 </tr>
-              ) : equipo.length === 0 ? (
+              ) : (equipo?.length === 0) ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-renta-500">
                     <UsersRound className="mx-auto h-8 w-8 text-renta-200 mb-3" />
@@ -257,25 +257,25 @@ export function EquipoPage() {
                   </td>
                 </tr>
               ) : (
-                equipo.map((m) => {
-                  const roleMeta = ROLE_META[m.role];
+                equipo?.map((m) => {
+                  const roleMeta = m?.role ? ROLE_META[m.role as keyof typeof ROLE_META] : ROLE_META.vendedor;
                   const RoleIcon = roleMeta.icon;
                   return (
-                    <tr key={m.id} className="hover:bg-admin-surface-hover transition-colors group">
+                    <tr key={m?.id} className="hover:bg-admin-surface-hover transition-colors group">
                       {/* Miembro */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-renta-200 to-renta-300 text-sm font-bold text-renta-800">
-                            {m.nombre
-                              .split(' ')
+                            {m?.nombre
+                              ?.split(' ')
                               .map((n) => n[0])
                               .join('')
                               .slice(0, 2)
-                              .toUpperCase()}
+                              .toUpperCase() || '??'}
                           </div>
                           <div>
-                            <p className="font-medium text-renta-950">{m.nombre}</p>
-                            <p className="text-[11px] text-renta-500">{m.email}</p>
+                            <p className="font-medium text-renta-950">{m?.nombre || 'Sin nombre'}</p>
+                            <p className="text-[11px] text-renta-500">{m?.email || 'Sin email'}</p>
                           </div>
                         </div>
                       </td>
@@ -298,11 +298,11 @@ export function EquipoPage() {
                         <div className="flex flex-col gap-1">
                           <span className="flex items-center gap-1.5 text-renta-700">
                             <Phone className="h-3 w-3 text-renta-400" />
-                            {m.celular}
+                            {m?.celular || 'No reg.'}
                           </span>
                           <span className="flex items-center gap-1.5 text-renta-500 text-xs">
                             <Mail className="h-3 w-3 text-renta-300" />
-                            {m.email}
+                            {m?.email || 'No reg.'}
                           </span>
                         </div>
                       </td>
@@ -312,17 +312,17 @@ export function EquipoPage() {
                         <span
                           className={cn(
                             'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold',
-                            m.estado === 'activo'
+                            m?.estado === 'activo'
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : 'bg-gray-50 text-gray-500 border border-gray-200'
                           )}
                         >
-                          {m.estado === 'activo' ? (
+                          {m?.estado === 'activo' ? (
                             <UserCheckIcon className="h-3 w-3" />
                           ) : (
                             <UserX className="h-3 w-3" />
                           )}
-                          {m.estado === 'activo'
+                          {m?.estado === 'activo'
                             ? t('equipo_estado_activo', 'Activo')
                             : t('equipo_estado_inactivo', 'Inactivo')}
                         </span>
@@ -330,7 +330,7 @@ export function EquipoPage() {
 
                       {/* Fecha de Alta */}
                       <td className="px-6 py-4 text-renta-600">
-                        {m.fecha_alta
+                        {m?.fecha_alta
                           ? new Date(m.fecha_alta).toLocaleDateString('es-AR', {
                               day: '2-digit',
                               month: 'short',
@@ -363,20 +363,20 @@ export function EquipoPage() {
                           )}
 
                           <button
-                            onClick={() => setContextMenu(contextMenu === m.id ? null : m.id!)}
+                            onClick={() => setContextMenu(contextMenu === m?.id ? null : m?.id || null)}
                             className="p-2 text-renta-300 hover:text-renta-600 hover:bg-renta-50 rounded-lg transition-colors"
                           >
                             <MoreVertical className="h-4 w-4" />
                           </button>
 
                           {/* Context Menu */}
-                          {contextMenu === m.id && (
+                          {contextMenu === m?.id && (
                             <div className="absolute right-0 top-full mt-1 z-10 bg-white border border-admin-border rounded-xl shadow-lg py-1 min-w-[180px] animate-fade-in">
                               <button
                                 onClick={() => setContextMenu(null)}
                                 className="w-full flex items-center gap-2 px-4 py-2 text-xs text-renta-700 hover:bg-renta-50 transition-colors"
                               >
-                                {m.estado === 'activo' ? (
+                                {m?.estado === 'activo' ? (
                                   <>
                                     <UserX className="h-3.5 w-3.5" />
                                     {t('equipo_accion_desactivar', 'Desactivar Cuenta')}

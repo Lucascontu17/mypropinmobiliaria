@@ -242,22 +242,22 @@ export function SuscripcionPage() {
             </div>
             
             <div className="p-2 space-y-1 overflow-y-auto max-h-[600px]">
-              {history.map((tx) => (
-                <div key={tx.id} className="flex items-center justify-between p-4 hover:bg-admin-surface rounded-2xl transition-colors">
+              {history?.map((tx) => (
+                <div key={tx?.id} className="flex items-center justify-between p-4 hover:bg-admin-surface rounded-2xl transition-colors">
                   <div className="space-y-1">
                     <p className="text-xs font-bold text-renta-950">
-                      {tx.tipo === 'puntos_compra' ? 'Compra de Puntos' : 
-                       tx.tipo === 'addon_activacion' ? 'Activación de Función' : 
+                      {tx?.tipo === 'puntos_compra' ? 'Compra de Puntos' : 
+                       tx?.tipo === 'addon_activacion' ? 'Activación de Función' : 
                        'Distribución de Puntos'}
                     </p>
-                    <p className="text-[10px] text-renta-400">{format(new Date(tx.fecha), "dd/MM/yyyy HH:mm")}</p>
+                    <p className="text-[10px] text-renta-400">{tx?.fecha ? format(new Date(tx.fecha), "dd/MM/yyyy HH:mm") : '---'}</p>
                   </div>
                   <div className="text-right">
                     <p className={cn(
                       "text-xs font-bold",
-                      tx.monto ? "text-renta-950" : "text-amber-600"
+                      tx?.monto ? "text-renta-950" : "text-amber-600"
                     )}>
-                      {tx.monto ? formatCurrency(tx.monto) : `${tx.cantidad_puntos} pts`}
+                      {tx?.monto ? formatCurrency(tx.monto) : `${tx?.cantidad_puntos || 0} pts`}
                     </p>
                     <ArrowUpRight className="h-3 w-3 text-renta-300 ml-auto mt-1" />
                   </div>
