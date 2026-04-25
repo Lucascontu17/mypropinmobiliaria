@@ -5,13 +5,14 @@ import { useMemo, useState, useEffect } from 'react';
 // @ts-ignore
 import type { App } from 'mypropapi';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+const FULL_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+export const BASE_URL = FULL_API_URL.replace(/\/api\/v1\/?$/, "").replace(/\/v1\/?$/, "").replace(/\/$/, "");
 
 /**
  * Eden Client (Constant instance)
  * Uses localStorage for cases where hooks cannot be used or for legacy compatibility.
  */
-export const eden = treaty<App>(API_URL, {
+export const eden = treaty<App>(FULL_API_URL, {
     async headers() {
         const isDev = import.meta.env.DEV;
         let region = 'AR';
@@ -41,8 +42,8 @@ export function useEden() {
   // Pre-fetch the token as soon as Clerk is ready
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      getToken().then(t => {
-        console.log('[EDEN] Token cached:', t ? 'YES' : 'NO');
+      getToken({ template: 'zonatia-session' }).then(t => {
+        console.log('[EDEN] Token cached with zonatia-session template:', t ? 'YES' : 'NO');
         setToken(t);
       });
     }
@@ -54,7 +55,8 @@ export function useEden() {
                    localStorage.getItem('zonatia_audit_region') || 'AR';
     const inmobiliariaId = (user?.publicMetadata?.inmobiliaria_id as string) || '';
 
-    const realClient = treaty<App>(API_URL, {
+    // PLAIN OBJECT headers — no async, no function, guaranteed to be injected
+    const realClient = treaty<App>(FULL_API_URL, {
       headers: {
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         'x-inmobiliaria-id': inmobiliariaId,
@@ -98,5 +100,9 @@ export function useEden() {
     });
   }, [token, user]);
 
-  return client;
+  return {
+    client,
+    isReady: isLoaded && !!token,
+    token
+  };
 }

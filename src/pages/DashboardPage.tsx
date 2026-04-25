@@ -27,33 +27,43 @@ interface StatCardProps {
   trend: 'up' | 'down' | 'neutral';
   icon: React.ElementType;
   delay: number;
+  loading?: boolean;
 }
 
-function StatCard({ label, value, change, trend, icon: Icon, delay }: StatCardProps) {
+function StatCard({ label, value, change, trend, icon: Icon, delay, loading }: StatCardProps) {
   return (
     <div
-      className="admin-card-interactive group p-6 opacity-0 animate-fade-in-up"
+      className={cn(
+        "admin-card-interactive group p-6 opacity-0 animate-fade-in-up",
+        loading && "animate-pulse"
+      )}
       style={{ animationDelay: `${delay}ms` }}>
       <div className="flex items-start justify-between">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-renta-100 to-renta-200/50 transition-transform duration-300 group-hover:scale-110">
           <Icon className="h-5 w-5 text-renta-700" />
         </div>
-        <span
-          className={cn(
-            'flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold',
-            trend === 'up' && 'bg-emerald-50 text-emerald-600',
-            trend === 'down' && 'bg-red-50 text-red-500',
-            trend === 'neutral' && 'bg-renta-50 text-renta-500'
-          )}
-        >
-          {trend === 'up' && <ArrowUpRight className="h-3 w-3" />}
-          {trend === 'down' && <ArrowDownRight className="h-3 w-3" />}
-          {trend === 'neutral' && <Activity className="h-3 w-3" />}
-          {change}
-        </span>
+        {!loading && (
+          <span
+            className={cn(
+              'flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold',
+              trend === 'up' && 'bg-emerald-50 text-emerald-600',
+              trend === 'down' && 'bg-red-50 text-red-500',
+              trend === 'neutral' && 'bg-renta-50 text-renta-500'
+            )}
+          >
+            {trend === 'up' && <ArrowUpRight className="h-3 w-3" />}
+            {trend === 'down' && <ArrowDownRight className="h-3 w-3" />}
+            {trend === 'neutral' && <Activity className="h-3 w-3" />}
+            {change}
+          </span>
+        )}
       </div>
       <div className="mt-4">
-        <p className="admin-stat-value">{value}</p>
+        {loading ? (
+          <div className="h-8 w-24 bg-renta-100 rounded-md mb-2" />
+        ) : (
+          <p className="admin-stat-value">{value}</p>
+        )}
         <p className="admin-stat-label mt-1">{label}</p>
       </div>
     </div>
@@ -114,26 +124,27 @@ export function DashboardPage() {
   const { t, formatCurrency } = useRegion();
   const [metrics, setMetrics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const eden = useEden();
+  const { client: eden, isReady } = useEden();
 
   useEffect(() => {
     const fetchMetrics = async () => {
+      if (!isReady) return;
       setIsLoading(true);
       try {
         const { data, error } = await eden.admin.metrics.get();
         if (error) {
-          console.error("Error fetching metrics:", error);
+          console.error('[DASHBOARD] Error fetching metrics:', error);
         } else {
           setMetrics(data.data);
         }
       } catch (err) {
-        console.error("Critical error fetching metrics:", err);
+        console.error('[DASHBOARD] Connection error:', err);
       } finally {
         setIsLoading(false);
       }
     };
     fetchMetrics();
-  }, [eden]);
+  }, [eden, isReady]);
 
   const getStats = (): StatDef[] => [
     {
@@ -215,27 +226,45 @@ export function DashboardPage() {
       <div 
         data-shepherd="kpi-grid"
         className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {visibleStats.map((stat, index) => (
-          <StatCard
-            key={stat.dialectKey}
-            label={t(stat.dialectKey, stat.fallbackLabel)}
-            value={stat.value}
-            change={stat.change}
-            trend={stat.trend}
-            icon={stat.icon}
-            delay={100 + index * 80}
-          />
-        ))}
+        {isLoading ? (
+          // Skeletons for KPIs
+          [...Array(4)].map((_, i) => (
+            <div key={i} className="admin-card p-6 animate-pulse bg-white border border-admin-border rounded-2xl">
+              <div className="flex justify-between items-start">
+                <div className="h-11 w-11 rounded-xl bg-renta-50" />
+                <div className="h-5 w-12 rounded-full bg-renta-50" />
+              </div>
+              <div className="mt-4 space-y-2">
+                <div className="h-8 w-24 bg-renta-100 rounded-lg" />
+                <div className="h-4 w-32 bg-renta-50 rounded" />
+              </div>
+            </div>
+          ))
+        ) : (
+          visibleStats?.map((stat, index) => (
+            <StatCard
+              key={stat.dialectKey}
+              label={t(stat.dialectKey, stat.fallbackLabel)}
+              value={stat.value}
+              change={stat.change}
+              trend={stat.trend}
+              icon={stat.icon}
+              delay={100 + index * 80}
+              loading={isLoading}
+            />
+          ))
+        )}
       </div>
 
       {/* ── Quick Actions / Empty State ── */}
-      <div
-        className="admin-card flex flex-col items-center justify-center p-12 text-center opacity-0 animate-fade-in-up"
-        style={{ animationDelay: '500ms' }}
-      >
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-renta-100 to-renta-200/50">
-          <Activity className="h-8 w-8 text-renta-600" />
-        </div>
+      {!isLoading && (
+        <div
+          className="admin-card flex flex-col items-center justify-center p-12 text-center opacity-0 animate-fade-in-up"
+          style={{ animationDelay: '500ms' }}
+        >
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-renta-100 to-renta-200/50">
+            <Activity className="h-8 w-8 text-renta-600" />
+          </div>
         <h3 className="mt-5 text-lg font-semibold text-renta-900">
           {t('bienvenida_titulo', 'Bienvenido al Panel MyProp')}
         </h3>
@@ -253,6 +282,7 @@ export function DashboardPage() {
           </button>
         </div>
       </div>
+    )}
     </div>
   );
 }

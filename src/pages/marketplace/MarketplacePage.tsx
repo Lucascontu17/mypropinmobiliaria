@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useEden } from '@/services/eden';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
+import { toast } from 'sonner';
 
 export function MarketplacePage() {
   const { hasPermission, inmobiliaria_id } = useInmobiliaria();
@@ -44,42 +45,67 @@ export function MarketplacePage() {
 
   const fetchCatalog = async () => {
     setIsLoading(true);
-    // Modo Demo: Mocks
-    setTimeout(() => {
-      const storedBalance = localStorage.getItem('mock_balance_dev');
-      setCatalog({
-        addons: [
-          { id: 'a1', nombre: 'Firma Digital Premium', descripcion: 'Legalmente vinculante en toda la región.', costo_mensual: '4500', is_acquired: false },
-          { id: 'a2', nombre: 'Reportes de Rentabilidad AI', descripcion: 'Análisis predictivo de tus activos.', costo_mensual: '2500', is_acquired: true },
-        ],
-        packages: [
-          { id: 'p1', nombre: 'Pack Inicial', puntos: 1000, precio: '5000' },
-          { id: 'p2', nombre: 'Pack Profesional', puntos: 5000, precio: '22000' },
-        ],
-        balance: storedBalance ? parseInt(storedBalance) : 1500
-      });
+    try {
+      // @ts-ignore
+      const { data, error } = await eden.marketplace.catalog.get();
+      if (error) throw new Error("Error al obtener catálogo");
+      
+      setCatalog(data);
+    } catch (err) {
+      console.error("[Marketplace] Fetch failed:", err);
+      // Fallback a mocks solo en desarrollo si falla la API
+      if (import.meta.env.DEV) {
+          const storedBalance = localStorage.getItem('mock_balance_dev');
+          setCatalog({
+            addons: [
+              { id: 'a1', nombre: 'Firma Digital Premium', descripcion: 'Legalmente vinculante en toda la región.', costo_mensual: '4500', is_acquired: false },
+              { id: 'a2', nombre: 'Zonatia AI Copilot', descripcion: 'Redacción automática de títulos y descripciones con IA.', costo_mensual: '2500', is_acquired: false },
+            ],
+            packages: [
+              { id: 'p1', nombre: 'Pack Inicial', puntos: 1000, precio: '5000' },
+            ],
+            balance: storedBalance ? parseInt(storedBalance) : 1500
+          });
+      }
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   const aquirirAddon = async (addonId: string) => {
     if (!confirm(t('marketplace_confirm_addon', '¿Desea adquirir esta función? El cobro se verá reflejado a partir de su próxima cuota mensual de suscripción.'))) return;
     
     setIsProcessing(addonId);
-    setTimeout(() => {
-        alert(t('marketplace_success_addon', 'Función adquirida con éxito. Se activará de inmediato.'));
-        setIsProcessing(null);
-    }, 1000);
+    try {
+      // @ts-ignore
+      const { error } = await eden.marketplace['acquire-addon'].post({ addon_id: addonId });
+      if (error) throw new Error("Error al adquirir add-on");
+      
+      toast.success(t('marketplace_success_addon', 'Función adquirida con éxito. Se activará de inmediato.'));
+      fetchCatalog();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsProcessing(null);
+    }
   };
 
   const cancelarAddon = async (addonId: string) => {
     if (!confirm('¿Desea dar de baja esta función? Dejará de cobrarse en la próxima facturación mensual.')) return;
     
     setIsProcessing(addonId);
-    setTimeout(() => {
-        alert('Función dada de baja exitosamente.');
-        setIsProcessing(null);
-    }, 1000);
+    try {
+      // @ts-ignore
+      const { error } = await eden.marketplace['cancel-addon'].post({ addon_id: addonId });
+      if (error) throw new Error("Error al dar de baja");
+      
+      toast.success('Función dada de baja exitosamente.');
+      fetchCatalog();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsProcessing(null);
+    }
   };
 
   // --- Payment Form State ---
@@ -250,8 +276,13 @@ export function MarketplacePage() {
                   </span>
                 )}
               </div>
-              <h3 className="text-lg font-bold font-jakarta text-renta-950">{addon.nombre}</h3>
-              <p className="text-sm text-renta-600 mt-2 flex-1 font-inter">{addon.descripcion}</p>
+              <h3 className="text-lg font-bold font-jakarta text-renta-950 group-hover:text-renta-600 transition-colors">{addon.nombre}</h3>
+              
+              <div className="mt-3 p-3 bg-renta-50/50 rounded-xl border border-renta-100 flex-1 group-hover:bg-renta-50 transition-colors">
+                <p className="text-xs text-renta-700 leading-relaxed font-medium font-inter">
+                   {addon.descripcion}
+                </p>
+              </div>
               
               <div className="mt-6 pt-6 border-t border-admin-border-subtle">
                 <div className="flex items-center justify-between mb-4">

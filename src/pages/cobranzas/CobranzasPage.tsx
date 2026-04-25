@@ -110,13 +110,21 @@ export function CobranzasPage() {
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <CheckCircle2 className="h-3 w-3" /> {t('cobranza_recaudacion', 'Recaudación Real')}
             </p>
-            <p className="text-2xl font-bold text-emerald-600 font-jakarta mt-1">{formatCurrency(totalRecaudado)}</p>
+            {isLoading ? (
+              <div className="h-8 w-24 bg-emerald-50 animate-pulse rounded mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-emerald-600 font-jakarta mt-1">{formatCurrency(totalRecaudado)}</p>
+            )}
          </div>
          <div className="bg-white border border-admin-border p-5 rounded-2xl shadow-sm">
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <Clock className="h-3 w-3" /> {t('cobranza_esperado', 'Total Esperado N')}
             </p>
-            <p className="text-2xl font-bold text-renta-900 font-jakarta mt-1">{formatCurrency(totalEsperado)}</p>
+            {isLoading ? (
+              <div className="h-8 w-24 bg-renta-50 animate-pulse rounded mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-renta-900 font-jakarta mt-1">{formatCurrency(totalEsperado)}</p>
+            )}
          </div>
           <div 
             data-shepherd="kpi-morosidad"
@@ -124,13 +132,21 @@ export function CobranzasPage() {
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <AlertCircle className="h-3 w-3" /> {t('cobranza_morosidad', 'Morosidad (A arrastrar)')}
             </p>
-            <p className="text-2xl font-bold text-red-600 font-jakarta mt-1">{formatCurrency(deudaEstimadaCierre)}</p>
+            {isLoading ? (
+              <div className="h-8 w-24 bg-red-50 animate-pulse rounded mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-red-600 font-jakarta mt-1">{formatCurrency(deudaEstimadaCierre)}</p>
+            )}
           </div>
          <div className="bg-white border border-admin-border p-5 rounded-2xl shadow-sm">
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <Plus className="h-3 w-3" /> {t('cobranza_saldos', 'Saldos a Favor Inq.')}
             </p>
-            <p className="text-2xl font-bold text-blue-600 font-jakarta mt-1">{formatCurrency(saldoFavorEstimado)}</p>
+            {isLoading ? (
+              <div className="h-8 w-24 bg-blue-50 animate-pulse rounded mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-blue-600 font-jakarta mt-1">{formatCurrency(saldoFavorEstimado)}</p>
+            )}
          </div>
       </div>
 
@@ -187,7 +203,7 @@ export function CobranzasPage() {
                     <p className="text-sm text-renta-500">Cargando cobranzas reales...</p>
                   </td>
                 </tr>
-              ) : pagosVisibles.length === 0 ? (
+              ) : (pagosVisibles?.length === 0) ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-renta-500">
                     <Wallet className="mx-auto h-8 w-8 text-renta-200 mb-3" />
@@ -195,24 +211,24 @@ export function CobranzasPage() {
                   </td>
                 </tr>
               ) : (
-                pagosVisibles.map((p) => {
-                   const saldoRestante = p.monto_a_abonar - p.monto_abonado;
+                pagosVisibles?.map((p) => {
+                   const saldoRestante = (p?.monto_a_abonar || 0) - (p?.monto_abonado || 0);
                    const tieneSaldoFavor = saldoRestante < 0;
 
                    return (
-                     <tr key={p.pago_id} className={cn(
+                     <tr key={p?.pago_id} className={cn(
                        "hover:bg-admin-surface-hover transition-colors",
                        saldoRestante <= 0 ? "opacity-60 grayscale-[0.2]" : ""
                      )}>
                       <td className="px-6 py-4">
-                        <div className="font-bold text-renta-950">{p.nombre_inquilino}</div>
-                        <div className="text-[11px] text-renta-500 mt-0.5">{p.detalle_propiedad}</div>
+                        <div className="font-bold text-renta-950">{p?.nombre_inquilino || 'Inquilino desconocido'}</div>
+                        <div className="text-[11px] text-renta-500 mt-0.5">{p?.detalle_propiedad || 'Sin dirección'}</div>
                       </td>
                       <td className="px-6 py-4 text-right font-medium text-renta-900">
-                         {formatCurrency(p.monto_a_abonar)}
+                         {formatCurrency(p?.monto_a_abonar || 0)}
                       </td>
                       <td className="px-6 py-4 text-right font-bold text-emerald-600">
-                         {formatCurrency(p.monto_abonado)}
+                         {formatCurrency(p?.monto_abonado || 0)}
                       </td>
                       <td className="px-6 py-4 text-right">
                          <span className={cn(
@@ -227,12 +243,12 @@ export function CobranzasPage() {
                         <span className={cn(
                           "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border",
                           tieneSaldoFavor ? "bg-blue-50 text-blue-700 border-blue-200" :
-                          p.status === 'PAGADO' ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-                          p.status === 'PARCIAL' ? "bg-amber-50 text-amber-700 border-amber-200" :
+                          p?.status === 'PAGADO' ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                          p?.status === 'PARCIAL' ? "bg-amber-50 text-amber-700 border-amber-200" :
                           "bg-red-50 text-red-700 border-red-200" // Pendiente o Vencido
                         )}>
                           {tieneSaldoFavor && <Check className="h-3 w-3"/>}
-                          {tieneSaldoFavor ? t('cobranza_a_favor', 'A FAVOR') : p.status}
+                          {tieneSaldoFavor ? t('cobranza_a_favor', 'A FAVOR') : (p?.status || 'PENDIENTE')}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -258,7 +274,7 @@ export function CobranzasPage() {
                            </button>
                            <button 
                              title="Ver Boletas de Servicios"
-                             onClick={() => setBoletasPagoId({ id: p.pago_id, nombre: p.nombre_inquilino })}
+                             onClick={() => setBoletasPagoId({ id: p?.pago_id, nombre: p?.nombre_inquilino })}
                              className="text-renta-400 bg-white border border-transparent hover:border-admin-border hover:text-renta-900 px-2 rounded-lg transition-colors"
                            >
                              <FileUp className="h-4 w-4" />

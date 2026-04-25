@@ -21,6 +21,8 @@ import { cn } from '@/lib/utils';
 import { useInmobiliaria, type UserRole } from '@/hooks/useInmobiliaria';
 import { useClerk } from '@clerk/clerk-react';
 import { useRegion } from '@/hooks/useRegion';
+import { useActiveAddons } from '@/hooks/useActiveAddons';
+import { BASE_URL } from '@/services/eden';
 import { useShepherd } from '@/providers/ShepherdProvider';
 import { useNavigate } from 'react-router-dom';
 
@@ -61,10 +63,21 @@ const NAV_ITEMS: NavItem[] = [
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { hasPermission } = useInmobiliaria();
+  const { hasPermission, logo_url, nombre } = useInmobiliaria();
   const { t, flag, country_code, isAuditOverride } = useRegion();
   const { resetTour } = useShepherd();
   const { signOut } = useClerk();
+  const { hasAddon } = useActiveAddons();
+
+  // Resolve custom logo URL
+  const showCustomLogo = hasAddon('Logo Personalizado en Panel') && !!logo_url;
+  const resolvedLogoUrl = (() => {
+    if (!logo_url) return null;
+    if (logo_url.startsWith('http')) return logo_url;
+    const cleanPath = logo_url.startsWith('/') ? logo_url : `/${logo_url}`;
+    const publicPath = cleanPath.startsWith('/public') ? cleanPath : `/public${cleanPath}`;
+    return `${BASE_URL}${publicPath}`;
+  })();
 
   // Filter items based on user role
   const visibleNavItems = NAV_ITEMS.filter(item => hasPermission(item.allowedRoles));
@@ -78,13 +91,19 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     >
       {/* ── Logo Area ── */}
       <div className="flex h-16 items-center gap-3 border-b border-white/10 px-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-renta-400 to-renta-600 shadow-lg shadow-renta-500/20">
-          <Gem className="h-5 w-5 text-white" />
-        </div>
+        {showCustomLogo && resolvedLogoUrl ? (
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 overflow-hidden">
+            <img src={resolvedLogoUrl} alt={nombre} className="h-full w-full object-contain" />
+          </div>
+        ) : (
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-renta-400 to-renta-600 shadow-lg shadow-renta-500/20">
+            <Gem className="h-5 w-5 text-white" />
+          </div>
+        )}
         {!isCollapsed && (
           <div className="animate-fade-in overflow-hidden">
             <h1 className="text-base font-bold tracking-tight text-white">
-              Zonatia
+              {showCustomLogo ? nombre : 'Zonatia'}
             </h1>
             <p className="text-[10px] font-medium uppercase tracking-widest text-renta-400">
               Admin Panel

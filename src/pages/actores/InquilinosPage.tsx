@@ -86,7 +86,7 @@ export function InquilinosPage() {
                     {t('inquilinos_cargando', 'Sincronizando legajos reales...')}
                   </td>
                 </tr>
-              ) : filteredInquilinos.length === 0 ? (
+              ) : (filteredInquilinos?.length === 0) ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-renta-500">
                     <Users className="mx-auto h-8 w-8 text-renta-200 mb-3" />
@@ -94,26 +94,26 @@ export function InquilinosPage() {
                   </td>
                 </tr>
               ) : (
-                filteredInquilinos.map((t) => (
-                  <tr key={t.id} className="hover:bg-admin-surface-hover transition-colors">
+                filteredInquilinos?.map((t) => (
+                  <tr key={t?.id} className="hover:bg-admin-surface-hover transition-colors">
                     <td className="px-6 py-4">
                       <span className="font-mono font-bold text-renta-950 bg-slate-100 px-2 py-1 rounded text-xs border border-slate-200">
-                        #{t.client_number}
+                        #{t?.client_number || 'N/A'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="font-medium text-renta-950">{t.nombre}</span>
-                        {t.status === 'CLIENT' && (
+                        <span className="font-medium text-renta-950">{t?.nombre || 'Sin nombre'}</span>
+                        {t?.status === 'CLIENT' && (
                           <span className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">Potencial Inquilino</span>
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-renta-600">{t.dni || '-'}</td>
+                    <td className="px-6 py-4 text-renta-600">{t?.dni || '-'}</td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="text-renta-900 font-medium">{t.celular}</span>
-                        <span className="text-xs text-renta-500">{t.email}</span>
+                        <span className="text-renta-900 font-medium">{t?.celular || 'No registrado'}</span>
+                        <span className="text-xs text-renta-500">{t?.email || 'Sin email'}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">

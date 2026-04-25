@@ -13,7 +13,7 @@ export function PropiedadesPage() {
   const [filterTipo, setFilterTipo] = useState<string>('todos');
   const { t, formatCurrency } = useRegion();
   const navigate = useNavigate();
-  const eden = useEden();
+  const { client: eden, isReady } = useEden();
 
   const [properties, setProperties] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,20 +25,24 @@ export function PropiedadesPage() {
   
   useEffect(() => {
     const fetchProperties = async () => {
+      if (!isReady) return; // Esperar a que el token esté listo
+
       setIsLoading(true);
-      // Modo Demo: Mocks de Propiedades
-      setTimeout(() => {
-        setProperties([
-          { uid_prop: 'p1', direccion: 'Av. Libertador 2300, 12º A', titulo: 'Piso Exclusivo', mts2: 180, ambientes: 4, habitaciones: 3, status: 'DISPONIBLE', valor_alquiler: 250000, has_luz: true, has_gas: true, has_agua: true, propietario_nombre: 'Ricardo Darín' },
-          { uid_prop: 'p2', direccion: 'Gorriti 4500, Palermo Soho', titulo: 'PH Reciclado', mts2: 95, ambientes: 3, habitaciones: 2, status: 'VENTA', valor_alquiler: 180000, has_luz: true, has_gas: true, has_agua: true, propietario_nombre: 'Zoe Gotusso' },
-          { uid_prop: 'p3', direccion: 'Juramento 1500, Belgrano', titulo: 'Oficina Moderna', mts2: 45, ambientes: 1, habitaciones: 0, status: 'ALQUILADA', valor_alquiler: 85000, has_luz: true, has_gas: false, has_agua: true, propietario_nombre: 'Lionel Messi' },
-          { uid_prop: 'p4', direccion: 'Pueyrredón 800, Recoleta', titulo: 'Semipiso Clásico', mts2: 120, ambientes: 3, habitaciones: 2, status: 'RESERVADA', valor_alquiler: 150000, has_luz: true, has_gas: true, has_agua: true, propietario_nombre: 'Tini Stoessel' },
-        ]);
+      try {
+        const { data, error } = await eden.admin.propiedades.get();
+        if (error) {
+          console.error('[PROPIEDADES] Error fetching:', error);
+        } else {
+          setProperties(data.data || []);
+        }
+      } catch (err) {
+        console.error('[PROPIEDADES] Connection error:', err);
+      } finally {
         setIsLoading(false);
-      }, 1000);
+      }
     };
     fetchProperties();
-  }, [eden]);
+  }, [eden, isReady]);
 
   const filteredProperties = properties.filter(p => {
     const matchesSearch = (p.direccion || '').toLowerCase().includes(searchTerm.toLowerCase()) || (p.titulo || '').toLowerCase().includes(searchTerm.toLowerCase());
@@ -158,13 +162,33 @@ export function PropiedadesPage() {
             </thead>
             <tbody className="divide-y divide-admin-border-subtle">
               {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-renta-500">
-                    <Loader2 className="mx-auto h-8 w-8 text-renta-200 mb-3 animate-spin" />
-                    {t('prop_cargando', 'Sincronizando inventario real...')}
-                  </td>
-                </tr>
-              ) : filteredProperties.length === 0 ? (
+                [...Array(5)].map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="px-6 py-4">
+                      <div className="h-4 w-32 bg-renta-50 rounded mb-2" />
+                      <div className="h-3 w-20 bg-renta-50 rounded" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 w-16 bg-renta-50 mx-auto rounded" />
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex gap-1 justify-center">
+                        <div className="h-5 w-5 bg-renta-50 rounded-full" />
+                        <div className="h-5 w-5 bg-renta-50 rounded-full" />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-6 w-20 bg-renta-50 rounded-full" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 w-16 bg-renta-50 rounded" />
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="h-8 w-8 bg-renta-50 rounded ml-auto" />
+                    </td>
+                  </tr>
+                ))
+              ) : (filteredProperties?.length === 0) ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-renta-500">
                     <MapPin className="mx-auto h-8 w-8 text-renta-200 mb-3" />
@@ -172,78 +196,78 @@ export function PropiedadesPage() {
                   </td>
                 </tr>
               ) : (
-                filteredProperties.map((p) => (
-                  <tr key={p.uid_prop} className="hover:bg-admin-surface-hover transition-colors group">
-                    <td className="px-6 py-4">
-                       <div className="flex items-center gap-2 font-medium text-renta-950">
-                          <Home className="h-4 w-4 text-renta-400" /> {p.direccion || p.titulo}
+                filteredProperties?.map((p) => (
+                   <tr key={p?.uid_prop} className="hover:bg-admin-surface-hover transition-colors group">
+                     <td className="px-6 py-4">
+                        <div className="flex items-center gap-2 font-medium text-renta-950">
+                           <Home className="h-4 w-4 text-renta-400" /> {p?.direccion || p?.titulo || 'Sin dirección'}
+                        </div>
+                        <div className="text-[10px] text-renta-500 mt-0.5 uppercase tracking-wider">{p?.propietario_nombre || 'Sin propietario'}</div>
+                     </td>
+                     
+                     <td className="px-6 py-4">
+                       <div className="flex flex-col items-center justify-center gap-0.5">
+                          <div className="text-xs font-bold text-renta-950">{p?.mts2 || 0} m²</div>
+                          <div className="text-[10px] text-renta-500 flex items-center gap-1 font-semibold">
+                             <span>{p?.ambientes || 0} AMB</span> • <span>{p?.habitaciones || 0} DORM</span>
+                          </div>
                        </div>
-                       <div className="text-[10px] text-renta-500 mt-0.5 uppercase tracking-wider">{p.propietario_nombre || 'Sin propietario'}</div>
-                    </td>
-                    
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col items-center justify-center gap-0.5">
-                         <div className="text-xs font-bold text-renta-950">{p.mts2 || 0} m²</div>
-                         <div className="text-[10px] text-renta-500 flex items-center gap-1 font-semibold">
-                            <span>{p.ambientes || 0} AMB</span> • <span>{p.habitaciones || 0} DORM</span>
-                         </div>
-                      </div>
-                    </td>
+                     </td>
 
-                    {/* Monitor de Servicios (Luz, Gas, Agua, etc) */}
-                    <td className="px-6 py-4">
-                       <div 
-                         data-shepherd="service-icons"
-                         className="flex items-center gap-1.5">
-                          <Zap className={cn("h-3.5 w-3.5", p.has_luz ? "text-amber-500" : "text-gray-200")} />
-                          <Flame className={cn("h-3.5 w-3.5", p.has_gas ? "text-orange-500" : "text-gray-200")} />
-                          <Droplets className={cn("h-3.5 w-3.5", p.has_agua ? "text-blue-500" : "text-gray-200")} />
-                          <FileText className={cn("h-3.5 w-3.5", p.has_expensas ? "text-purple-500" : "text-gray-200")} />
+                     {/* Monitor de Servicios (Luz, Gas, Agua, etc) */}
+                     <td className="px-6 py-4">
+                        <div 
+                          data-shepherd="service-icons"
+                          className="flex items-center gap-1.5">
+                           <Zap className={cn("h-3.5 w-3.5", p?.has_luz ? "text-amber-500" : "text-gray-200")} />
+                           <Flame className={cn("h-3.5 w-3.5", p?.has_gas ? "text-orange-500" : "text-gray-200")} />
+                           <Droplets className={cn("h-3.5 w-3.5", p?.has_agua ? "text-blue-500" : "text-gray-200")} />
+                           <FileText className={cn("h-3.5 w-3.5", p?.has_expensas ? "text-purple-500" : "text-gray-200")} />
+                        </div>
+                     </td>
+
+                     <td className="px-6 py-4">
+                       <span className={cn(
+                         "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold",
+                         p?.status === 'DISPONIBLE' && "bg-green-50 text-green-700 border border-green-100",
+                         p?.status === 'ALQUILADA' && "bg-blue-50 text-blue-700 border border-blue-100",
+                         ["VENTA","RESERVADA","VENDIDA"].includes(p?.status) && "bg-amber-50 text-amber-700 border border-amber-100",
+                       )}>
+                         {p?.status || 'SIN ESTADO'}
+                       </span>
+                     </td>
+                     <td className="px-6 py-4 text-renta-900 font-bold">
+                       ${Number(p?.valor_alquiler || 0).toLocaleString('es-AR')}
+                     </td>
+                     <td className="px-6 py-4 text-right">
+                       <div className="flex justify-end gap-1.5">
+                         {/* Booster Button — Solo para propiedades DISPONIBLE o VENTA */}
+                         {['DISPONIBLE', 'VENTA'].includes(p?.status) && (
+                           <button 
+                             data-shepherd="booster-action"
+                             onClick={() => setBoosterModal({ uid: p?.uid_prop, direccion: p?.direccion })}
+                             title="Asignar puntos de visibilidad"
+                             className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-all hover:scale-110"
+                           >
+                             <Rocket className="h-4 w-4" />
+                           </button>
+                         )}
+                         <button 
+                           data-shepherd="contact-action"
+                           title="Click para llamar (E.164)"
+                           className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                         >
+                           <Phone className="h-4 w-4" />
+                         </button>
+                         <button 
+                           onClick={() => navigate(`/propiedades/${p?.uid_prop}`)}
+                           className="p-2 text-renta-400 hover:text-renta-700 hover:bg-renta-50 rounded-lg transition-colors"
+                         >
+                           <Edit2 className="h-4 w-4" />
+                         </button>
                        </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <span className={cn(
-                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold",
-                        p.status === 'DISPONIBLE' && "bg-green-50 text-green-700 border border-green-100",
-                        p.status === 'ALQUILADA' && "bg-blue-50 text-blue-700 border border-blue-100",
-                        ["VENTA","RESERVADA","VENDIDA"].includes(p.status) && "bg-amber-50 text-amber-700 border border-amber-100",
-                      )}>
-                        {p.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-renta-900 font-bold">
-                      ${Number(p.valor_alquiler || 0).toLocaleString('es-AR')}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-1.5">
-                        {/* Booster Button — Solo para propiedades DISPONIBLE o VENTA */}
-                        {['DISPONIBLE', 'VENTA'].includes(p.status) && (
-                          <button 
-                            data-shepherd="booster-action"
-                            onClick={() => setBoosterModal({ uid: p.uid_prop, direccion: p.direccion })}
-                            title="Asignar puntos de visibilidad"
-                            className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-all hover:scale-110"
-                          >
-                            <Rocket className="h-4 w-4" />
-                          </button>
-                        )}
-                        <button 
-                          data-shepherd="contact-action"
-                          title="Click para llamar (E.164)"
-                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                        >
-                          <Phone className="h-4 w-4" />
-                        </button>
-                        <button 
-                          onClick={() => navigate(`/propiedades/${p.uid_prop}`)}
-                          className="p-2 text-renta-400 hover:text-renta-700 hover:bg-renta-50 rounded-lg transition-colors"
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                     </td>
+                   </tr>
                 ))
               )}
             </tbody>

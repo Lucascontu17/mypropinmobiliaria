@@ -34,85 +34,41 @@ interface Visita {
   };
 }
 
-// --- MOCK DATA PARA DEMO ---
-const MOCK_VISITAS: Visita[] = [
-  {
-    id: 'mock-1',
-    fecha_programada: new Date(Date.now() + 86400000).toISOString(),
-    status: 'PENDIENTE',
-    mensaje_visitante: 'Me interesa ver el estado de la cocina y el balcón. ¿Es apto crédito?',
-    created_at: new Date().toISOString(),
-    propiedad: { id: 'p1', direccion: 'Av. Callao 1234, 4to B, CABA' },
-    cliente: { id: 'c1', nombre: 'Juan Ignacio Pérez', celular: '+54 11 4455-6677', email: 'juan.perez@example.com' }
-  },
-  {
-    id: 'mock-2',
-    fecha_programada: new Date(Date.now() + 172800000).toISOString(),
-    status: 'PENDIENTE',
-    mensaje_visitante: 'Solicito visita por la tarde si es posible.',
-    created_at: new Date().toISOString(),
-    propiedad: { id: 'p2', direccion: 'GÃ¼emes 2100, Mar del Plata' },
-    cliente: { id: 'c2', nombre: 'LucÃ­a FernÃ¡ndez', celular: '+54 223 556-7788', email: 'lucia.f@example.com' }
-  },
-  {
-    id: 'mock-3',
-    fecha_programada: new Date(Date.now() + 43200000).toISOString(),
-    status: 'PROGRAMADA',
-    mensaje_visitante: null,
-    created_at: new Date().toISOString(),
-    propiedad: { id: 'p3', direccion: 'San Salvador 332, Corrientes' },
-    cliente: { id: 'c3', nombre: 'Roberto Thompson', celular: '+54 379 455-1122', email: 'r.thompson@example.com' }
-  }
-];
+
 
 export default function VisitasPage() {
   const [visitas, setVisitas] = useState<Visita[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'SOLICITUDES' | 'AGENDADAS' | 'HISTORIAL'>('SOLICITUDES');
-  const eden = useEden();
+  const { client: eden, isReady } = useEden();
 
   const fetchVisitas = async () => {
+    if (!isReady) return;
     setLoading(true);
-    // Modo Demo: Delay simulado
-    setTimeout(() => {
-      const stored = localStorage.getItem('mock_visitas_dev');
-      if (stored) {
-        setVisitas(JSON.parse(stored));
+    try {
+      const { data, error } = await eden.admin.visitas.get();
+      if (error) {
+        console.error('[VISITAS] Error fetching:', error);
       } else {
-        setVisitas(MOCK_VISITAS);
-        localStorage.setItem('mock_visitas_dev', JSON.stringify(MOCK_VISITAS));
+        setVisitas(data.data as any || []);
       }
+    } catch (err) {
+      console.error('[VISITAS] Connection error:', err);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   useEffect(() => {
     fetchVisitas();
-  }, [eden]);
+  }, [eden, isReady]);
 
   const handleUpdateStatus = async (id: string, newStatus: string, newDate?: string) => {
     setUpdatingId(id);
-
-    setTimeout(() => {
-        const updated = visitas.map(v => 
-          v.id === id ? { 
-            ...v, 
-            status: newStatus as any, 
-            fecha_programada: newDate ? new Date(newDate).toISOString() : v.fecha_programada 
-          } : v
-        );
-        setVisitas(updated as any);
-        localStorage.setItem('mock_visitas_dev', JSON.stringify(updated));
-        
-        let msg = newDate ? 'Visita reprogramada y confirmada' : 'Estado actualizado';
-        if (newStatus === 'PROGRAMADA' && !newDate) msg = '¡Visita agendada correctamente!';
-        if (newStatus === 'REALIZADA') msg = '¡Visita marcada como realizada!';
-        if (newStatus === 'CANCELADA') msg = 'Visita cancelada';
-        
-        toast.success(msg);
-        setUpdatingId(null);
-    }, 800);
+    // TODO: Implementar patch real en el backend si existe
+    toast.info('Actualización enviada (Backend sync pendiente)');
+    setUpdatingId(null);
   };
 
   if (loading) {
@@ -199,9 +155,9 @@ export default function VisitasPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                {solicitudes.map((visita) => (
+                {solicitudes?.map((visita) => (
                   <VisitaCard 
-                    key={visita.id} 
+                    key={visita?.id} 
                     visita={visita} 
                     onUpdate={handleUpdateStatus}
                     updatingId={updatingId}
@@ -231,9 +187,9 @@ export default function VisitasPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                {agendadas.map((visita) => (
+                {agendadas?.map((visita) => (
                   <VisitaCard 
-                    key={visita.id} 
+                    key={visita?.id} 
                     visita={visita} 
                     onUpdate={handleUpdateStatus}
                     updatingId={updatingId}
@@ -259,20 +215,20 @@ export default function VisitasPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 {historico.map(v => (
-                   <div key={v.id} className="bg-white border border-slate-100 p-6 rounded-[24px] flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
+                 {historico?.map(v => (
+                   <div key={v?.id} className="bg-white border border-slate-100 p-6 rounded-[24px] flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
                      <div className="flex items-center justify-between">
                         <span className={cn(
                           "text-[10px] font-black px-3 py-1 rounded-full",
-                          v.status === 'REALIZADA' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+                          v?.status === 'REALIZADA' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
                         )}>
-                          {v.status}
+                          {v?.status}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-bold">{new Date(v.fecha_programada).toLocaleDateString()}</span>
+                        <span className="text-[10px] text-slate-400 font-bold">{new Date(v?.fecha_programada || '').toLocaleDateString()}</span>
                      </div>
                      <div>
-                       <h4 className="font-bold text-renta-950 text-sm">{v.cliente.nombre}</h4>
-                       <p className="text-xs text-slate-500 truncate mt-0.5">{v.propiedad.direccion}</p>
+                       <h4 className="font-bold text-renta-950 text-sm">{v?.cliente?.nombre}</h4>
+                       <p className="text-xs text-slate-500 truncate mt-0.5">{v?.propiedad?.direccion}</p>
                      </div>
                    </div>
                  ))}
@@ -288,17 +244,17 @@ export default function VisitasPage() {
 // ── COMPONENTE AUXILIAR PARA LA CARD ──
 function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate: any, updatingId: string | null }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [newDate, setNewDate] = useState(visita.fecha_programada.split('.')[0]); // Formato para datetime-local
+  const [newDate, setNewDate] = useState(visita?.fecha_programada?.split('.')[0] || ''); 
 
   const handleConfirmReschedule = () => {
-    onUpdate(visita.id, 'PROGRAMADA', newDate);
+    onUpdate(visita?.id, 'PROGRAMADA', newDate);
     setIsEditing(false);
   };
 
   return (
     <div className={cn(
       "group bg-white rounded-[32px] border transition-all duration-300 hover:shadow-xl hover:shadow-renta-900/5",
-      visita.status === 'PROGRAMADA' ? 'border-emerald-100 shadow-sm' : 'border-slate-100 shadow-sm',
+      visita?.status === 'PROGRAMADA' ? 'border-emerald-100 shadow-sm' : 'border-slate-100 shadow-sm',
       isEditing && "ring-2 ring-renta-500 border-transparent"
     )}>
       <div className="p-8">
@@ -306,24 +262,24 @@ function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate
           <div className="flex items-center gap-4">
             <div className={cn(
               "w-12 h-12 rounded-2xl flex items-center justify-center transition-colors",
-              visita.status === 'PENDIENTE' ? 'bg-amber-50 text-amber-600' :
-              visita.status === 'PROGRAMADA' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'
+              visita?.status === 'PENDIENTE' ? 'bg-amber-50 text-amber-600' :
+              visita?.status === 'PROGRAMADA' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'
             )}>
-              {visita.status === 'PENDIENTE' ? <Clock className="w-6 h-6" /> :
-               visita.status === 'PROGRAMADA' ? <Calendar className="w-6 h-6" /> : <XCircle className="w-6 h-6" />}
+              {visita?.status === 'PENDIENTE' ? <Clock className="w-6 h-6" /> :
+               visita?.status === 'PROGRAMADA' ? <Calendar className="w-6 h-6" /> : <XCircle className="w-6 h-6" />}
             </div>
             <div>
               <span className={cn(
                 "text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full",
-                visita.status === 'PENDIENTE' ? 'bg-amber-100 text-amber-700' :
-                visita.status === 'PROGRAMADA' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
+                visita?.status === 'PENDIENTE' ? 'bg-amber-100 text-amber-700' :
+                visita?.status === 'PROGRAMADA' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
               )}>
-                {visita.status === 'PENDIENTE' ? 'POR CONFIRMAR' : visita.status}
+                {visita?.status === 'PENDIENTE' ? 'POR CONFIRMAR' : visita?.status}
               </span>
               
               {!isEditing ? (
                 <h3 className="text-lg font-jakarta font-bold text-renta-950 mt-1">
-                  {new Date(visita.fecha_programada).toLocaleDateString()} — {new Date(visita.fecha_programada).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}hs
+                  {new Date(visita?.fecha_programada || '').toLocaleDateString()} — {new Date(visita?.fecha_programada || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}hs
                 </h3>
               ) : (
                 <div className="mt-2 flex flex-col gap-1">
@@ -351,7 +307,7 @@ function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Interesado</span>
-                <span className="text-sm font-jakarta font-bold text-renta-900">{visita.cliente.nombre}</span>
+                <span className="text-sm font-jakarta font-bold text-renta-900">{visita?.cliente?.nombre}</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -360,7 +316,7 @@ function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Contacto</span>
-                <span className="text-sm font-jakarta font-bold text-renta-900">{visita.cliente.celular}</span>
+                <span className="text-sm font-jakarta font-bold text-renta-900">{visita?.cliente?.celular}</span>
               </div>
             </div>
           </div>
@@ -372,17 +328,17 @@ function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Propiedad</span>
-                <span className="text-sm font-jakarta font-bold text-renta-900 truncate max-w-[200px]">{visita.propiedad.direccion}</span>
+                <span className="text-sm font-jakarta font-bold text-renta-900 truncate max-w-[200px]">{visita?.propiedad?.direccion}</span>
               </div>
             </div>
-            {visita.mensaje_visitante && (
+            {visita?.mensaje_visitante && (
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center shrink-0">
                   <MessageSquare className="w-4 h-4 text-slate-400" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Nota del cliente</span>
-                  <p className="text-xs text-slate-600 leading-relaxed italic">"{visita.mensaje_visitante}"</p>
+                  <p className="text-xs text-slate-600 leading-relaxed italic">"{visita?.mensaje_visitante}"</p>
                 </div>
               </div>
             )}
@@ -390,21 +346,21 @@ function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate
         </div>
 
         <div className="flex items-center gap-3 pt-6 border-t border-slate-50">
-          {visita.status === 'PENDIENTE' && (
+          {visita?.status === 'PENDIENTE' && (
             <>
               {!isEditing ? (
                 <>
                   <button 
-                    onClick={() => onUpdate(visita.id, 'PROGRAMADA')}
-                    disabled={updatingId === visita.id}
+                    onClick={() => onUpdate(visita?.id, 'PROGRAMADA')}
+                    disabled={updatingId === visita?.id}
                     className="flex-1 bg-renta-950 text-white font-jakarta font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 hover:bg-renta-800 transition-all active:scale-[0.98] disabled:opacity-50"
                   >
-                    {updatingId === visita.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}
+                    {updatingId === visita?.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}
                     Confirmar Visita
                   </button>
                   <button 
                     onClick={() => setIsEditing(true)}
-                    disabled={updatingId === visita.id}
+                    disabled={updatingId === visita?.id}
                     className="px-6 py-3.5 border border-slate-200 text-slate-600 font-jakarta font-bold rounded-2xl hover:bg-slate-50 transition-all flex items-center gap-2"
                   >
                     <Clock className="w-4 h-4" />
