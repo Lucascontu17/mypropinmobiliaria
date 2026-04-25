@@ -26,16 +26,18 @@ export function PropiedadesPage() {
   useEffect(() => {
     const fetchProperties = async () => {
       setIsLoading(true);
-      // Modo Demo: Mocks de Propiedades
-      setTimeout(() => {
-        setProperties([
-          { uid_prop: 'p1', direccion: 'Av. Libertador 2300, 12º A', titulo: 'Piso Exclusivo', mts2: 180, ambientes: 4, habitaciones: 3, status: 'DISPONIBLE', valor_alquiler: 250000, has_luz: true, has_gas: true, has_agua: true, propietario_nombre: 'Ricardo Darín' },
-          { uid_prop: 'p2', direccion: 'Gorriti 4500, Palermo Soho', titulo: 'PH Reciclado', mts2: 95, ambientes: 3, habitaciones: 2, status: 'VENTA', valor_alquiler: 180000, has_luz: true, has_gas: true, has_agua: true, propietario_nombre: 'Zoe Gotusso' },
-          { uid_prop: 'p3', direccion: 'Juramento 1500, Belgrano', titulo: 'Oficina Moderna', mts2: 45, ambientes: 1, habitaciones: 0, status: 'ALQUILADA', valor_alquiler: 85000, has_luz: true, has_gas: false, has_agua: true, propietario_nombre: 'Lionel Messi' },
-          { uid_prop: 'p4', direccion: 'Pueyrredón 800, Recoleta', titulo: 'Semipiso Clásico', mts2: 120, ambientes: 3, habitaciones: 2, status: 'RESERVADA', valor_alquiler: 150000, has_luz: true, has_gas: true, has_agua: true, propietario_nombre: 'Tini Stoessel' },
-        ]);
+      try {
+        const { data, error } = await eden.admin.propiedades.get();
+        if (error) {
+          console.error('[PROPIEDADES] Error fetching:', error);
+        } else {
+          setProperties(data.data || []);
+        }
+      } catch (err) {
+        console.error('[PROPIEDADES] Connection error:', err);
+      } finally {
         setIsLoading(false);
-      }, 1000);
+      }
     };
     fetchProperties();
   }, [eden]);
