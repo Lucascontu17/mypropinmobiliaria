@@ -162,13 +162,33 @@ export function PropiedadesPage() {
             </thead>
             <tbody className="divide-y divide-admin-border-subtle">
               {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-renta-500">
-                    <Loader2 className="mx-auto h-8 w-8 text-renta-200 mb-3 animate-spin" />
-                    {t('prop_cargando', 'Sincronizando inventario real...')}
-                  </td>
-                </tr>
-              ) : filteredProperties.length === 0 ? (
+                [...Array(5)].map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="px-6 py-4">
+                      <div className="h-4 w-32 bg-renta-50 rounded mb-2" />
+                      <div className="h-3 w-20 bg-renta-50 rounded" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 w-16 bg-renta-50 mx-auto rounded" />
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex gap-1 justify-center">
+                        <div className="h-5 w-5 bg-renta-50 rounded-full" />
+                        <div className="h-5 w-5 bg-renta-50 rounded-full" />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-6 w-20 bg-renta-50 rounded-full" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 w-16 bg-renta-50 rounded" />
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="h-8 w-8 bg-renta-50 rounded ml-auto" />
+                    </td>
+                  </tr>
+                ))
+              ) : (filteredProperties?.length === 0) ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-renta-500">
                     <MapPin className="mx-auto h-8 w-8 text-renta-200 mb-3" />

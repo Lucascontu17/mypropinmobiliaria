@@ -226,28 +226,45 @@ export function DashboardPage() {
       <div 
         data-shepherd="kpi-grid"
         className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {visibleStats?.map((stat, index) => (
-          <StatCard
-            key={stat.dialectKey}
-            label={t(stat.dialectKey, stat.fallbackLabel)}
-            value={stat.value}
-            change={stat.change}
-            trend={stat.trend}
-            icon={stat.icon}
-            delay={100 + index * 80}
-            loading={isLoading}
-          />
-        ))}
+        {isLoading ? (
+          // Skeletons for KPIs
+          [...Array(4)].map((_, i) => (
+            <div key={i} className="admin-card p-6 animate-pulse bg-white border border-admin-border rounded-2xl">
+              <div className="flex justify-between items-start">
+                <div className="h-11 w-11 rounded-xl bg-renta-50" />
+                <div className="h-5 w-12 rounded-full bg-renta-50" />
+              </div>
+              <div className="mt-4 space-y-2">
+                <div className="h-8 w-24 bg-renta-100 rounded-lg" />
+                <div className="h-4 w-32 bg-renta-50 rounded" />
+              </div>
+            </div>
+          ))
+        ) : (
+          visibleStats?.map((stat, index) => (
+            <StatCard
+              key={stat.dialectKey}
+              label={t(stat.dialectKey, stat.fallbackLabel)}
+              value={stat.value}
+              change={stat.change}
+              trend={stat.trend}
+              icon={stat.icon}
+              delay={100 + index * 80}
+              loading={isLoading}
+            />
+          ))
+        )}
       </div>
 
       {/* ── Quick Actions / Empty State ── */}
-      <div
-        className="admin-card flex flex-col items-center justify-center p-12 text-center opacity-0 animate-fade-in-up"
-        style={{ animationDelay: '500ms' }}
-      >
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-renta-100 to-renta-200/50">
-          <Activity className="h-8 w-8 text-renta-600" />
-        </div>
+      {!isLoading && (
+        <div
+          className="admin-card flex flex-col items-center justify-center p-12 text-center opacity-0 animate-fade-in-up"
+          style={{ animationDelay: '500ms' }}
+        >
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-renta-100 to-renta-200/50">
+            <Activity className="h-8 w-8 text-renta-600" />
+          </div>
         <h3 className="mt-5 text-lg font-semibold text-renta-900">
           {t('bienvenida_titulo', 'Bienvenido al Panel MyProp')}
         </h3>

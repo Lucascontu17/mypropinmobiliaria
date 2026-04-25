@@ -110,13 +110,21 @@ export function CobranzasPage() {
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <CheckCircle2 className="h-3 w-3" /> {t('cobranza_recaudacion', 'Recaudación Real')}
             </p>
-            <p className="text-2xl font-bold text-emerald-600 font-jakarta mt-1">{formatCurrency(totalRecaudado)}</p>
+            {isLoading ? (
+              <div className="h-8 w-24 bg-emerald-50 animate-pulse rounded mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-emerald-600 font-jakarta mt-1">{formatCurrency(totalRecaudado)}</p>
+            )}
          </div>
          <div className="bg-white border border-admin-border p-5 rounded-2xl shadow-sm">
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <Clock className="h-3 w-3" /> {t('cobranza_esperado', 'Total Esperado N')}
             </p>
-            <p className="text-2xl font-bold text-renta-900 font-jakarta mt-1">{formatCurrency(totalEsperado)}</p>
+            {isLoading ? (
+              <div className="h-8 w-24 bg-renta-50 animate-pulse rounded mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-renta-900 font-jakarta mt-1">{formatCurrency(totalEsperado)}</p>
+            )}
          </div>
           <div 
             data-shepherd="kpi-morosidad"
@@ -124,13 +132,21 @@ export function CobranzasPage() {
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <AlertCircle className="h-3 w-3" /> {t('cobranza_morosidad', 'Morosidad (A arrastrar)')}
             </p>
-            <p className="text-2xl font-bold text-red-600 font-jakarta mt-1">{formatCurrency(deudaEstimadaCierre)}</p>
+            {isLoading ? (
+              <div className="h-8 w-24 bg-red-50 animate-pulse rounded mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-red-600 font-jakarta mt-1">{formatCurrency(deudaEstimadaCierre)}</p>
+            )}
           </div>
          <div className="bg-white border border-admin-border p-5 rounded-2xl shadow-sm">
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <Plus className="h-3 w-3" /> {t('cobranza_saldos', 'Saldos a Favor Inq.')}
             </p>
-            <p className="text-2xl font-bold text-blue-600 font-jakarta mt-1">{formatCurrency(saldoFavorEstimado)}</p>
+            {isLoading ? (
+              <div className="h-8 w-24 bg-blue-50 animate-pulse rounded mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-blue-600 font-jakarta mt-1">{formatCurrency(saldoFavorEstimado)}</p>
+            )}
          </div>
       </div>
 
