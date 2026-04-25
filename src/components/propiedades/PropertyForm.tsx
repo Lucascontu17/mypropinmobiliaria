@@ -3,9 +3,11 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { propertySchema, type PropertyFormData } from '@/types/property';
-import { Save, X, Home, Map, Zap, DollarSign, Loader2, CheckCircle2, Tag, RefreshCw, UserPlus } from 'lucide-react';
+import { Save, X, Home, Map, Zap, DollarSign, Loader2, CheckCircle2, Tag, RefreshCw, UserPlus, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRegion } from '@/hooks/useRegion';
+import { useActiveAddons } from '@/hooks/useActiveAddons';
+import { useApi } from '@/hooks/useApi';
 import { GalleryUploader } from './GalleryUploader';
 import { MapPicker } from './MapPicker';
 import { useEden } from '@/services/eden';
@@ -27,6 +29,9 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
   const { inmobiliaria_id } = useInmobiliaria();
   const { currency_code } = useRegion();
   const eden = useEden();
+  const { hasAddon } = useActiveAddons();
+  const { apiFetch } = useApi();
+  const hasAiCopilot = hasAddon('Zonatia AI Copilot');
 
   const methods = useForm<PropertyFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -115,6 +120,41 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
   // Estado local para el flujo de transformación Venta -> Alquiler
   const [gestionaAlquiler, setGestionaAlquiler] = useState(false);
   const [pendingStatusChange, setPendingStatusChange] = useState<string | null>(null);
+  
+  // AI Copilot State
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [aiTone, setAiTone] = useState('Lujoso y Profesional');
+
+  const handleGenerateAiCopy = async () => {
+    const currentData = watch();
+    if (!currentData.tipo_inmueble || !currentData.mts2 || !currentData.valor_alquiler) {
+        toast.error("Faltan datos básicos", { description: "Por favor completa al menos el tipo de inmueble, superficie y valor para que la IA tenga contexto." });
+        return;
+    }
+
+    setIsGeneratingAi(true);
+    try {
+        const response: any = await apiFetch('/ai/generate-copy', {
+            method: 'POST',
+            body: JSON.stringify({
+                propertyData: currentData,
+                tono: aiTone
+            })
+        });
+
+        if (response?.success && response?.data) {
+            setValue('titulo', response.data.titulo, { shouldValidate: true, shouldDirty: true });
+            setValue('descripcion', response.data.descripcion, { shouldValidate: true, shouldDirty: true });
+            toast.success("¡Textos generados con éxito!", { icon: '✨' });
+        } else {
+            throw new Error(response?.error || 'Error desconocido al generar copy');
+        }
+    } catch (error: any) {
+        toast.error("Error de la IA", { description: error.message });
+    } finally {
+        setIsGeneratingAi(false);
+    }
+  };
 
   useEffect(() => {
     if (currentStatus !== 'DISPONIBLE') {
@@ -333,9 +373,34 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
             {/* SECCIÓN DE PUBLICACIÓN CONDICIONAL */}
             {currentStatus === 'DISPONIBLE' && (
               <div id="datos-publicacion" className="bg-blue-50/30 p-5 rounded-2xl border border-blue-200 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                <h3 className="text-sm font-jakarta font-bold text-blue-900 flex items-center gap-2 mb-3">
-                   <Tag className="h-4 w-4" /> Datos de Publicación (Landing Page)
-                </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+                   <h3 className="text-sm font-jakarta font-bold text-blue-900 flex items-center gap-2">
+                      <Tag className="h-4 w-4" /> Datos de Publicación (Landing Page)
+                   </h3>
+                   {hasAiCopilot && (
+                     <div className="flex items-center gap-2">
+                        <select 
+                          value={aiTone}
+                          onChange={(e) => setAiTone(e.target.value)}
+                          className="text-xs border-blue-200 bg-white rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-300 text-blue-900 font-medium"
+                        >
+                           <option value="Lujoso y Profesional">💎 Lujoso</option>
+                           <option value="Dinámico y Juvenil">🚀 Dinámico</option>
+                           <option value="Formal y Descriptivo">📋 Formal</option>
+                           <option value="Directo y Comercial">🎯 Comercial</option>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={handleGenerateAiCopy}
+                          disabled={isGeneratingAi}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-xs font-bold shadow-sm hover:from-blue-700 hover:to-indigo-700 disabled:opacity-70 transition-all"
+                        >
+                           {isGeneratingAi ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                           {isGeneratingAi ? 'Pensando...' : 'Autocompletar'}
+                        </button>
+                     </div>
+                   )}
+                </div>
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1.5">
                      <label className="text-sm font-semibold text-blue-900">Título Atractivo <span className="text-red-500">*</span></label>
