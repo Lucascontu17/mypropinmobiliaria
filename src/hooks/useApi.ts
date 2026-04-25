@@ -10,7 +10,7 @@ export function useApi() {
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
   const apiFetch = useCallback(async (path: string, options: RequestInit = {}) => {
-    const token = await getToken();
+    const token = await getToken({ template: 'zonatia-session' });
     
     // Obtener región desde localStorage (audit mode) o fallback AR
     const region = localStorage.getItem('zonatia_audit_region') || 'AR';
