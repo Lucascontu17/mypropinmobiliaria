@@ -176,78 +176,79 @@ export function PropiedadesPage() {
                   </td>
                 </tr>
               ) : (
-                filteredProperties.map((p) => (
-                  <tr key={p.uid_prop} className="hover:bg-admin-surface-hover transition-colors group">
-                    <td className="px-6 py-4">
-                       <div className="flex items-center gap-2 font-medium text-renta-950">
-                          <Home className="h-4 w-4 text-renta-400" /> {p.direccion || p.titulo}
+              ) : (
+                filteredProperties?.map((p) => (
+                   <tr key={p?.uid_prop} className="hover:bg-admin-surface-hover transition-colors group">
+                     <td className="px-6 py-4">
+                        <div className="flex items-center gap-2 font-medium text-renta-950">
+                           <Home className="h-4 w-4 text-renta-400" /> {p?.direccion || p?.titulo || 'Sin dirección'}
+                        </div>
+                        <div className="text-[10px] text-renta-500 mt-0.5 uppercase tracking-wider">{p?.propietario_nombre || 'Sin propietario'}</div>
+                     </td>
+                     
+                     <td className="px-6 py-4">
+                       <div className="flex flex-col items-center justify-center gap-0.5">
+                          <div className="text-xs font-bold text-renta-950">{p?.mts2 || 0} m²</div>
+                          <div className="text-[10px] text-renta-500 flex items-center gap-1 font-semibold">
+                             <span>{p?.ambientes || 0} AMB</span> • <span>{p?.habitaciones || 0} DORM</span>
+                          </div>
                        </div>
-                       <div className="text-[10px] text-renta-500 mt-0.5 uppercase tracking-wider">{p.propietario_nombre || 'Sin propietario'}</div>
-                    </td>
-                    
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col items-center justify-center gap-0.5">
-                         <div className="text-xs font-bold text-renta-950">{p.mts2 || 0} m²</div>
-                         <div className="text-[10px] text-renta-500 flex items-center gap-1 font-semibold">
-                            <span>{p.ambientes || 0} AMB</span> • <span>{p.habitaciones || 0} DORM</span>
-                         </div>
-                      </div>
-                    </td>
+                     </td>
 
-                    {/* Monitor de Servicios (Luz, Gas, Agua, etc) */}
-                    <td className="px-6 py-4">
-                       <div 
-                         data-shepherd="service-icons"
-                         className="flex items-center gap-1.5">
-                          <Zap className={cn("h-3.5 w-3.5", p.has_luz ? "text-amber-500" : "text-gray-200")} />
-                          <Flame className={cn("h-3.5 w-3.5", p.has_gas ? "text-orange-500" : "text-gray-200")} />
-                          <Droplets className={cn("h-3.5 w-3.5", p.has_agua ? "text-blue-500" : "text-gray-200")} />
-                          <FileText className={cn("h-3.5 w-3.5", p.has_expensas ? "text-purple-500" : "text-gray-200")} />
+                     {/* Monitor de Servicios (Luz, Gas, Agua, etc) */}
+                     <td className="px-6 py-4">
+                        <div 
+                          data-shepherd="service-icons"
+                          className="flex items-center gap-1.5">
+                           <Zap className={cn("h-3.5 w-3.5", p?.has_luz ? "text-amber-500" : "text-gray-200")} />
+                           <Flame className={cn("h-3.5 w-3.5", p?.has_gas ? "text-orange-500" : "text-gray-200")} />
+                           <Droplets className={cn("h-3.5 w-3.5", p?.has_agua ? "text-blue-500" : "text-gray-200")} />
+                           <FileText className={cn("h-3.5 w-3.5", p?.has_expensas ? "text-purple-500" : "text-gray-200")} />
+                        </div>
+                     </td>
+
+                     <td className="px-6 py-4">
+                       <span className={cn(
+                         "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold",
+                         p?.status === 'DISPONIBLE' && "bg-green-50 text-green-700 border border-green-100",
+                         p?.status === 'ALQUILADA' && "bg-blue-50 text-blue-700 border border-blue-100",
+                         ["VENTA","RESERVADA","VENDIDA"].includes(p?.status) && "bg-amber-50 text-amber-700 border border-amber-100",
+                       )}>
+                         {p?.status || 'SIN ESTADO'}
+                       </span>
+                     </td>
+                     <td className="px-6 py-4 text-renta-900 font-bold">
+                       ${Number(p?.valor_alquiler || 0).toLocaleString('es-AR')}
+                     </td>
+                     <td className="px-6 py-4 text-right">
+                       <div className="flex justify-end gap-1.5">
+                         {/* Booster Button — Solo para propiedades DISPONIBLE o VENTA */}
+                         {['DISPONIBLE', 'VENTA'].includes(p?.status) && (
+                           <button 
+                             data-shepherd="booster-action"
+                             onClick={() => setBoosterModal({ uid: p?.uid_prop, direccion: p?.direccion })}
+                             title="Asignar puntos de visibilidad"
+                             className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-all hover:scale-110"
+                           >
+                             <Rocket className="h-4 w-4" />
+                           </button>
+                         )}
+                         <button 
+                           data-shepherd="contact-action"
+                           title="Click para llamar (E.164)"
+                           className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                         >
+                           <Phone className="h-4 w-4" />
+                         </button>
+                         <button 
+                           onClick={() => navigate(`/propiedades/${p?.uid_prop}`)}
+                           className="p-2 text-renta-400 hover:text-renta-700 hover:bg-renta-50 rounded-lg transition-colors"
+                         >
+                           <Edit2 className="h-4 w-4" />
+                         </button>
                        </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <span className={cn(
-                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold",
-                        p.status === 'DISPONIBLE' && "bg-green-50 text-green-700 border border-green-100",
-                        p.status === 'ALQUILADA' && "bg-blue-50 text-blue-700 border border-blue-100",
-                        ["VENTA","RESERVADA","VENDIDA"].includes(p.status) && "bg-amber-50 text-amber-700 border border-amber-100",
-                      )}>
-                        {p.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-renta-900 font-bold">
-                      ${Number(p.valor_alquiler || 0).toLocaleString('es-AR')}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-1.5">
-                        {/* Booster Button — Solo para propiedades DISPONIBLE o VENTA */}
-                        {['DISPONIBLE', 'VENTA'].includes(p.status) && (
-                          <button 
-                            data-shepherd="booster-action"
-                            onClick={() => setBoosterModal({ uid: p.uid_prop, direccion: p.direccion })}
-                            title="Asignar puntos de visibilidad"
-                            className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-all hover:scale-110"
-                          >
-                            <Rocket className="h-4 w-4" />
-                          </button>
-                        )}
-                        <button 
-                          data-shepherd="contact-action"
-                          title="Click para llamar (E.164)"
-                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                        >
-                          <Phone className="h-4 w-4" />
-                        </button>
-                        <button 
-                          onClick={() => navigate(`/propiedades/${p.uid_prop}`)}
-                          className="p-2 text-renta-400 hover:text-renta-700 hover:bg-renta-50 rounded-lg transition-colors"
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                     </td>
+                   </tr>
                 ))
               )}
             </tbody>

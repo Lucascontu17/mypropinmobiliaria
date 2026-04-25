@@ -195,24 +195,24 @@ export function CobranzasPage() {
                   </td>
                 </tr>
               ) : (
-                pagosVisibles.map((p) => {
-                   const saldoRestante = p.monto_a_abonar - p.monto_abonado;
+                pagosVisibles?.map((p) => {
+                   const saldoRestante = (p?.monto_a_abonar || 0) - (p?.monto_abonado || 0);
                    const tieneSaldoFavor = saldoRestante < 0;
 
                    return (
-                     <tr key={p.pago_id} className={cn(
+                     <tr key={p?.pago_id} className={cn(
                        "hover:bg-admin-surface-hover transition-colors",
                        saldoRestante <= 0 ? "opacity-60 grayscale-[0.2]" : ""
                      )}>
                       <td className="px-6 py-4">
-                        <div className="font-bold text-renta-950">{p.nombre_inquilino}</div>
-                        <div className="text-[11px] text-renta-500 mt-0.5">{p.detalle_propiedad}</div>
+                        <div className="font-bold text-renta-950">{p?.nombre_inquilino || 'Inquilino desconocido'}</div>
+                        <div className="text-[11px] text-renta-500 mt-0.5">{p?.detalle_propiedad || 'Sin dirección'}</div>
                       </td>
                       <td className="px-6 py-4 text-right font-medium text-renta-900">
-                         {formatCurrency(p.monto_a_abonar)}
+                         {formatCurrency(p?.monto_a_abonar || 0)}
                       </td>
                       <td className="px-6 py-4 text-right font-bold text-emerald-600">
-                         {formatCurrency(p.monto_abonado)}
+                         {formatCurrency(p?.monto_abonado || 0)}
                       </td>
                       <td className="px-6 py-4 text-right">
                          <span className={cn(
@@ -227,12 +227,12 @@ export function CobranzasPage() {
                         <span className={cn(
                           "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border",
                           tieneSaldoFavor ? "bg-blue-50 text-blue-700 border-blue-200" :
-                          p.status === 'PAGADO' ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-                          p.status === 'PARCIAL' ? "bg-amber-50 text-amber-700 border-amber-200" :
+                          p?.status === 'PAGADO' ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                          p?.status === 'PARCIAL' ? "bg-amber-50 text-amber-700 border-amber-200" :
                           "bg-red-50 text-red-700 border-red-200" // Pendiente o Vencido
                         )}>
                           {tieneSaldoFavor && <Check className="h-3 w-3"/>}
-                          {tieneSaldoFavor ? t('cobranza_a_favor', 'A FAVOR') : p.status}
+                          {tieneSaldoFavor ? t('cobranza_a_favor', 'A FAVOR') : (p?.status || 'PENDIENTE')}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -258,7 +258,7 @@ export function CobranzasPage() {
                            </button>
                            <button 
                              title="Ver Boletas de Servicios"
-                             onClick={() => setBoletasPagoId({ id: p.pago_id, nombre: p.nombre_inquilino })}
+                             onClick={() => setBoletasPagoId({ id: p?.pago_id, nombre: p?.nombre_inquilino })}
                              className="text-renta-400 bg-white border border-transparent hover:border-admin-border hover:text-renta-900 px-2 rounded-lg transition-colors"
                            >
                              <FileUp className="h-4 w-4" />

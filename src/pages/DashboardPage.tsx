@@ -27,33 +27,43 @@ interface StatCardProps {
   trend: 'up' | 'down' | 'neutral';
   icon: React.ElementType;
   delay: number;
+  loading?: boolean;
 }
 
-function StatCard({ label, value, change, trend, icon: Icon, delay }: StatCardProps) {
+function StatCard({ label, value, change, trend, icon: Icon, delay, loading }: StatCardProps) {
   return (
     <div
-      className="admin-card-interactive group p-6 opacity-0 animate-fade-in-up"
+      className={cn(
+        "admin-card-interactive group p-6 opacity-0 animate-fade-in-up",
+        loading && "animate-pulse"
+      )}
       style={{ animationDelay: `${delay}ms` }}>
       <div className="flex items-start justify-between">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-renta-100 to-renta-200/50 transition-transform duration-300 group-hover:scale-110">
           <Icon className="h-5 w-5 text-renta-700" />
         </div>
-        <span
-          className={cn(
-            'flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold',
-            trend === 'up' && 'bg-emerald-50 text-emerald-600',
-            trend === 'down' && 'bg-red-50 text-red-500',
-            trend === 'neutral' && 'bg-renta-50 text-renta-500'
-          )}
-        >
-          {trend === 'up' && <ArrowUpRight className="h-3 w-3" />}
-          {trend === 'down' && <ArrowDownRight className="h-3 w-3" />}
-          {trend === 'neutral' && <Activity className="h-3 w-3" />}
-          {change}
-        </span>
+        {!loading && (
+          <span
+            className={cn(
+              'flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold',
+              trend === 'up' && 'bg-emerald-50 text-emerald-600',
+              trend === 'down' && 'bg-red-50 text-red-500',
+              trend === 'neutral' && 'bg-renta-50 text-renta-500'
+            )}
+          >
+            {trend === 'up' && <ArrowUpRight className="h-3 w-3" />}
+            {trend === 'down' && <ArrowDownRight className="h-3 w-3" />}
+            {trend === 'neutral' && <Activity className="h-3 w-3" />}
+            {change}
+          </span>
+        )}
       </div>
       <div className="mt-4">
-        <p className="admin-stat-value">{value}</p>
+        {loading ? (
+          <div className="h-8 w-24 bg-renta-100 rounded-md mb-2" />
+        ) : (
+          <p className="admin-stat-value">{value}</p>
+        )}
         <p className="admin-stat-label mt-1">{label}</p>
       </div>
     </div>
@@ -225,6 +235,7 @@ export function DashboardPage() {
             trend={stat.trend}
             icon={stat.icon}
             delay={100 + index * 80}
+            loading={isLoading}
           />
         ))}
       </div>
