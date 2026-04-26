@@ -6,7 +6,7 @@ import App from './App'
 // ═══════════════════════════════════════════════════════════════════
 // PWA VERSION CONTROL & CACHE PURGE (V2.4)
 // ═══════════════════════════════════════════════════════════════════
-const APP_VERSION = 'V2.4.3';
+const APP_VERSION = 'V2.4.4';
 const savedVersion = localStorage.getItem('app_version');
 
 if (savedVersion !== APP_VERSION) {
