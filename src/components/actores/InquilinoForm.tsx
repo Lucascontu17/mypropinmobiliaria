@@ -97,23 +97,23 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
           description: `${data.nombre} ahora es inquilino activo de tu inmobiliaria.`
         });
       } else {
-        // 🚨 STANDARD FLOW: Crear inquilino desde cero
-        const payload = {
-          ...data,
-          dni_url: typeof data.dni_url === 'object' && data.dni_url?.length ? `https://zonatiastorage.local/mock/${data.dni_url[0].name}` : '',
-          contrato_url: typeof data.contrato_url === 'object' && data.contrato_url?.length ? `https://zonatiastorage.local/mock/${data.contrato_url[0].name}` : '',
-          inmobiliaria_id: inmobiliaria_id!,
-          country_code: country_code!,
-          role: 'inquilino' as const
-        };
-
+        // 🚨 STANDARD FLOW: Crear inquilino desde cero (auto-genera cuenta global)
         // @ts-ignore
-        const { error } = await eden.actors.create.post(payload);
+        const { data: response, error } = await eden.admin.inquilinos.post({
+          nombre: data.nombre,
+          email: data.email || undefined,
+          celular: data.celular || undefined,
+          dni: data.dni || undefined
+        });
 
-        if (error) throw new Error(error.value?.message || 'Error al crear inquilino');
+        if (error) throw new Error(error.value?.message || error.value?.error || 'Error al crear inquilino');
 
+        const clientCode = response?.client_number;
         toast.success('Inquilino Guardado', {
-          description: `${data.nombre} ha sido registrado con éxito.`
+          description: clientCode
+            ? `${data.nombre} registrado con código ${clientCode}.`
+            : `${data.nombre} ha sido registrado con éxito.`,
+          duration: 6000
         });
       }
 

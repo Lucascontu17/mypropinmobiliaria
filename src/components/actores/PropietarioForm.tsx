@@ -95,23 +95,26 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
     }
 
     try {
-      // 🚨 MUX SECURITY (ZERO LEAKS): Inyectar metadata atómicamente
-      const payload = {
-        ...data,
-        inmobiliaria_id: inmobiliaria_id!, 
-        country_code: country_code!,
-        role: 'propietario' as const
-      };
-
-      // @ts-ignore - The endpoint /api/v1/actors/create is confirmed by CTO
-      const { data: response, error } = await eden.actors.create.post(payload);
+      // Enviar al endpoint de creación de owners (auto-genera cuenta global)
+      // @ts-ignore
+      const { data: response, error } = await eden.admin.owners.post({
+        nombre: data.nombre,
+        email: data.email,
+        dni: data.dni,
+        celular: data.celular,
+        client_number: data.client_number || undefined
+      });
 
       if (error) {
-        throw new Error(error.value?.message || 'Error al crear propietario');
+        throw new Error(error.value?.message || error.value?.error || 'Error al crear propietario');
       }
 
+      const clientCode = response?.client_number;
       toast.success('Propietario Guardado', {
-        description: `${data.nombre} ha sido registrado con éxito.`
+        description: clientCode 
+          ? `${data.nombre} registrado con código ${clientCode}.`
+          : `${data.nombre} ha sido registrado con éxito.`,
+        duration: 6000
       });
 
       if (onSuccess) onSuccess();
