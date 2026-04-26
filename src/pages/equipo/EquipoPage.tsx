@@ -59,7 +59,7 @@ export function EquipoPage() {
     setIsLoading(true);
     try {
         const { data, error } = await eden.admin.equipo.get();
-        if (error) {
+        if (error || !data) {
             console.error('[EQUIPO] Error fetching:', error);
         } else {
             setMiembros((data as any)?.data ?? []);

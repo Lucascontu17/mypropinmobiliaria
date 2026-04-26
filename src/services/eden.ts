@@ -5,8 +5,9 @@ import { useMemo, useState, useEffect } from 'react';
 // @ts-ignore
 import type { App } from 'mypropapi';
 
-const FULL_API_URL = import.meta.env.VITE_API_URL || 'https://api.zonatia.com/api/v1';
-export const BASE_URL = FULL_API_URL.replace(/\/api\/v1\/?$/, "").replace(/\/v1\/?$/, "").replace(/\/$/, "");
+const VITE_API_URL = import.meta.env.VITE_API_URL || 'https://api.zonatia.com';
+export const BASE_URL = VITE_API_URL.replace(/\/v1$/, '').replace(/\/api$/, '').replace(/\/$/, '');
+const FULL_API_URL = `${BASE_URL}/api/v1`;
 
 /**
  * Eden Client (Constant instance)

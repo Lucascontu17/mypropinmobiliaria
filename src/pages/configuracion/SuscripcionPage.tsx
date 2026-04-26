@@ -161,7 +161,7 @@ export function SuscripcionPage() {
                 </div>
 
                 {/* Addons */}
-                {summary?.addons.map((addon: any) => (
+                {summary?.addons?.map((addon: any) => (
                   <div key={addon.id} className="flex items-center justify-between py-2">
                     <div className="flex items-center gap-3">
                       <PlusCircleIcon className="h-4 w-4 text-renta-400" />
@@ -174,7 +174,7 @@ export function SuscripcionPage() {
                   </div>
                 ))}
 
-                {!summary?.addons.length && (
+                {!summary?.addons?.length && (
                   <p className="text-xs text-renta-400 italic">No posee funciones extra activas actualmente.</p>
                 )}
               </div>

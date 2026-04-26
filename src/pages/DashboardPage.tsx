@@ -134,11 +134,11 @@ export function DashboardPage() {
       setError(null);
       try {
         const { data, error } = await eden.admin.metrics.get();
-        if (error) {
+        if (error || !data) {
           console.error('[DASHBOARD] Error fetching metrics:', error);
           setError(t('error_dashboard', 'Servicio momentáneamente no disponible.'));
         } else {
-          setMetrics(data.data);
+          setMetrics(data?.data);
         }
       } catch (err) {
         console.error('[DASHBOARD] Connection error:', err);
