@@ -1,4 +1,4 @@
-import { eden } from './eden';
+import { api } from './eden';
 
 export interface GeocoderResult {
   latitud: number;
@@ -22,7 +22,7 @@ export const geocodeAddress = async (
   try {
     // El backend usa la API Key regional basada en el country_code
     // @ts-ignore
-    const { data, error } = await eden.maps.geocode.post({
+    const { data, error } = await api.maps.geocode.post({
       direccion,
       inmobiliaria_id: inmobiliariaId,
       country_code: countryCode
