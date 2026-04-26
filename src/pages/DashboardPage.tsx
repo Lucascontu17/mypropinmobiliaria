@@ -138,7 +138,8 @@ export function DashboardPage() {
           console.error('[DASHBOARD] Error fetching metrics:', error);
           setError(t('error_dashboard', 'Servicio momentáneamente no disponible.'));
         } else {
-          setMetrics(data?.data);
+          // @ts-ignore
+          setMetrics(data?.metrics);
         }
       } catch (err) {
         console.error('[DASHBOARD] Connection error:', err);

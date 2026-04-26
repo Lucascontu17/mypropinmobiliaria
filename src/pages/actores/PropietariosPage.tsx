@@ -25,7 +25,8 @@ export function PropietariosPage() {
         if (error) {
            console.error("Error fetching propietarios:", error);
         } else {
-           setPropietarios((data as any).data || []);
+           // @ts-ignore
+           setPropietarios(data?.owners ?? []);
         }
       } catch (err) {
         console.error("Critical error fetching propietarios:", err);

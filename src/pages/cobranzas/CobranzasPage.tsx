@@ -36,7 +36,8 @@ export function CobranzasPage() {
         if (error) {
             toast.error('No se pudo cargar la cobranza');
         } else {
-            setPagos((data as any)?.data ?? []);
+            // @ts-ignore
+            setPagos(data?.pagos ?? []);
         }
     } catch (err) {
         toast.error('Error al conectar con el servidor');

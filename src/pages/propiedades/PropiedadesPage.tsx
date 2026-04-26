@@ -33,7 +33,8 @@ export function PropiedadesPage() {
         if (error) {
           console.error('[PROPIEDADES] Error fetching:', error);
         } else {
-          setProperties(data.data || []);
+          // @ts-ignore
+          setProperties(data?.propiedades ?? []);
         }
       } catch (err) {
         console.error('[PROPIEDADES] Connection error:', err);

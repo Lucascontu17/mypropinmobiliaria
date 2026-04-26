@@ -29,9 +29,9 @@ export function ContratosPage() {
     try {
       // @ts-ignore
       const res = await eden.admin.contratos.get();
-      if (res.data) {
-        setAllContratos((res.data as any).data ?? []);
-      }
+      // Defensive check: handle res.data?.contratos to match the new backend structure
+      const lista = res.data?.contratos ?? [];
+      setAllContratos(lista);
     } catch (e) {
       console.error('Error fetching contratos', e);
     } finally {

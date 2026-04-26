@@ -51,7 +51,8 @@ export default function VisitasPage() {
       if (error) {
         console.error('[VISITAS] Error fetching:', error);
       } else {
-        setVisitas(data.data as any || []);
+        // @ts-ignore
+        setVisitas(data?.visitas ?? []);
       }
     } catch (err) {
       console.error('[VISITAS] Connection error:', err);

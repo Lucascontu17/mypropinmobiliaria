@@ -22,6 +22,7 @@ export function InquilinosPage() {
       try {
         setIsLoading(true);
         const res = await api.admin.inquilinos.get();
+        // Defensive check for new backend structure
         const lista = res.data?.inquilinos ?? [];
         setInquilinos(lista);
       } catch (err) {
