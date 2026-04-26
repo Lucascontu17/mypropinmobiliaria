@@ -5,7 +5,7 @@ import { useMemo, useState, useEffect } from 'react';
 // @ts-ignore
 import type { App } from 'mypropapi';
 
-const FULL_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+const FULL_API_URL = import.meta.env.VITE_API_URL || 'https://api.zonatia.com/api/v1';
 export const BASE_URL = FULL_API_URL.replace(/\/api\/v1\/?$/, "").replace(/\/v1\/?$/, "").replace(/\/$/, "");
 
 /**
