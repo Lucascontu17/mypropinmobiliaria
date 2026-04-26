@@ -1,21 +1,47 @@
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PropertyForm } from '@/components/propiedades/PropertyForm';
-import { ArrowLeft } from 'lucide-react';
-
-const MOCK_OWNERS = [
-  { uid_propietario: '1', nombre: 'Juan Perez' },
-  { uid_propietario: '2', nombre: 'Inversiones Global' },
-];
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { useEden } from '@/services/eden';
 
 export function PropiedadFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { client, isReady } = useEden();
   
-  // En el futuro:
-  // const { data: owners } = useSWR('/api/owners', fetcher)
-  // const { data: property } = useSWR(id ? `/api/properties/${id}` : null, fetcher)
+  const [owners, setOwners] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const isEditing = Boolean(id && id !== 'nueva');
+
+  useEffect(() => {
+    if (isReady) {
+      fetchData();
+    }
+  }, [isReady, client]);
+
+  const fetchData = async () => {
+    try {
+      // @ts-ignore
+      const { data, error } = await client.admin.owners.get();
+      if (!error && data) {
+        setOwners(data);
+      }
+    } catch (err) {
+      console.error("[PropiedadFormPage] Fetch failed:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 text-renta-400 animate-spin" />
+        <p className="mt-4 text-sm text-renta-500">Cargando propietarios reales...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -38,7 +64,7 @@ export function PropiedadFormPage() {
       </div>
 
       <PropertyForm 
-        owners={MOCK_OWNERS}
+        owners={owners}
         onCancel={() => navigate('/propiedades')}
         onSubmitSuccess={() => navigate('/propiedades')}
       />

@@ -1,23 +1,55 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ContratoForm } from '@/components/contratos/ContratoForm';
-import { ArrowLeft } from 'lucide-react';
-
-const MOCK_PROPIEDADES_DISPONIBLES = [
-  { uid_prop: '1', direccion: 'Av. Callao 1234, CABA' },
-  { uid_prop: '2', direccion: 'San Salvador 332, Corrientes' },
-];
-
-const MOCK_INQUILINOS = [
-  { uid_inq: '1', nombre: 'Martin Lopez', dni: '35123456' },
-  { uid_inq: '2', nombre: 'Empresa Constructora S.A.', dni: '30712345678' }
-];
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { useEden } from '@/services/eden';
 
 export function ContratoFormPage() {
   const navigate = useNavigate();
+  const { client, isReady } = useEden();
   
-  // En el futuro:
-  // const { data: propsDisponibles } = useSWR('/api/properties?status=DISPONIBLE', fetcher)
-  // const { data: inquilinos } = useSWR('/api/inquilinos', fetcher)
+  const [propiedades, setPropiedades] = useState<any[]>([]);
+  const [inquilinos, setInquilinos] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (isReady) {
+      fetchData();
+    }
+  }, [isReady, client]);
+
+  const fetchData = async () => {
+    try {
+      // @ts-ignore
+      const [resProps, resInqs] = await Promise.all([
+        client.admin.propiedades.get(),
+        client.admin.inquilinos.get()
+      ]);
+
+      if (!resProps.error && resProps.data) {
+        // Filtrar solo las disponibles para nuevos contratos
+        const disponibles = resProps.data.filter((p: any) => p.status === 'DISPONIBLE' || p.status === 'Venta');
+        setPropiedades(disponibles);
+      }
+
+      if (!resInqs.error && resInqs.data) {
+        setInquilinos(resInqs.data);
+      }
+    } catch (err) {
+      console.error("[ContratoFormPage] Fetch failed:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 text-renta-400 animate-spin" />
+        <p className="mt-4 text-sm text-renta-500">Cargando inventario real...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -40,8 +72,8 @@ export function ContratoFormPage() {
       </div>
 
       <ContratoForm 
-        propiedadesDisponibles={MOCK_PROPIEDADES_DISPONIBLES}
-        inquilinosSeleccionables={MOCK_INQUILINOS}
+        propiedadesDisponibles={propiedades}
+        inquilinosSeleccionables={inquilinos}
         onCancel={() => navigate('/contratos')}
         onSubmitSuccess={() => navigate('/contratos')}
       />

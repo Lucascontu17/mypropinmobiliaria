@@ -53,20 +53,6 @@ export function MarketplacePage() {
       setCatalog(data);
     } catch (err) {
       console.error("[Marketplace] Fetch failed:", err);
-      // Fallback a mocks solo en desarrollo si falla la API
-      if (import.meta.env.DEV) {
-          const storedBalance = localStorage.getItem('mock_balance_dev');
-          setCatalog({
-            addons: [
-              { id: 'a1', nombre: 'Firma Digital Premium', descripcion: 'Legalmente vinculante en toda la región.', costo_mensual: '4500', is_acquired: false },
-              { id: 'a2', nombre: 'Zonatia AI Copilot', descripcion: 'Redacción automática de títulos y descripciones con IA.', costo_mensual: '2500', is_acquired: false },
-            ],
-            packages: [
-              { id: 'p1', nombre: 'Pack Inicial', puntos: 1000, precio: '5000' },
-            ],
-            balance: storedBalance ? parseInt(storedBalance) : 1500
-          });
-      }
     } finally {
       setIsLoading(false);
     }
