@@ -340,30 +340,55 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                    />
                  </div>
                  {errors.monto_inicial && <p className="text-xs text-red-500 font-medium">{errors.monto_inicial.message}</p>}
-               </div>
-               
-               {/* Transición Suave / Mid-Month Onboarding */}
-               <div className="pt-5 border-t border-admin-border-subtle space-y-3">
-                 <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-semibold text-renta-900 leading-tight">Estado de Pago Actual</h4>
-                      <p className="text-[10px] text-renta-500">¿El inquilino ya abonó el alquiler correspondiente al mes actual al momento de firmar/registrarse?</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                      <input type="checkbox" className="sr-only peer" {...register('pago_mes_curso')} />
-                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
-                    </label>
-                 </div>
                  
-                 {pagoMesCurso && (
-                    <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl flex gap-2.5 animate-fade-in">
-                       <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-                       <p className="text-[10px] leading-relaxed text-blue-700 font-semibold">
-                          Se omitirá la generación de cuota para el mes de inicio actual. Las estadísticas de rentabilidad 
-                          no contabilizarán este periodo saldado, corriendo los KPIs recién a partir del próximo mes.
-                       </p>
-                    </div>
-                 )}
+                 {/* 💳 Transición Suave / Mid-Month Onboarding */}
+                 <div className="pt-6 border-t border-admin-border-subtle space-y-4">
+                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-renta-950">Pago del Primer Mes</h4>
+                          {pagoMesCurso ? (
+                            <span className="text-[9px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200 uppercase tracking-tighter">
+                              Ya Cobrado
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200 uppercase tracking-tighter">
+                              Pendiente
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-renta-500 leading-relaxed max-w-md">
+                          {pagoMesCurso 
+                            ? "Activado: El sistema asume que el inquilino ya te entregó el dinero del mes en curso (ej: en efectivo al firmar). No se generará deuda por este mes."
+                            : "Desactivado: El sistema generará una boleta de pago para el mes actual. El inquilino verá que debe este monto en su portal."
+                          }
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                         <span className={cn(
+                           "text-[10px] font-bold uppercase tracking-wider transition-colors",
+                           pagoMesCurso ? "text-emerald-600" : "text-slate-400"
+                         )}>
+                           {pagoMesCurso ? 'Ya pagó' : 'A cobrar'}
+                         </span>
+                         <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                           <input type="checkbox" className="sr-only peer" {...register('pago_mes_curso')} />
+                           <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div>
+                         </label>
+                      </div>
+                   </div>
+                   
+                   {pagoMesCurso && (
+                      <div className="bg-emerald-50/50 border border-emerald-100 p-3 rounded-xl flex gap-2.5 animate-in slide-in-from-top-2 duration-300">
+                         <Info className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                         <p className="text-[10px] leading-relaxed text-emerald-800 font-medium italic">
+                           <strong>Nota:</strong> Al marcar como pagado, el sistema omitirá la cuota de este mes. 
+                           Las estadísticas de rentabilidad reflejarán este cobro como realizado fuera de plataforma.
+                         </p>
+                      </div>
+                   )}
+                 </div>
                </div>
             </div>
 
