@@ -4,7 +4,7 @@ import { useRegion } from '@/hooks/useRegion';
 import { Plus, Search, Users, Edit2, Trash2, FileText, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { InquilinoForm } from '@/components/actores/InquilinoForm';
-import { api } from '@/services/eden';
+import { useEden } from '@/services/eden';
 
 export function InquilinosPage() {
   const { hasPermission, inmobiliaria_id } = useInmobiliaria();
@@ -14,14 +14,14 @@ export function InquilinosPage() {
   const [editingData, setEditingData] = useState<any | null>(null);
   const [inquilinos, setInquilinos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { client: api, isReady } = useEden();
   
   useEffect(() => {
     const fetchInquilinos = async () => {
+      if (!isReady) return;
       try {
         setIsLoading(true);
-        const res = await api.admin.inquilinos.get({ 
-          headers: { 'x-inmobiliaria-id': inmobiliaria_id || '' } 
-        });
+        const res = await api.admin.inquilinos.get();
         const lista = res.data?.inquilinos ?? [];
         setInquilinos(lista);
       } catch (err) {
@@ -31,7 +31,7 @@ export function InquilinosPage() {
       }
     };
     fetchInquilinos();
-  }, [inmobiliaria_id]);
+  }, [isReady, api]);
 
   const filteredInquilinos = inquilinos.filter(p => 
     (p.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni || '').includes(searchTerm)

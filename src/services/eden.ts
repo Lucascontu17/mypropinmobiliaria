@@ -27,6 +27,9 @@ export const api = treaty<App>(FULL_API_URL, {
             'x-region': region,
             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         };
+    },
+    fetch: {
+        credentials: 'include'
     }
 });
 
@@ -44,8 +47,11 @@ export function useEden() {
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       getToken({ template: 'zonatia-session' }).then(t => {
-        console.log('[EDEN] Token cached with zonatia-session template:', t ? 'YES' : 'NO');
-        setToken(t);
+        if (t) {
+          console.log('[EDEN] Token cached and saved to localStorage');
+          localStorage.setItem('zonatia_token', t);
+          setToken(t);
+        }
       });
     }
   }, [getToken, isLoaded, isSignedIn]);
@@ -56,16 +62,16 @@ export function useEden() {
                    localStorage.getItem('zonatia_audit_region') || 'AR';
     const inmobiliariaId = (user?.publicMetadata?.inmobiliaria_id as string) || '';
 
-    // PLAIN OBJECT headers — no async, no function, guaranteed to be injected
-    const realClient = treaty<App>(FULL_API_URL, {
+    return treaty<App>(FULL_API_URL, {
       headers: {
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         'x-inmobiliaria-id': inmobiliariaId,
         'x-region': region,
+      },
+      fetch: {
+        credentials: 'include'
       }
     });
-
-    return realClient;
   }, [token, user]);
 
   return {
