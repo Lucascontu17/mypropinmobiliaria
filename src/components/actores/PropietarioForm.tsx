@@ -1,10 +1,11 @@
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ownerSchema, type OwnerFormValues } from '@/lib/validations/actores';
 import { useInmobiliaria } from '../../hooks/useInmobiliaria';
 import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
-import { Save, X, AlertTriangle } from 'lucide-react';
+import { Save, X, AlertTriangle, Search, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CountryPhoneSelector } from '../common/CountryPhoneSelector';
 
@@ -31,7 +32,8 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
     handleSubmit,
     control,
     formState: { errors, isSubmitting },
-    watch
+    watch,
+    setValue
   } = useForm<OwnerFormValues>({
     // @ts-ignore - Ignore type mismatch for coerced number in resolver
     resolver: zodResolver(ownerSchema),
@@ -41,10 +43,48 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
       celular: '',
       email: '',
       cbu: '',
+      client_number: '',
       comision_tipo: 'percent',
       comision_valor: 0
     }
   });
+
+  const [searchCode, setSearchCode] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+
+  const handleSearchClient = async () => {
+    if (!searchCode || searchCode.length < 3) {
+      toast.error('Código inválido', { description: 'Ingrese al menos 3 caracteres.' });
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // @ts-ignore
+      const { data, error } = await eden.admin.clients.search[searchCode].get();
+      
+      if (error || !data.success) {
+        throw new Error(error?.value?.error || data?.error || 'Cliente no encontrado');
+      }
+
+      const client = data.data;
+      
+      // Auto-completar campos
+      setValue('nombre', client.nombre);
+      setValue('email', client.email);
+      setValue('celular', client.celular);
+      setValue('dni', client.dni || '');
+      setValue('client_number', client.client_number);
+
+      toast.success('Cliente Encontrado', {
+        description: `Se han cargado los datos de ${client.nombre}.`
+      });
+    } catch (err: any) {
+      toast.error('Búsqueda fallida', { description: err.message });
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const onSubmit = async (data: OwnerFormValues) => {
     if (isRegionMissing) {
@@ -93,6 +133,36 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
           * DNI Requerido Obligatorio
         </p>
       </div>
+
+      {/* 🔍 Global Client Search (Only for New Owners) */}
+      {!initialData && (
+        <div className="bg-renta-50/50 p-4 rounded-xl border border-renta-100 space-y-3">
+          <div className="flex items-center gap-2 text-renta-900 font-bold text-sm">
+            <Search className="h-4 w-4" /> Importar Cliente Zonatia
+          </div>
+          <p className="text-[10px] text-renta-600 font-medium uppercase tracking-wider">
+            Si el propietario ya tiene cuenta en Zonatia, ingrese su código para importar sus datos.
+          </p>
+          <div className="flex gap-2">
+            <input 
+              type="text"
+              placeholder="Ej: ZON-12345"
+              value={searchCode}
+              onChange={(e) => setSearchCode(e.target.value.toUpperCase())}
+              className="flex-1 rounded-xl border border-admin-border px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-renta-200 uppercase"
+            />
+            <button
+              type="button"
+              onClick={handleSearchClient}
+              disabled={isSearching}
+              className="bg-renta-950 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-renta-800 transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+              {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              {isSearching ? 'Buscando...' : 'Buscar'}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
         
