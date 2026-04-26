@@ -58,7 +58,7 @@ export function VerBoletasModal({ pagoId, inquilinoNombre, onClose }: Props) {
   };
 
   const handlePreview = (url: string) => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+    const API_URL = import.meta.env.VITE_API_URL || 'https://api.zonatia.com/api/v1';
     const fullUrl = url.startsWith('http') ? url : `${API_URL.replace('/v1', '').replace('/api', '')}${url}`;
     window.open(fullUrl, '_blank');
   };

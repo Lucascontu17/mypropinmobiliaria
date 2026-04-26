@@ -32,6 +32,7 @@ export function MarketplacePage() {
     balance: number;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState<{puntos: number, monto: number} | null>(null);
 
@@ -45,14 +46,16 @@ export function MarketplacePage() {
 
   const fetchCatalog = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       // @ts-ignore
       const { data, error } = await eden.marketplace.catalog.get();
       if (error) throw new Error("Error al obtener catálogo");
       
       setCatalog((data as any) ?? { addons: [], packages: [], balance: 0 });
-    } catch (err) {
+    } catch (err: any) {
       console.error("[Marketplace] Fetch failed:", err);
+      setError(t('error_marketplace', 'Servicio momentáneamente no disponible. Verifique su conexión.'));
     } finally {
       setIsLoading(false);
     }
@@ -202,6 +205,19 @@ export function MarketplacePage() {
     <div className="space-y-8 animate-fade-in-up">
       <LocalShepherd steps={shepherdSteps} storageKey="enjoy_local_marketplace" />
       
+      {error && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in">
+          <AlertTriangle className="h-5 w-5 text-amber-500" />
+          <p className="text-sm font-medium">{error}</p>
+          <button 
+            onClick={() => fetchCatalog()} 
+            className="ml-auto underline text-xs font-bold hover:text-amber-900 transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
       {/* ── Header & Balance ── */}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between border-b border-admin-border-subtle pb-8">
         <div className="space-y-1">

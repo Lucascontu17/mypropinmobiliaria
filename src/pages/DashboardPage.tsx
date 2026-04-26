@@ -124,21 +124,25 @@ export function DashboardPage() {
   const { t, formatCurrency } = useRegion();
   const [metrics, setMetrics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { client: eden, isReady } = useEden();
 
   useEffect(() => {
     const fetchMetrics = async () => {
       if (!isReady) return;
       setIsLoading(true);
+      setError(null);
       try {
         const { data, error } = await eden.admin.metrics.get();
         if (error) {
           console.error('[DASHBOARD] Error fetching metrics:', error);
+          setError(t('error_dashboard', 'Servicio momentáneamente no disponible.'));
         } else {
           setMetrics(data.data);
         }
       } catch (err) {
         console.error('[DASHBOARD] Connection error:', err);
+        setError(t('error_dashboard_conn', 'Error de conexión con el servidor.'));
       } finally {
         setIsLoading(false);
       }
@@ -221,6 +225,13 @@ export function DashboardPage() {
           </span>
         </p>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in">
+          <Activity className="h-5 w-5 text-red-500" />
+          <p className="text-sm font-medium">{error}</p>
+        </div>
+      )}
 
       {/* ── Stats Grid ── */}
       <div 

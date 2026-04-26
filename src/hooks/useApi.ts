@@ -7,7 +7,7 @@ import { useCallback } from 'react';
  */
 export function useApi() {
   const { getToken } = useAuth();
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+  const API_URL = import.meta.env.VITE_API_URL || 'https://api.zonatia.com/api/v1';
 
   const apiFetch = useCallback(async (path: string, options: RequestInit = {}) => {
     const token = await getToken({ template: 'zonatia-session' });
