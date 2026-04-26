@@ -50,7 +50,7 @@ export function MarketplacePage() {
       const { data, error } = await eden.marketplace.catalog.get();
       if (error) throw new Error("Error al obtener catálogo");
       
-      setCatalog(data);
+      setCatalog((data as any) ?? { addons: [], packages: [], balance: 0 });
     } catch (err) {
       console.error("[Marketplace] Fetch failed:", err);
     } finally {

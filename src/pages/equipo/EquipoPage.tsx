@@ -62,7 +62,7 @@ export function EquipoPage() {
         if (error) {
             console.error('[EQUIPO] Error fetching:', error);
         } else {
-            setMiembros(data.data as MiembroData[]);
+            setMiembros((data as any)?.data ?? []);
         }
     } catch (err) {
         console.error('[EQUIPO] Connection error:', err);

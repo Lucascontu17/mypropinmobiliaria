@@ -29,8 +29,8 @@ export function ContratosPage() {
     try {
       // @ts-ignore
       const res = await eden.admin.contratos.get();
-      if (res.data?.success) {
-        setAllContratos(res.data.data || []);
+      if (res.data) {
+        setAllContratos((res.data as any).data ?? []);
       }
     } catch (e) {
       console.error('Error fetching contratos', e);
