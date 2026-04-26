@@ -5,15 +5,15 @@ import { useMemo, useState, useEffect } from 'react';
 // @ts-ignore
 import type { App } from 'mypropapi';
 
-const VITE_API_URL = import.meta.env.VITE_API_URL || 'https://api.zonatia.com';
-export const BASE_URL = VITE_API_URL.replace(/\/v1$/, '').replace(/\/api$/, '').replace(/\/$/, '');
+const API_BASE = import.meta.env.VITE_API_URL || 'https://api.zonatia.com';
+export const BASE_URL = API_BASE.replace(/\/v1$/, '').replace(/\/api$/, '').replace(/\/$/, '');
 const FULL_API_URL = `${BASE_URL}/api/v1`;
 
 /**
  * Eden Client (Constant instance)
  * Uses localStorage for cases where hooks cannot be used or for legacy compatibility.
  */
-export const eden = treaty<App>(FULL_API_URL, {
+export const api = treaty<App>(FULL_API_URL, {
     async headers() {
         const isDev = import.meta.env.DEV;
         let region = 'AR';

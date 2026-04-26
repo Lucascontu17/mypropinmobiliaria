@@ -4,29 +4,26 @@ import { useRegion } from '@/hooks/useRegion';
 import { Plus, Search, Users, Edit2, Trash2, FileText, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { InquilinoForm } from '@/components/actores/InquilinoForm';
-import { useEden } from '@/services/eden';
+import { api } from '@/services/eden';
 
 export function InquilinosPage() {
-  const { hasPermission } = useInmobiliaria();
+  const { hasPermission, inmobiliaria_id } = useInmobiliaria();
   const { t } = useRegion();
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingData, setEditingData] = useState<any | null>(null);
   const [inquilinos, setInquilinos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const eden = useEden();
   
   useEffect(() => {
     const fetchInquilinos = async () => {
       try {
         setIsLoading(true);
-        const { data, error } = await eden.admin.inquilinos.get();
-        if (error || !data) {
-           console.error("Error fetching inquilinos:", error);
-           setInquilinos([]);
-        } else {
-           setInquilinos((data as any)?.data?.inquilinos ?? []);
-        }
+        const res = await api.admin.inquilinos.get({ 
+          headers: { 'x-inmobiliaria-id': inmobiliaria_id || '' } 
+        });
+        const lista = res.data?.inquilinos ?? [];
+        setInquilinos(lista);
       } catch (err) {
         console.error("Critical error fetching inquilinos:", err);
       } finally {
@@ -34,7 +31,7 @@ export function InquilinosPage() {
       }
     };
     fetchInquilinos();
-  }, []);
+  }, [inmobiliaria_id]);
 
   const filteredInquilinos = inquilinos.filter(p => 
     (p.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni || '').includes(searchTerm)
