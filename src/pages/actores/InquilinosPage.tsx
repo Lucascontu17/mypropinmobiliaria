@@ -21,10 +21,11 @@ export function InquilinosPage() {
       try {
         setIsLoading(true);
         const { data, error } = await eden.admin.inquilinos.get();
-        if (error) {
+        if (error || !data) {
            console.error("Error fetching inquilinos:", error);
+           setInquilinos([]);
         } else {
-           setInquilinos((data as any).data || []);
+           setInquilinos((data as any)?.data?.inquilinos ?? []);
         }
       } catch (err) {
         console.error("Critical error fetching inquilinos:", err);

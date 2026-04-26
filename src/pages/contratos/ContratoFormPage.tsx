@@ -33,7 +33,7 @@ export function ContratoFormPage() {
       }
 
       if (!resInqs.error && resInqs.data) {
-        setInquilinos(resInqs.data);
+        setInquilinos((resInqs.data as any)?.data?.inquilinos ?? (resInqs.data as any)?.inquilinos ?? resInqs.data ?? []);
       }
     } catch (err) {
       console.error("[ContratoFormPage] Fetch failed:", err);
