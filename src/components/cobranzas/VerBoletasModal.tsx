@@ -36,7 +36,7 @@ const COLOR_MAP: Record<string, string> = {
 export function VerBoletasModal({ pagoId, inquilinoNombre, onClose }: Props) {
   const [boletas, setBoletas] = useState<Boleta[]>([]);
   const [loading, setLoading] = useState(true);
-  const eden = useEden();
+  const { client: eden } = useEden();
 
   useEffect(() => {
     fetchBoletas();

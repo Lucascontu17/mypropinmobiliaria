@@ -19,7 +19,7 @@ export function CobranzasPage() {
   const [filtro, setFiltro] = useState<FiltroEstado>('TODOS');
   const [pagos, setPagos] = useState<PagoEnCuenta[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const eden = useEden();
+  const { client: eden } = useEden();
   const [periodoActual, setPeriodoActual] = useState(new Date().toISOString().slice(0, 7));
   
   // Modals state

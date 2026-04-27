@@ -19,7 +19,7 @@ interface ContratoFormProps {
 
 export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables, onCancel, onSubmitSuccess }: ContratoFormProps) {
   const { inmobiliaria_id, country_code } = useInmobiliaria();
-  const eden = useEden();
+  const { client: eden } = useEden();
   const navigate = useNavigate();
 
   const [isLinking, setIsLinking] = useState(false);

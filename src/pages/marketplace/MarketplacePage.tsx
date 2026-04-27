@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 export function MarketplacePage() {
   const { hasPermission, inmobiliaria_id } = useInmobiliaria();
   const { t, formatCurrency, country_code, config } = useRegion();
-  const eden = useEden();
+  const { client: eden } = useEden();
 
   const [activeTab, setActiveTab] = useState<'addons' | 'points'>('addons');
   

@@ -21,7 +21,7 @@ interface InquilinoFormProps {
  */
 export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFormProps) {
   const { inmobiliaria_id, country_code } = useInmobiliaria();
-  const eden = useEden();
+  const { client: eden } = useEden();
 
   // 🛡️ BÚNKER GUARD (GRACEFUL DEGRADATION)
   // Bloquea el componente si no hay country_code, previniendo corrupción regional.

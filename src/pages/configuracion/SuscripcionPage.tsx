@@ -24,7 +24,7 @@ import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShe
 
 export function SuscripcionPage() {
   const { t, formatCurrency, currency_code } = useRegion();
-  const eden = useEden();
+  const { client: eden } = useEden();
   
   const [summary, setSummary] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
