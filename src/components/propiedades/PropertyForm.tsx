@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -129,16 +129,14 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
   const addressInputRef = useRef<HTMLInputElement | null>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
-  useEffect(() => {
-    if (!addressInputRef.current || !window.google) return;
+  const initAutocomplete = useCallback((inputElement: HTMLInputElement) => {
+    if (!window.google || autocompleteRef.current) return;
 
-    // Initialize Autocomplete
-    autocompleteRef.current = new window.google.maps.places.Autocomplete(addressInputRef.current, {
+    autocompleteRef.current = new window.google.maps.places.Autocomplete(inputElement, {
       types: ['address'],
       fields: ['address_components', 'geometry', 'formatted_address'],
     });
 
-    // Handle place selection
     autocompleteRef.current.addListener('place_changed', () => {
       const place = autocompleteRef.current?.getPlace();
       if (!place || !place.geometry) {
@@ -174,14 +172,37 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
 
       toast.success("Dirección verificada con éxito.");
     });
+  }, [setValue]);
 
-    // Cleanup
+  // Callback ref to ensure we initialize as soon as the element is mounted
+  const setAddressInputRef = useCallback((node: HTMLInputElement | null) => {
+    if (node) {
+      addressInputRef.current = node;
+      // Small delay to ensure google maps script is fully ready if loaded via head
+      if (window.google) {
+        initAutocomplete(node);
+      } else {
+        // Fallback: check again in a bit if google maps is still loading
+        const interval = setInterval(() => {
+          if (window.google) {
+            initAutocomplete(node);
+            clearInterval(interval);
+          }
+        }, 500);
+        setTimeout(() => clearInterval(interval), 5000); // Stop after 5s
+      }
+    }
+  }, [initAutocomplete]);
+
+  useEffect(() => {
     return () => {
       if (window.google && autocompleteRef.current) {
         window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        // Autocomplete doesn't have a destroy method, but clearing listeners and ref is best practice
+        autocompleteRef.current = null;
       }
     };
-  }, [setValue]);
+  }, []);
 
   const handleGenerateAiCopy = async () => {
     const currentData = watch();
@@ -494,7 +515,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                   {...register('direccion')}
                   ref={(e) => {
                     register('direccion').ref(e);
-                    addressInputRef.current = e;
+                    setAddressInputRef(e);
                   }}
                   className={cn(
                     "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
