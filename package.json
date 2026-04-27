@@ -46,5 +46,8 @@
     "vite": "^6.4.1",
     "vite-plugin-pwa": "^1.2.0",
     "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/google.maps": "^3.64.0"
   }
 }
