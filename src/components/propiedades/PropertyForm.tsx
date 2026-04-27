@@ -136,70 +136,82 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
   const [aiTone, setAiTone] = useState('Lujoso y Profesional');
 
   // --- Google Maps Autocomplete Implementation ---
-  const addressInputRef = useRef<HTMLInputElement | null>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const autocompleteRef = useRef<any>(null);
 
-  const initAutocomplete = useCallback((inputElement: HTMLInputElement) => {
+  const initAutocomplete = useCallback(async (container: HTMLDivElement) => {
     if (!window.google || autocompleteRef.current) return;
 
-    autocompleteRef.current = new window.google.maps.places.Autocomplete(inputElement, {
-      types: ['address'],
-      fields: ['address_components', 'geometry', 'formatted_address'],
-    });
-
-    autocompleteRef.current.addListener('place_changed', () => {
-      const place = autocompleteRef.current?.getPlace();
-      if (!place || !place.geometry) {
-        toast.error("No se pudo obtener la ubicación precisa para esta dirección.");
-        return;
-      }
-
-      const address = place.formatted_address || '';
-      setValue('direccion', address, { shouldValidate: true });
-
-      // Extract coordinates
-      if (place.geometry.location) {
-        setValue('latitud', place.geometry.location.lat(), { shouldValidate: true });
-        setValue('longitud', place.geometry.location.lng(), { shouldValidate: true });
-      }
-
-      // Extract address components (City, Province, Neighborhood)
-      let provincia = '', ciudad = '', barrio = '';
-      place.address_components?.forEach(comp => {
-        const types = comp.types;
-        if (types.includes('administrative_area_level_1')) provincia = comp.long_name;
-        if (types.includes('locality') || types.includes('administrative_area_level_2')) {
-          if (!ciudad || types.includes('locality')) ciudad = comp.long_name;
-        }
-        if (types.includes('sublocality') || types.includes('neighborhood')) {
-          barrio = comp.long_name;
-        }
+    try {
+      // @ts-ignore
+      const { PlaceAutocompleteElement } = await google.maps.importLibrary('places');
+      
+      const pac = new PlaceAutocompleteElement({
+        // Biasing results to the current country if possible
+        includedRegionCodes: [currency_code === 'ARS' ? 'AR' : currency_code === 'MXN' ? 'MX' : 'US'],
       });
 
-      if (provincia) setValue('provincia', provincia);
-      if (ciudad) setValue('ciudad', ciudad);
-      if (barrio) setValue('barrio', barrio);
+      // Básica inyección de estilos para que calce en el diseño
+      pac.style.width = '100%';
+      
+      container.appendChild(pac);
+      autocompleteRef.current = pac;
 
-      toast.success("Dirección verificada con éxito.");
-    });
-  }, [setValue]);
+      pac.addEventListener('gmp-select', async (event: any) => {
+        const place = event.placePrediction.toPlace();
+        
+        // Fetch specific fields (Places API New protocol)
+        await place.fetchFields({
+          fields: ['location', 'formattedAddress', 'addressComponents', 'viewport']
+        });
 
-  // Callback ref to ensure we initialize as soon as the element is mounted
-  const setAddressInputRef = useCallback((node: HTMLInputElement | null) => {
+        if (!place.location) {
+          toast.error("No se pudo obtener la ubicación precisa para esta dirección.");
+          return;
+        }
+
+        const address = place.formattedAddress || '';
+        setValue('direccion', address, { shouldValidate: true });
+
+        // Extract coordinates
+        setValue('latitud', place.location.lat(), { shouldValidate: true });
+        setValue('longitud', place.location.lng(), { shouldValidate: true });
+
+        // Extract address components (City, Province, Neighborhood)
+        let provincia = '', ciudad = '', barrio = '';
+        place.addressComponents?.forEach(comp => {
+          const types = comp.types;
+          if (types.includes('administrative_area_level_1')) provincia = comp.longText;
+          if (types.includes('locality') || types.includes('administrative_area_level_2')) {
+            if (!ciudad || types.includes('locality')) ciudad = comp.longText;
+          }
+          if (types.includes('sublocality') || types.includes('neighborhood')) {
+            barrio = comp.longText;
+          }
+        });
+
+        if (provincia) setValue('provincia', provincia);
+        if (ciudad) setValue('ciudad', ciudad);
+        if (barrio) setValue('barrio', barrio);
+
+        toast.success("Dirección verificada con éxito.");
+      });
+    } catch (err) {
+      console.error("Error al inicializar PlaceAutocompleteElement:", err);
+    }
+  }, [setValue, currency_code]);
+
+  const setAddressContainerRef = useCallback((node: HTMLDivElement | null) => {
     if (node) {
-      addressInputRef.current = node;
-      // Small delay to ensure google maps script is fully ready if loaded via head
       if (window.google) {
         initAutocomplete(node);
       } else {
-        // Fallback: check again in a bit if google maps is still loading
         const interval = setInterval(() => {
           if (window.google) {
             initAutocomplete(node);
             clearInterval(interval);
           }
         }, 500);
-        setTimeout(() => clearInterval(interval), 5000); // Stop after 5s
+        setTimeout(() => clearInterval(interval), 5000);
       }
     }
   }, [initAutocomplete]);
@@ -208,7 +220,6 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
     return () => {
       if (window.google && autocompleteRef.current) {
         window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
-        // Autocomplete doesn't have a destroy method, but clearing listeners and ref is best practice
         autocompleteRef.current = null;
       }
     };
@@ -521,18 +532,14 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
               
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-renta-900">Dirección Exacta <span className="text-red-500">*</span></label>
-                <input
-                  {...register('direccion')}
-                  ref={(e) => {
-                    register('direccion').ref(e);
-                    setAddressInputRef(e);
-                  }}
+                <div 
+                  ref={setAddressContainerRef}
                   className={cn(
-                    "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
-                    errors.direccion ? "border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                    "min-h-[42px] rounded-xl border bg-white transition-all overflow-hidden",
+                    errors.direccion ? "border-red-400" : "border-admin-border"
                   )}
-                  placeholder="Ej: Av. Callao 1234, CABA"
                 />
+                <input type="hidden" {...register('direccion')} />
                 {errors.direccion && <p className="text-xs text-red-500 font-medium">{errors.direccion.message}</p>}
               </div>
 
