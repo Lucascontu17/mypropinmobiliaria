@@ -101,7 +101,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
         console.log("[PROPIEDAD-FORM] Submitting via JSON (no images):", rest);
         // @ts-ignore
         const res = await eden.admin.propiedades.post({
-          ...rest,
+          data: JSON.stringify(rest),
           imagenes: []
         });
         response = res.data;
