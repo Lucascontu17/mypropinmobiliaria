@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -124,6 +124,64 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
   // AI Copilot State
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [aiTone, setAiTone] = useState('Lujoso y Profesional');
+
+  // --- Google Maps Autocomplete Implementation ---
+  const addressInputRef = useRef<HTMLInputElement | null>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+
+  useEffect(() => {
+    if (!addressInputRef.current || !window.google) return;
+
+    // Initialize Autocomplete
+    autocompleteRef.current = new window.google.maps.places.Autocomplete(addressInputRef.current, {
+      types: ['address'],
+      fields: ['address_components', 'geometry', 'formatted_address'],
+    });
+
+    // Handle place selection
+    autocompleteRef.current.addListener('place_changed', () => {
+      const place = autocompleteRef.current?.getPlace();
+      if (!place || !place.geometry) {
+        toast.error("No se pudo obtener la ubicación precisa para esta dirección.");
+        return;
+      }
+
+      const address = place.formatted_address || '';
+      setValue('direccion', address, { shouldValidate: true });
+
+      // Extract coordinates
+      if (place.geometry.location) {
+        setValue('latitud', place.geometry.location.lat(), { shouldValidate: true });
+        setValue('longitud', place.geometry.location.lng(), { shouldValidate: true });
+      }
+
+      // Extract address components (City, Province, Neighborhood)
+      let provincia = '', ciudad = '', barrio = '';
+      place.address_components?.forEach(comp => {
+        const types = comp.types;
+        if (types.includes('administrative_area_level_1')) provincia = comp.long_name;
+        if (types.includes('locality') || types.includes('administrative_area_level_2')) {
+          if (!ciudad || types.includes('locality')) ciudad = comp.long_name;
+        }
+        if (types.includes('sublocality') || types.includes('neighborhood')) {
+          barrio = comp.long_name;
+        }
+      });
+
+      if (provincia) setValue('provincia', provincia);
+      if (ciudad) setValue('ciudad', ciudad);
+      if (barrio) setValue('barrio', barrio);
+
+      toast.success("Dirección verificada con éxito.");
+    });
+
+    // Cleanup
+    return () => {
+      if (window.google && autocompleteRef.current) {
+        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+    };
+  }, [setValue]);
 
   const handleGenerateAiCopy = async () => {
     const currentData = watch();
@@ -434,6 +492,10 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                 <label className="text-sm font-semibold text-renta-900">Dirección Exacta <span className="text-red-500">*</span></label>
                 <input
                   {...register('direccion')}
+                  ref={(e) => {
+                    register('direccion').ref(e);
+                    addressInputRef.current = e;
+                  }}
                   className={cn(
                     "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
                     errors.direccion ? "border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
