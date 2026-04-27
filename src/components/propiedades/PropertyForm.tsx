@@ -82,6 +82,8 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
         } : {})
       };
 
+      const { imagenes, ...rest } = payload;
+
       // 🛠️ PERSISTENCIA EN EL BÚNKERA (v3.4.5 protocol)
       console.log("[PROPIEDAD-FORM] Submitting via Eden Treaty (Auto-Multipart):", rest);
       
