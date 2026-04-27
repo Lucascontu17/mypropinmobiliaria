@@ -51,7 +51,7 @@ const ROLE_OPTIONS: { value: UserRole; label: string; description: string; icon:
 
 export function MiembroForm({ initialData, onCancel, onSuccess }: MiembroFormProps) {
   const { t, config } = useRegion();
-  const eden = useEden();
+  const { client: eden } = useEden();
   const isEditing = !!initialData?.id;
 
   const [nombre, setNombre] = useState(initialData?.nombre ?? '');

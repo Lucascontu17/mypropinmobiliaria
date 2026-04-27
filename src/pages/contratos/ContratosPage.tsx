@@ -18,7 +18,7 @@ export function ContratosPage() {
   const [selectedContrato, setSelectedContrato] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const eden = useEden();
+  const { client: eden } = useEden();
 
   useEffect(() => {
     fetchContratos();

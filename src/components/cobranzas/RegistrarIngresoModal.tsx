@@ -19,7 +19,7 @@ interface RegistrarIngresoModalProps {
 
 export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: RegistrarIngresoModalProps) {
   const { inmobiliaria_id, nombre: nombreInmobiliaria } = useInmobiliaria();
-  const eden = useEden();
+  const { client: eden } = useEden();
   const [montoAblVariable, setMontoAblVariable] = useState<number | ''>('');
   
   const ablDinamico = Number(montoAblVariable) || 0;

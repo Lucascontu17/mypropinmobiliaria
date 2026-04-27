@@ -15,7 +15,7 @@ interface CierrePeriodoModalProps {
 
 export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEstimado, onClose, onSuccess }: CierrePeriodoModalProps) {
   const { inmobiliaria_id } = useInmobiliaria();
-  const eden = useEden();
+  const { client: eden } = useEden();
   
   const { handleSubmit, formState: { isSubmitting } } = useForm<CierrePeriodoData>({
     resolver: zodResolver(cierrePeriodoSchema),

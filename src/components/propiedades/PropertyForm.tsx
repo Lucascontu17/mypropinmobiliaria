@@ -28,7 +28,7 @@ interface PropertyFormProps {
 export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }: PropertyFormProps) {
   const { inmobiliaria_id } = useInmobiliaria();
   const { currency_code } = useRegion();
-  const eden = useEden();
+  const { client: eden } = useEden();
   const { hasAddon } = useActiveAddons();
   const { apiFetch } = useApi();
   const hasAiCopilot = hasAddon('Zonatia AI Copilot');
