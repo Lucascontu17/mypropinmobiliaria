@@ -95,7 +95,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
       }
 
       // @ts-ignore - Eden Treaty types might not match exactly due to backend import
-      const { data: response, error } = await eden.propiedades.post(formData);
+      const { data: response, error } = await eden.admin.propiedades.post(formData);
 
       if (error) {
         toast.error("Error al persistir en El Búnker: " + (error.value as string));
