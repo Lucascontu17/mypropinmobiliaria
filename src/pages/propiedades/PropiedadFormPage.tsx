@@ -24,7 +24,10 @@ export function PropiedadFormPage() {
     try {
       // @ts-ignore
       const { data, error } = await client.admin.owners.get();
-      if (!error && data) {
+      if (!error && data && Array.isArray(data.owners)) {
+        setOwners(data.owners);
+      } else if (!error && Array.isArray(data)) {
+        // Fallback for cases where it might return the array directly
         setOwners(data);
       }
     } catch (err) {
