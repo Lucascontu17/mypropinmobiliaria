@@ -16,12 +16,17 @@ export function useApi() {
     // Obtener región desde localStorage (audit mode) o fallback AR
     const region = localStorage.getItem('zonatia_audit_region') || 'AR';
 
-    const headers = {
+    const headers: Record<string, string> = {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
       'x-region': region,
-      ...options.headers,
+      ...options.headers as Record<string, string>,
     };
+
+    // Only set Content-Type for non-FormData bodies
+    // FormData needs the browser to auto-set Content-Type with the multipart boundary
+    if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     const response = await fetch(`${API_URL}${path}`, {
       ...options,

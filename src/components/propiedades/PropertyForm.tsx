@@ -10,7 +10,6 @@ import { useActiveAddons } from '@/hooks/useActiveAddons';
 import { useApi } from '@/hooks/useApi';
 import { GalleryUploader } from './GalleryUploader';
 import { MapPicker } from './MapPicker';
-import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 
 interface ProveedorOpcion {
@@ -28,7 +27,6 @@ interface PropertyFormProps {
 export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }: PropertyFormProps) {
   const { inmobiliaria_id } = useInmobiliaria();
   const { currency_code } = useRegion();
-  const { client: eden } = useEden();
   const { hasAddon } = useActiveAddons();
   const { apiFetch } = useApi();
   const hasAiCopilot = hasAddon('Zonatia AI Copilot');
@@ -85,28 +83,33 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
       const { imagenes, ...rest } = payload;
 
       // 🛠️ PERSISTENCIA EN EL BÚNKERA (v3.5.0 protocol)
-      let response: any, error: any;
       const hasImages = Array.isArray(imagenes) && imagenes.length > 0;
+      let response: any;
 
       if (hasImages) {
         console.log("[PROPIEDAD-FORM] Submitting via FormData (with images):", rest);
         const fd = new FormData();
         fd.append('data', JSON.stringify(rest));
         imagenes.forEach((file) => fd.append('imagenes', file));
-        // @ts-ignore
-        const res = await eden.admin.propiedades.post(fd as any);
-        response = res.data;
-        error = res.error;
+        
+        // Use raw fetch for FormData - Eden Treaty doesn't handle multipart properly
+        response = await apiFetch('/admin/propiedades', {
+          method: 'POST',
+          body: fd,
+          headers: {
+            // IMPORTANT: Do NOT set Content-Type for FormData - browser auto-sets with boundary
+          }
+        });
       } else {
         console.log("[PROPIEDAD-FORM] Submitting via JSON (no images):", rest);
-        // @ts-ignore - Eden Treaty auto-sets Content-Type: application/json for plain objects
-        const res = await eden.admin.propiedades.post(rest as any);
-        response = res.data;
-        error = res.error;
+        response = await apiFetch('/admin/propiedades', {
+          method: 'POST',
+          body: JSON.stringify(rest),
+        });
       }
 
-      if (error || (response && !response.success)) {
-        const errorMsg = error?.value || response?.error || "Error desconocido";
+      if (response && !response.success) {
+        const errorMsg = response?.error || "Error desconocido";
         console.error("[PROPIEDAD-POST] Error:", errorMsg);
         toast.error("Error al persistir en El Búnker: " + (typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg));
         return;
