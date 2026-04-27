@@ -147,11 +147,22 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
       
       const pac = new PlaceAutocompleteElement({
         // Biasing results to the current country if possible
-        includedRegionCodes: [currency_code === 'ARS' ? 'AR' : currency_code === 'MXN' ? 'MX' : 'US'],
+        includedRegionCodes: [currentMoneda === 'ARS' ? 'AR' : currentMoneda === 'MXN' ? 'MX' : 'AR'],
       });
 
-      // Básica inyección de estilos para que calce en el diseño
+      // Inyección de estilos para que calce en el diseño premium (Zonatia Style)
+      pac.style.setProperty('--gmpx-font-family-base', 'Inter, sans-serif');
+      pac.style.setProperty('--gmpx-font-size-base', '0.875rem');
+      pac.style.setProperty('--gmpx-color-surface', '#ffffff');
+      pac.style.setProperty('--gmpx-color-on-surface', '#102324');
+      pac.style.setProperty('--gmpx-color-primary', '#102324');
       pac.style.width = '100%';
+      
+      // Sincronizar el valor escrito con react-hook-form para evitar errores de validación prematuros
+      pac.addEventListener('input', (e: any) => {
+        const val = e.target.value;
+        setValue('direccion', val, { shouldValidate: val.length > 5 });
+      });
       
       container.appendChild(pac);
       autocompleteRef.current = pac;
@@ -198,7 +209,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
     } catch (err) {
       console.error("Error al inicializar PlaceAutocompleteElement:", err);
     }
-  }, [setValue, currency_code]);
+  }, [setValue, currentMoneda]);
 
   const setAddressContainerRef = useCallback((node: HTMLDivElement | null) => {
     if (node) {
