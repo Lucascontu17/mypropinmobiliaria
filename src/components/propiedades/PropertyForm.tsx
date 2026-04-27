@@ -146,8 +146,8 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
       const { PlaceAutocompleteElement } = await google.maps.importLibrary('places');
       
       const pac = new PlaceAutocompleteElement({
-        // Biasing results to the current country if possible
-        includedRegionCodes: [currentMoneda === 'ARS' ? 'AR' : currentMoneda === 'MXN' ? 'MX' : 'AR'],
+        // Quitamos la restricción dura de región para probar si es lo que bloquea los resultados
+        // includedRegionCodes: [currentMoneda === 'ARS' ? 'AR' : currentMoneda === 'MXN' ? 'MX' : 'AR'],
       });
 
       // Inyección de estilos para que calce en el diseño premium (Zonatia Style)
@@ -158,11 +158,18 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
       pac.style.setProperty('--gmpx-color-primary', '#102324');
       pac.style.width = '100%';
       
-      // Sincronizar el valor escrito con react-hook-form para evitar errores de validación prematuros
-      pac.addEventListener('input', (e: any) => {
-        const val = e.target.value;
-        setValue('direccion', val, { shouldValidate: val.length > 5 });
-      });
+      // Sincronizar el valor escrito con react-hook-form
+      // Usamos el inputElement interno para asegurar que capturamos el evento
+      setTimeout(() => {
+        if (pac.inputElement) {
+          pac.inputElement.addEventListener('input', (e: any) => {
+            const val = e.target.value;
+            setValue('direccion', val, { shouldValidate: val.length > 5 });
+          });
+          // Asegurar estilos del input interno
+          pac.inputElement.style.padding = '10px 16px';
+        }
+      }, 100);
       
       container.appendChild(pac);
       autocompleteRef.current = pac;
