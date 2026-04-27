@@ -83,20 +83,13 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
       };
 
       // 🛠️ PERSISTENCIA EN EL BÚNKERA (v3.4.5 protocol)
-      const formData = new FormData();
+      console.log("[PROPIEDAD-FORM] Submitting via Eden Treaty (Auto-Multipart):", rest);
       
-      // Separamos imágenes del payload JSON
-      const { imagenes, ...rest } = payload;
-      formData.append('data', JSON.stringify(rest));
-      
-      // Adjuntamos binarios
-      if (Array.isArray(imagenes)) {
-        imagenes.forEach(file => formData.append('imagenes', file));
-      }
-
-      console.log("[PROPIEDAD-FORM] Submitting payload:", rest);
-      // @ts-ignore - Eden Treaty types might not match exactly due to backend import
-      const { data: response, error } = await eden.admin.propiedades.post(formData);
+      // @ts-ignore - Eden Treaty 2 auto-handles multipart if object contains Files/Blobs
+      const { data: response, error } = await eden.admin.propiedades.post({
+        data: JSON.stringify(rest),
+        imagenes: imagenes
+      });
 
       if (error || (response && !response.success)) {
         const errorMsg = error?.value || response?.error || "Error desconocido";
