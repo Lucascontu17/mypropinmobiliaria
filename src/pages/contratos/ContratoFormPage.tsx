@@ -27,8 +27,9 @@ export function ContratoFormPage() {
       ]);
 
       if (!resProps.error && resProps.data) {
+        const propsArray = Array.isArray(resProps.data) ? resProps.data : (resProps.data as any).propiedades || [];
         // Filtrar solo las disponibles para nuevos contratos
-        const disponibles = resProps.data.filter((p: any) => p.status === 'DISPONIBLE' || p.status === 'Venta');
+        const disponibles = propsArray.filter((p: any) => p.status === 'DISPONIBLE' || p.status === 'Venta');
         setPropiedades(disponibles);
       }
 
