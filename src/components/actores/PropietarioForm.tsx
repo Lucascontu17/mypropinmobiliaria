@@ -102,6 +102,9 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
         email: data.email,
         dni: data.dni,
         celular: data.celular,
+        cbu: data.cbu || undefined,
+        commission_type: data.comision_tipo as any,
+        commission_value: data.comision_valor ? Number(data.comision_valor) : undefined,
         client_number: data.client_number || undefined
       });
 

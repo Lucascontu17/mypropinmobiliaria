@@ -14,7 +14,7 @@ import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 
 interface ProveedorOpcion {
-  uid_propietario: string;
+  id: string;
   nombre: string;
 }
 
@@ -319,7 +319,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                 >
                   <option value="">-- Seleccionar Propietario Vidu --</option>
                   {owners?.map(owner => (
-                    <option key={owner.uid_propietario} value={owner.uid_propietario}>
+                    <option key={owner.id} value={owner.id}>
                       {owner.nombre || 'Sin nombre'}
                     </option>
                   ))}
@@ -421,7 +421,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                              onChange={(e) => setValue('owner_id', e.target.value)}
                            >
                               <option value="">-- Seleccionar Comprador --</option>
-                              {owners?.map(o => <option key={o.uid_propietario} value={o.uid_propietario}>{o.nombre || 'Sin nombre'}</option>)}
+                              {owners?.map(o => <option key={o.id} value={o.id}>{o.nombre || 'Sin nombre'}</option>)}
                            </select>
                         </div>
                         <div className="space-y-1.5">
