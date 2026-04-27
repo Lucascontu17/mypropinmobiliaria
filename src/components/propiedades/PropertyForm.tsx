@@ -84,17 +84,29 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
 
       const { imagenes, ...rest } = payload;
 
-      // 🛠️ PERSISTENCIA EN EL BÚNKERA (v3.4.5 protocol)
-      console.log("[PROPIEDAD-FORM] Submitting via FormData to ensure Multipart:", rest);
-      
-      const fd = new FormData();
-      fd.append('data', JSON.stringify(rest));
-      if (Array.isArray(imagenes)) {
-        imagenes.forEach((file) => fd.append('imagenes', file));
-      }
+      // 🛠️ PERSISTENCIA EN EL BÚNKERA (v3.5.0 protocol)
+      let response: any, error: any;
+      const hasImages = Array.isArray(imagenes) && imagenes.length > 0;
 
-      // @ts-ignore - Eden Treaty 2 handles FormData if passed as the only argument
-      const { data: response, error } = await eden.admin.propiedades.post(fd);
+      if (hasImages) {
+        console.log("[PROPIEDAD-FORM] Submitting via FormData (with images):", rest);
+        const fd = new FormData();
+        fd.append('data', JSON.stringify(rest));
+        imagenes.forEach((file) => fd.append('imagenes', file));
+        // @ts-ignore
+        const res = await eden.admin.propiedades.post(fd as any);
+        response = res.data;
+        error = res.error;
+      } else {
+        console.log("[PROPIEDAD-FORM] Submitting via JSON (no images):", rest);
+        // @ts-ignore
+        const res = await eden.admin.propiedades.post({
+          ...rest,
+          imagenes: []
+        });
+        response = res.data;
+        error = res.error;
+      }
 
       if (error || (response && !response.success)) {
         const errorMsg = error?.value || response?.error || "Error desconocido";
