@@ -94,6 +94,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
         imagenes.forEach(file => formData.append('imagenes', file));
       }
 
+      console.log("[PROPIEDAD-FORM] Submitting payload:", rest);
       // @ts-ignore - Eden Treaty types might not match exactly due to backend import
       const { data: response, error } = await eden.admin.propiedades.post(formData);
 
