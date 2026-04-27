@@ -553,7 +553,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                 <div 
                   ref={setAddressContainerRef}
                   className={cn(
-                    "min-h-[42px] rounded-xl border bg-white transition-all overflow-hidden",
+                    "min-h-[42px] rounded-xl border bg-white transition-all overflow-visible z-[60] relative",
                     errors.direccion ? "border-red-400" : "border-admin-border"
                   )}
                 />
