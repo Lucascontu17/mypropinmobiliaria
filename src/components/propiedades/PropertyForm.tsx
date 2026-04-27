@@ -99,11 +99,8 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
         error = res.error;
       } else {
         console.log("[PROPIEDAD-FORM] Submitting via JSON (no images):", rest);
-        // @ts-ignore
-        const res = await eden.admin.propiedades.post({
-          data: JSON.stringify(rest),
-          imagenes: []
-        });
+        // @ts-ignore - Eden Treaty auto-sets Content-Type: application/json for plain objects
+        const res = await eden.admin.propiedades.post(rest as any);
         response = res.data;
         error = res.error;
       }
