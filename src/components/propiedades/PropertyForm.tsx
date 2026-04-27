@@ -98,7 +98,8 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
       const { data: response, error } = await eden.admin.propiedades.post(formData);
 
       if (error) {
-        toast.error("Error al persistir en El Búnker: " + (error.value as string));
+        console.error("[PROPIEDAD-POST] Error:", error.value);
+        toast.error("Error al persistir en El Búnker: " + (typeof error.value === 'object' ? JSON.stringify(error.value) : error.value));
         return;
       }
 
