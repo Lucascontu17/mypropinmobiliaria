@@ -167,12 +167,12 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
             <Search className="h-4 w-4" /> Importar Cliente Zonatia
           </div>
           <p className="text-[10px] text-renta-600 font-medium uppercase tracking-wider">
-            Si el propietario ya tiene cuenta en Zonatia, ingrese su código para importar sus datos.
+            Si el propietario ya tiene cuenta en Zonatia, ingrese su 'ID CLIENTE' para importar sus datos.
           </p>
           <div className="flex gap-2">
             <input 
               type="text"
-              placeholder="Ej: ZON-12345"
+              placeholder="Ej: AR001"
               value={searchCode}
               onChange={(e) => setSearchCode(e.target.value.toUpperCase())}
               className="flex-1 rounded-xl border border-admin-border px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-renta-200 uppercase"
