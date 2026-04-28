@@ -72,7 +72,7 @@ export interface RegionContextValue {
   /** Función de traducción: retorna el texto localizado para la key dada */
   t: (key: string, fallback?: string) => string;
   /** Formatea un número como moneda regional */
-  formatCurrency: (amount: number) => string;
+  formatCurrency: (amount: number, currency?: string) => string;
   /** Retorna el prefijo telefónico regional */
   formatPhone: (phone: string) => string;
   /** Flag emoji del país activo */

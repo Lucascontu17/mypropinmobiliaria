@@ -135,20 +135,20 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
              <div className="border-t border-admin-border-subtle pt-2 space-y-1 text-xs">
                 <div className="flex justify-between">
                   <span className="text-renta-500">Alquiler</span>
-                  <span className="font-medium text-renta-800">${(pagoDestino.monto_alquiler_base || pagoDestino.monto_a_abonar).toLocaleString('es-AR')}</span>
+                  <span className="font-medium text-renta-800">{formatCurrency(pagoDestino.monto_alquiler_base || pagoDestino.monto_a_abonar)}</span>
                 </div>
 
                 {pagoDestino.monto_expensas ? (
                   <div className="flex justify-between">
                     <span className="text-renta-500">Expensas</span>
-                    <span className="font-medium text-renta-800">${pagoDestino.monto_expensas.toLocaleString('es-AR')}</span>
+                    <span className="font-medium text-renta-800">{formatCurrency(pagoDestino.monto_expensas)}</span>
                   </div>
                 ) : null}
 
                 {pagoDestino.tipo_abl === 'fijo' && pagoDestino.monto_abl ? (
                   <div className="flex justify-between">
                     <span className="text-renta-500">ABL</span>
-                    <span className="font-medium text-renta-800">${pagoDestino.monto_abl.toLocaleString('es-AR')}</span>
+                    <span className="font-medium text-renta-800">{formatCurrency(pagoDestino.monto_abl)}</span>
                   </div>
                 ) : null}
 
@@ -159,7 +159,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
                       ABL Mes
                     </span>
                     <div className="relative w-20">
-                      <span className="absolute left-1.5 top-0.5 text-renta-400 font-semibold text-[10px]">$</span>
+                      <span className="absolute left-1.5 top-0.5 text-renta-400 font-bold text-[8px]">{config.currency_code}</span>
                       <input 
                         type="number" 
                         placeholder="0"
@@ -174,7 +174,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
 
              <div className="border-t border-admin-border-subtle pt-2 flex justify-between items-center text-xs">
                <span className="font-bold text-renta-900">Total</span>
-               <span className="font-black text-renta-950 text-sm">${totalConImpuestos.toLocaleString('es-AR')}</span>
+               <span className="font-black text-renta-950 text-sm">{formatCurrency(totalConImpuestos)}</span>
              </div>
              
              {saldoRestante !== totalConImpuestos && (
@@ -183,7 +183,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
                  pagoDestino.monto_abonado > 0 ? "bg-emerald-50 border border-emerald-100" : "bg-renta-50 border border-renta-100"
                )}>
                  <span className="font-medium">Saldo Pendiente</span>
-                 <span className="font-bold">${saldoRestante.toLocaleString('es-AR')}</span>
+                 <span className="font-bold">{formatCurrency(saldoRestante)}</span>
                </div>
              )}
           </div>
@@ -191,7 +191,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
           {/* Monto + Via + Fecha en bloque compacto */}
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-renta-900">Monto ($) *</label>
+              <label className="text-xs font-semibold text-renta-900">Monto ({config.currency_code}) *</label>
               <input
                 type="number"
                 step="0.01"
@@ -205,7 +205,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
               
               {generaSaldoAFavor && (
                 <p className="text-[9px] text-emerald-700 bg-emerald-50 px-2 py-1 rounded font-medium border border-emerald-100">
-                   +${(montoIngresado - saldoRestante).toLocaleString('es-AR')} queda como saldo a favor
+                   +{formatCurrency(montoIngresado - saldoRestante)} queda como saldo a favor
                 </p>
               )}
             </div>

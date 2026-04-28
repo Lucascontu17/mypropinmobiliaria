@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { contratoSchema, type ContratoFormData } from '@/types/contrato';
 import { useInmobiliaria } from '../../hooks/useInmobiliaria';
 import { CountryPhoneSelector } from '../common/CountryPhoneSelector';
+import { useRegion } from '@/hooks/useRegion';
 
 interface ContratoFormProps {
   propiedadesDisponibles: { uid_prop: string; direccion: string }[];
@@ -19,6 +20,7 @@ interface ContratoFormProps {
 
 export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables, onCancel, onSubmitSuccess }: ContratoFormProps) {
   const { inmobiliaria_id, country_code } = useInmobiliaria();
+  const { config } = useRegion();
   const { client: eden } = useEden();
   const navigate = useNavigate();
 
@@ -328,7 +330,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                <div className="space-y-1.5 pt-2">
                  <label className="text-sm font-semibold text-renta-900">Monto Base Inicial (Mensual) <span className="text-red-500">*</span></label>
                  <div className="relative">
-                   <span className="absolute left-3 top-2.5 text-renta-500 font-bold">$</span>
+                   <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase">{config.currency_code}</span>
                    <input
                      type="number"
                      {...register('monto_inicial')}

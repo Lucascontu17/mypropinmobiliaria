@@ -77,13 +77,14 @@ export function RegionProvider({ children }: RegionProviderProps) {
       },
 
       /**
-       * formatCurrency(amount) — Formats a number in the regional currency.
-       * Uses Intl.NumberFormat for proper locale-aware formatting.
+       * formatCurrency(amount, currency?) — Formats a number with explicit currency code.
+       * Uses Intl.NumberFormat with currencyDisplay: 'code' to avoid ambiguity between ARS/MXN.
        */
-      formatCurrency: (amount: number): string => {
+      formatCurrency: (amount: number, currency?: string): string => {
         return new Intl.NumberFormat(config.currency_locale, {
           style: 'currency',
-          currency: config.currency_code,
+          currency: currency || config.currency_code,
+          currencyDisplay: 'code',
           minimumFractionDigits: 0,
           maximumFractionDigits: 0,
         }).format(amount);

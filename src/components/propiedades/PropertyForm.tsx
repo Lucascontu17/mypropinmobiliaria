@@ -375,7 +375,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                     {currentOperacion === 'alquiler' ? 'Valor Alquiler' : 'Valor de Venta'}
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-renta-500 font-semibold">{currentMoneda === 'USD' ? 'US$' : '$'}</span>
+                    <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase">{currentMoneda}</span>
                     <input
                       {...register(currentOperacion === 'alquiler' ? 'valor_alquiler' : 'valor_venta')}
                       type="text"
@@ -469,7 +469,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                         <div className="space-y-1.5">
                            <label className="text-[10px] font-bold text-renta-700 uppercase">Valor de Alquiler Inicial</label>
                            <div className="relative">
-                              <span className="absolute left-2.5 top-1.5 text-renta-500 font-bold text-xs">$</span>
+                              <span className="absolute left-2.5 top-1.5 text-[10px] text-renta-500 font-bold uppercase">{currentMoneda}</span>
                               <input 
                                 type="text"
                                 className="w-full rounded-lg border border-admin-border bg-white pl-6 pr-3 py-1.5 text-xs font-bold"
@@ -748,7 +748,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                             Valor Mensual de Expensas <span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
-                            <span className="absolute left-3 top-2.5 text-renta-500 font-semibold">{currentMoneda === 'USD' ? 'US$' : '$'}</span>
+                            <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase">{currentMoneda}</span>
                             <input
                               {...register('valor_expensas', { required: watch('has_expensas') ? "Ingrese el valor de las expensas" : false })}
                               type="text"
@@ -787,7 +787,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                                 Valor Fijo Mensual de ABL <span className="text-red-500">*</span>
                               </label>
                               <div className="relative">
-                                <span className="absolute left-3 top-2.5 text-renta-500 font-semibold">{currentMoneda === 'USD' ? 'US$' : '$'}</span>
+                                <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase">{currentMoneda}</span>
                                 <input
                                   {...register('valor_abl', { required: watch('tipo_abl') === 'fijo' ? "Ingrese el valor fijo" : false })}
                                   type="text"
