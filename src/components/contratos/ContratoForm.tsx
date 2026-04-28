@@ -31,7 +31,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
   const methods = useForm<ContratoFormData>({
     resolver: zodResolver(contratoSchema),
     defaultValues: {
-      inmobiliaria_id: '',
+      inmobiliaria_id: inmobiliaria_id || '',
       uid_propiedad: '',
       is_nuevo_inquilino: false,
       uid_inquilino: '',
