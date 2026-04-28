@@ -106,34 +106,25 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
 
       // ── PASO 1: Creación Atómica de Inquilino (Si aplica) ──
       if (data.is_nuevo_inquilino && data.nuevo_inquilino) {
-        toast.info('Procesando inquilino...');
+        toast.info('Creando inquilino...');
         
-        if (foundClient) {
-          // VINCULACIÓN: Cliente que ya existe en la red global
-          // @ts-ignore
-          const { error: linkError } = await eden.admin.clients.activate[foundClient.id].patch({
-            inmobiliaria_id: inmobiliaria_id!,
-            dni: data.nuevo_inquilino.dni
-          });
+        const tenantPayload = {
+          ...data.nuevo_inquilino,
+          // Mock Storage URL generation inherited from InquilinoForm logic
+          dni_url: typeof data.nuevo_inquilino.dni_url === 'object' && data.nuevo_inquilino.dni_url?.length ? `https://zonatiastorage.local/mock/${data.nuevo_inquilino.dni_url[0].name}` : '',
+          contrato_url: typeof data.nuevo_inquilino.contrato_url === 'object' && data.nuevo_inquilino.contrato_url?.length ? `https://zonatiastorage.local/mock/${data.nuevo_inquilino.contrato_url[0].name}` : '',
+          inmobiliaria_id: inmobiliaria_id!,
+          country_code: country_code!,
+          role: 'inquilino' as const
+        };
 
-          if (linkError) throw new Error('No se pudo vincular el cliente global.');
-          finalUidInquilino = foundClient.id;
-          toast.success('Cliente vinculado con éxito');
-        } else {
-          // CREACIÓN: Inquilino totalmente nuevo
-          // @ts-ignore
-          const { data: response, error: inqError } = await eden.admin.inquilinos.post({
-            nombre: data.nuevo_inquilino.nombre,
-            email: data.nuevo_inquilino.email || undefined,
-            celular: data.nuevo_inquilino.celular || undefined,
-            dni: data.nuevo_inquilino.dni || undefined
-          });
-
-          if (inqError) throw new Error(inqError.value?.message || inqError.value?.error || 'Error al crear inquilino');
-          
-          finalUidInquilino = response.id;
-          toast.success('Inquilino creado con éxito');
-        }
+        // @ts-ignore
+        const { data: newInq, error: inqError } = await eden.actors.create.post(tenantPayload);
+        
+        if (inqError) throw new Error('Error al crear el nuevo inquilino.');
+        
+        finalUidInquilino = newInq.id;
+        toast.success('Inquilino creado con éxito');
       }
 
       // ── PASO 2: Creación del Contrato ──
