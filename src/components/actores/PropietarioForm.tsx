@@ -95,9 +95,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
     }
 
     try {
-      // Enviar al endpoint de creación de owners (auto-genera cuenta global)
-      // @ts-ignore
-      const { data: response, error } = await eden.admin.owners.post({
+      const payload = {
         nombre: data.nombre,
         email: data.email,
         dni: data.dni,
@@ -106,10 +104,28 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
         commission_type: data.comision_tipo as any,
         commission_value: data.comision_valor ? Number(data.comision_valor) : undefined,
         client_number: data.client_number || undefined
-      });
+      };
+
+      const ownerId = (initialData as any)?.id;
+      let response;
+      let error;
+
+      if (ownerId) {
+        // Editar propietario existente
+        // @ts-ignore
+        const result = await eden.admin.owners[ownerId].put(payload);
+        response = result.data;
+        error = result.error;
+      } else {
+        // Enviar al endpoint de creación de owners (auto-genera cuenta global)
+        // @ts-ignore
+        const result = await eden.admin.owners.post(payload);
+        response = result.data;
+        error = result.error;
+      }
 
       if (error) {
-        throw new Error(error.value?.message || error.value?.error || 'Error al crear propietario');
+        throw new Error(error.value?.message || error.value?.error || 'Error al guardar propietario');
       }
 
       const clientCode = response?.client_number;
