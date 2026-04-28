@@ -37,7 +37,11 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
   } = useForm<OwnerFormValues>({
     // @ts-ignore - Ignore type mismatch for coerced number in resolver
     resolver: zodResolver(ownerSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData ? {
+      ...initialData,
+      comision_tipo: (initialData as any).commission_type || 'percent',
+      comision_valor: (initialData as any).commission_value || 0
+    } : {
       nombre: '',
       dni: '',
       celular: '',
