@@ -126,8 +126,8 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
                    <p className="text-[10px] uppercase font-bold text-white tracking-widest">{t('gallery_cover', 'Portada')}</p>
                  </div>
               )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
