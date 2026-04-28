@@ -10,6 +10,7 @@ export function PropiedadFormPage() {
   const { client, isReady } = useEden();
   
   const [owners, setOwners] = useState<any[]>([]);
+  const [property, setProperty] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const isEditing = Boolean(id && id !== 'nueva');
@@ -18,17 +19,31 @@ export function PropiedadFormPage() {
     if (isReady) {
       fetchData();
     }
-  }, [isReady, client]);
+  }, [isReady, client, id]);
 
   const fetchData = async () => {
+    setIsLoading(true);
     try {
+      // 1. Fetch Owners
       // @ts-ignore
-      const { data, error } = await client.admin.owners.get();
-      if (!error && data && Array.isArray(data.owners)) {
-        setOwners(data.owners);
-      } else if (!error && Array.isArray(data)) {
-        // Fallback for cases where it might return the array directly
-        setOwners(data);
+      const { data: ownersRes, error: ownersErr } = await client.admin.owners.get();
+      if (!ownersErr && ownersRes) {
+        if (Array.isArray(ownersRes.owners)) {
+          setOwners(ownersRes.owners);
+        } else if (Array.isArray(ownersRes)) {
+          setOwners(ownersRes);
+        }
+      }
+
+      // 2. Fetch Property if editing
+      if (isEditing) {
+        // @ts-ignore
+        const { data: propRes, error: propErr } = await client.admin.propiedades[id].get();
+        if (!propErr && propRes) {
+          setProperty(propRes);
+        } else {
+          console.error("[PropiedadFormPage] Error fetching property:", propErr);
+        }
       }
     } catch (err) {
       console.error("[PropiedadFormPage] Fetch failed:", err);
@@ -41,7 +56,7 @@ export function PropiedadFormPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Loader2 className="h-8 w-8 text-renta-400 animate-spin" />
-        <p className="mt-4 text-sm text-renta-500">Cargando propietarios reales...</p>
+        <p className="mt-4 text-sm text-renta-500">Cargando datos...</p>
       </div>
     );
   }
@@ -67,6 +82,7 @@ export function PropiedadFormPage() {
       </div>
 
       <PropertyForm 
+        initialData={property}
         owners={owners}
         onCancel={() => navigate('/propiedades')}
         onSubmitSuccess={() => navigate('/propiedades')}

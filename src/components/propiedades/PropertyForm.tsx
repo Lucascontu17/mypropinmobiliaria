@@ -62,7 +62,15 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
     }
   });
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, watch, setValue } = methods;
+  const { register, handleSubmit, formState: { errors, isSubmitting }, watch, setValue, reset } = methods;
+
+  // Actualizar formulario cuando cargan los datos iniciales (Edit Mode)
+  useEffect(() => {
+    if (initialData) {
+      console.log("[PROPERTY-FORM] Resetting with initialData:", initialData);
+      reset(initialData);
+    }
+  }, [initialData, reset]);
 
   const onSubmit = async (data: PropertyFormData) => {
     try {
@@ -85,32 +93,36 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
       // 🛠️ PERSISTENCIA EN EL BÚNKERA (v3.5.0 protocol)
       const hasImages = Array.isArray(imagenes) && imagenes.length > 0;
       let response: any;
+      
+      const isEditing = Boolean(initialData?.uid_prop);
+      const endpoint = isEditing ? `/admin/propiedades/${initialData?.uid_prop}` : '/admin/propiedades';
+      const method = isEditing ? 'PUT' : 'POST';
 
       if (hasImages) {
-        console.log("[PROPIEDAD-FORM] Submitting via FormData (with images):", rest);
+        console.log(`[PROPIEDAD-FORM] Submitting via FormData (${method}):`, rest);
         const fd = new FormData();
         fd.append('data', JSON.stringify(rest));
         imagenes.forEach((file) => fd.append('imagenes', file));
         
         // Use raw fetch for FormData - Eden Treaty doesn't handle multipart properly
-        response = await apiFetch('/admin/propiedades', {
-          method: 'POST',
+        response = await apiFetch(endpoint, {
+          method,
           body: fd,
           headers: {
             // IMPORTANT: Do NOT set Content-Type for FormData - browser auto-sets with boundary
           }
         });
       } else {
-        console.log("[PROPIEDAD-FORM] Submitting via JSON (no images):", rest);
-        response = await apiFetch('/admin/propiedades', {
-          method: 'POST',
+        console.log(`[PROPIEDAD-FORM] Submitting via JSON (${method}):`, rest);
+        response = await apiFetch(endpoint, {
+          method,
           body: JSON.stringify(rest),
         });
       }
 
-      if (response && !response.success) {
+      if (response && response.success === false) {
         const errorMsg = response?.error || "Error desconocido";
-        console.error("[PROPIEDAD-POST] Error:", errorMsg);
+        console.error("[PROPIEDAD-SUBMIT] Error:", errorMsg);
         toast.error("Error al persistir en El Búnker: " + (typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg));
         return;
       }
