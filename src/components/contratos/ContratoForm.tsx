@@ -557,8 +557,23 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
 
         {/* Debug Global Errors */}
         {Object.keys(errors).length > 0 && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-semibold animate-fade-in border-l-4 border-l-red-500">
-             Hay errores de validación en el formulario. Asegúrese de completar DNI y seleccionar una Periodicidad.
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 animate-fade-in border-l-4 border-l-red-500">
+             <div className="font-bold mb-2 flex items-center gap-2">
+               <AlertTriangle className="h-4 w-4" /> 
+               Errores de validación detectados:
+             </div>
+             <ul className="list-disc list-inside space-y-1">
+               {Object.entries(errors).map(([key, value]: [string, any]) => {
+                 if (value.message) return <li key={key}>{value.message}</li>;
+                 // Handle nested objects like nuevo_inquilino or reglas_aumento
+                 if (typeof value === 'object') {
+                   return Object.entries(value).map(([subKey, subValue]: [string, any]) => (
+                     subValue.message ? <li key={`${key}-${subKey}`}>{subValue.message}</li> : null
+                   ));
+                 }
+                 return null;
+               })}
+             </ul>
           </div>
         )}
 
