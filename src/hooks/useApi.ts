@@ -11,7 +11,7 @@ export function useApi() {
   const API_URL = RAW_API_URL.endsWith('/v1') ? RAW_API_URL : `${RAW_API_URL.replace(/\/$/, '')}/api/v1`;
 
   const apiFetch = useCallback(async (path: string, options: RequestInit = {}) => {
-    const token = await getToken({ template: 'zonatia-session' });
+    const token = await getToken({ template: 'zonatia-client' });
     
     // Obtener región desde localStorage (audit mode) o fallback AR
     const region = localStorage.getItem('zonatia_audit_region') || 'AR';
