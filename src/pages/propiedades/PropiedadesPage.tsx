@@ -228,15 +228,23 @@ export function PropiedadesPage() {
                      </td>
 
                      <td className="px-6 py-4">
-                       <span className={cn(
-                         "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold",
-                         p?.status === 'DISPONIBLE' && "bg-green-50 text-green-700 border border-green-100",
-                         p?.status === 'ALQUILADA' && "bg-blue-50 text-blue-700 border border-blue-100",
-                         ["VENTA","RESERVADA","VENDIDA"].includes(p?.status) && "bg-amber-50 text-amber-700 border border-amber-100",
-                       )}>
-                         {p?.status || 'SIN ESTADO'}
-                       </span>
-                     </td>
+                        <div className="flex flex-col gap-1">
+                          <span className={cn(
+                            "inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold w-fit",
+                            p?.status === 'DISPONIBLE' && "bg-green-50 text-green-700 border border-green-100",
+                            p?.status === 'ALQUILADA' && "bg-blue-50 text-blue-700 border border-blue-100",
+                            ["VENTA","RESERVADA","VENDIDA"].includes(p?.status) && "bg-amber-50 text-amber-700 border border-amber-100",
+                          )}>
+                            {p?.status || 'SIN ESTADO'}
+                          </span>
+                          <span className={cn(
+                            "text-[9px] font-black uppercase tracking-widest px-1 flex items-center gap-1",
+                            p?.operacion === 'venta' ? "text-amber-600" : "text-blue-600"
+                          )}>
+                            {p?.operacion === 'venta' ? '💰 VENTA' : '🔑 ALQUILER'}
+                          </span>
+                        </div>
+                      </td>
                      <td className="px-6 py-4 text-renta-900 font-bold">
                         {formatCurrency(
                           Number((p?.operacion === 'venta' ? p?.valor_venta : p?.valor_alquiler) || 0),
