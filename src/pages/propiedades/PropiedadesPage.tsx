@@ -238,7 +238,10 @@ export function PropiedadesPage() {
                        </span>
                      </td>
                      <td className="px-6 py-4 text-renta-900 font-bold">
-                       ${Number(p?.valor_alquiler || 0).toLocaleString('es-AR')}
+                        {formatCurrency(
+                          Number((p?.operacion === 'venta' ? p?.valor_venta : p?.valor_alquiler) || 0),
+                          p?.moneda
+                        )}
                      </td>
                      <td className="px-6 py-4 text-right">
                        <div className="flex justify-end gap-1.5">
