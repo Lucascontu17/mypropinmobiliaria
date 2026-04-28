@@ -4,6 +4,8 @@ import { cn } from '@/lib/utils';
 import { useFormContext } from 'react-hook-form';
 import { useRegion } from '@/hooks/useRegion';
 
+import { BASE_URL } from '@/services/eden';
+
 interface GalleryUploaderProps {
   name: string;
 }
@@ -99,8 +101,12 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
           {files.map((file, idx) => {
             const isFile = file instanceof File;
-            const previewUrl = isFile ? URL.createObjectURL(file) : String(file);
+            let previewUrl = isFile ? URL.createObjectURL(file) : String(file);
             
+            if (!isFile && previewUrl.startsWith('/')) {
+              previewUrl = `${BASE_URL}${previewUrl}`;
+            }
+
             return (
               <div key={idx} className="relative group rounded-xl overflow-hidden shadow-sm border border-admin-border aspect-[4/3] bg-renta-100">
                 <img 
