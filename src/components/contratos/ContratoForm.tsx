@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info, Search, Link as LinkIcon, UserCheck } from 'lucide-react';
@@ -12,7 +12,7 @@ import { CountryPhoneSelector } from '../common/CountryPhoneSelector';
 import { useRegion } from '@/hooks/useRegion';
 
 interface ContratoFormProps {
-  propiedadesDisponibles: { uid_prop: string; direccion: string }[];
+  propiedadesDisponibles: { uid_prop: string; direccion: string; valor_alquiler?: string | number }[];
   inquilinosSeleccionables: { uid_inq: string; nombre: string; dni: string }[];
   onCancel?: () => void;
   onSubmitSuccess?: () => void;
@@ -56,9 +56,20 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
     }
   });
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, control, setValue } = methods;
+  const { register, handleSubmit, formState: { errors, isSubmitting }, control, setValue, watch } = methods;
 
   const isNuevoInquilino = useWatch({ control, name: 'is_nuevo_inquilino' });
+  const selectedUidPropiedad = watch('uid_propiedad');
+
+  // Auto-completar el valor del alquiler cuando se selecciona una propiedad
+  useEffect(() => {
+    if (selectedUidPropiedad) {
+      const prop = propiedadesDisponibles.find(p => p.uid_prop === selectedUidPropiedad);
+      if (prop && prop.valor_alquiler) {
+        setValue('monto_inicial', Number(prop.valor_alquiler), { shouldValidate: true });
+      }
+    }
+  }, [selectedUidPropiedad, propiedadesDisponibles, setValue]);
 
   const handleLookupClient = async () => {
     if (!clientSearch) return;
@@ -332,7 +343,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                </div>
                
                <div className="space-y-1.5 pt-2">
-                 <label className="text-sm font-semibold text-renta-900">Monto Base Inicial (Mensual) <span className="text-red-500">*</span></label>
+                 <label className="text-sm font-semibold text-renta-900">Valor del Alquiler <span className="text-red-500">*</span></label>
                  <div className="relative">
                    <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase">{config.currency_code}</span>
                    <input
