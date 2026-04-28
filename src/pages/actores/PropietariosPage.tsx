@@ -124,10 +124,10 @@ export function PropietariosPage() {
                     <td className="px-6 py-4">
                        <div className="flex flex-col">
                           <span className="text-xs font-bold text-renta-950">
-                            {p?.comision_tipo === 'percent' ? `${p?.comision_valor || 0}%` : formatCurrency(p?.comision_valor || 0)}
+                            {p?.commission_type === 'percent' ? `${p?.commission_value || 0}%` : formatCurrency(p?.commission_value || 0)}
                           </span>
                           <span className="text-[10px] text-renta-500 uppercase tracking-tighter">
-                            {p?.comision_tipo === 'percent' ? 'Variable' : 'Fija'}
+                            {p?.commission_type === 'percent' ? 'Variable' : 'Fija'}
                           </span>
                        </div>
                     </td>
