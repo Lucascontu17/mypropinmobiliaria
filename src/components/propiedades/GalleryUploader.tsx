@@ -97,13 +97,23 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
 
       {files.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-          {files.map((file, idx) => (
-            <div key={idx} className="relative group rounded-xl overflow-hidden shadow-sm border border-admin-border aspect-[4/3] bg-renta-100">
-              <img 
-                src={URL.createObjectURL(file)} 
-                alt={`Preview ${idx}`} 
-                className="w-full h-full object-cover transition-transform group-hover:scale-105"
-              />
+          {files.map((file, idx) => {
+            const isFile = file instanceof File;
+            const previewUrl = isFile ? URL.createObjectURL(file) : String(file);
+            
+            return (
+              <div key={idx} className="relative group rounded-xl overflow-hidden shadow-sm border border-admin-border aspect-[4/3] bg-renta-100">
+                <img 
+                  src={previewUrl} 
+                  alt={`Preview ${idx}`} 
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                  onLoad={() => {
+                    if (isFile) {
+                      // URL.revokeObjectURL(previewUrl); // Careful: if we revoke here, it might disappear on re-render. 
+                      // Better to cleanup on unmount or just let it be if it's few images.
+                    }
+                  }}
+                />
               <button 
                 type="button"
                 onClick={(e) => { e.stopPropagation(); removeFile(idx); }}

@@ -90,33 +90,37 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
 
       const { imagenes, ...rest } = payload;
 
+      // Separar archivos nuevos de URLs existentes
+      const newFiles = imagenes.filter((img: any) => img instanceof File);
+      const existingUrls = imagenes.filter((img: any) => typeof img === 'string');
+
       // 🛠️ PERSISTENCIA EN EL BÚNKERA (v3.5.0 protocol)
-      const hasImages = Array.isArray(imagenes) && imagenes.length > 0;
+      const hasNewFiles = newFiles.length > 0;
       let response: any;
       
       const isEditing = Boolean(initialData?.uid_prop);
       const endpoint = isEditing ? `/admin/propiedades/${initialData?.uid_prop}` : '/admin/propiedades';
       const method = isEditing ? 'PUT' : 'POST';
 
-      if (hasImages) {
-        console.log(`[PROPIEDAD-FORM] Submitting via FormData (${method}):`, rest);
+      // Añadimos las URLs existentes a la data para que el backend las conserve
+      const dataWithExistingImages = { ...rest, imagenes: existingUrls };
+
+      if (hasNewFiles) {
+        console.log(`[PROPIEDAD-FORM] Submitting via FormData (${method}) with ${newFiles.length} new files:`, dataWithExistingImages);
         const fd = new FormData();
-        fd.append('data', JSON.stringify(rest));
-        imagenes.forEach((file) => fd.append('imagenes', file));
+        fd.append('data', JSON.stringify(dataWithExistingImages));
+        newFiles.forEach((file) => fd.append('imagenes', file));
         
         // Use raw fetch for FormData - Eden Treaty doesn't handle multipart properly
         response = await apiFetch(endpoint, {
           method,
           body: fd,
-          headers: {
-            // IMPORTANT: Do NOT set Content-Type for FormData - browser auto-sets with boundary
-          }
         });
       } else {
-        console.log(`[PROPIEDAD-FORM] Submitting via JSON (${method}):`, rest);
+        console.log(`[PROPIEDAD-FORM] Submitting via JSON (${method}):`, dataWithExistingImages);
         response = await apiFetch(endpoint, {
           method,
-          body: JSON.stringify(rest),
+          body: JSON.stringify(dataWithExistingImages),
         });
       }
 
