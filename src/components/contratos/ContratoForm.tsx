@@ -564,11 +564,11 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
              </div>
              <ul className="list-disc list-inside space-y-1">
                {Object.entries(errors).map(([key, value]: [string, any]) => {
-                 if (value.message) return <li key={key}>{value.message}</li>;
+                 if (value.message) return <li key={key}><strong>{key}:</strong> {value.message}</li>;
                  // Handle nested objects like nuevo_inquilino or reglas_aumento
                  if (typeof value === 'object') {
                    return Object.entries(value).map(([subKey, subValue]: [string, any]) => (
-                     subValue.message ? <li key={`${key}-${subKey}`}>{subValue.message}</li> : null
+                     subValue.message ? <li key={`${key}-${subKey}`}><strong>{key}.{subKey}:</strong> {subValue.message}</li> : null
                    ));
                  }
                  return null;
