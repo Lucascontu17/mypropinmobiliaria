@@ -24,7 +24,7 @@ export function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) 
   useEffect(() => {
     if (isSignedIn) {
       const syncToken = async () => {
-        const token = await getToken({ template: 'zonatia-session' });
+        const token = await getToken({ template: 'zonatia-client' });
         if (token) localStorage.setItem('zonatia_token', token);
       };
       syncToken();

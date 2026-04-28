@@ -46,7 +46,7 @@ export function useEden() {
   // Pre-fetch the token as soon as Clerk is ready
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      getToken({ template: 'zonatia-session' }).then(t => {
+      getToken({ template: 'zonatia-client' }).then(t => {
         if (t) {
           console.log('[EDEN] Token cached and saved to localStorage');
           localStorage.setItem('zonatia_token', t);

@@ -65,18 +65,22 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
     setIsLinking(true);
     try {
       // @ts-ignore
-      const { data, error } = await eden.clients.lookup[clientSearch].get();
-      if (error) throw new Error('Cliente no encontrado');
+      const { data, error } = await eden.admin.clients.search[clientSearch].get();
+      
+      if (error || !data?.success) {
+        throw new Error(error?.value?.error || data?.error || 'Cliente no encontrado');
+      }
 
-      setFoundClient(data);
-      setValue('nuevo_inquilino.nombre', data.nombre);
-      setValue('nuevo_inquilino.email', data.email || '');
-      setValue('nuevo_inquilino.celular', data.celular || '');
-      if (data.dni) setValue('nuevo_inquilino.dni', data.dni);
-      setValue('nuevo_inquilino.client_number', data.client_number);
+      const client = data.data;
+      setFoundClient(client);
+      setValue('nuevo_inquilino.nombre', client.nombre);
+      setValue('nuevo_inquilino.email', client.email || '');
+      setValue('nuevo_inquilino.celular', client.celular || '');
+      if (client.dni) setValue('nuevo_inquilino.dni', client.dni);
+      setValue('nuevo_inquilino.client_number', client.client_number);
 
       toast.success('Cliente Localizado', {
-        description: `Se han cargado los datos de ${data.nombre}`
+        description: `Se han cargado los datos de ${client.nombre}`
       });
     } catch (err: any) {
       toast.error('Error de Búsqueda', { description: err.message });

@@ -54,18 +54,21 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
     setIsLinking(true);
     try {
       // @ts-ignore
-      const { data, error } = await eden.clients.lookup[clientSearch].get();
+      const { data, error } = await eden.admin.clients.search[clientSearch].get();
       
-      if (error) throw new Error('Cliente no encontrado en la plataforma global');
+      if (error || !data?.success) {
+        throw new Error(error?.value?.error || data?.error || 'Cliente no encontrado en la plataforma global');
+      }
 
-      setFoundClient(data);
-      setValue('nombre', data.nombre);
-      setValue('email', data.email || '');
-      setValue('celular', data.celular || '');
-      if (data.dni) setValue('dni', data.dni);
+      const client = data.data;
+      setFoundClient(client);
+      setValue('nombre', client.nombre);
+      setValue('email', client.email || '');
+      setValue('celular', client.celular || '');
+      if (client.dni) setValue('dni', client.dni);
 
       toast.success('Cliente Localizado', {
-        description: `Se han cargado los datos de ${data.nombre} vinculados al ID #${data.client_number}`
+        description: `Se han cargado los datos de ${client.nombre} vinculados al ID #${client.client_number}`
       });
     } catch (err: any) {
       toast.error('Error de Búsqueda', { description: err.message });
@@ -86,7 +89,7 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
       if (foundClient) {
         // 🚀 LINKING FLOW: Promocionar Cliente Global a Inquilino Activo
         // @ts-ignore
-        const { error } = await eden.clients.activate[foundClient.id].patch({
+        const { error } = await eden.admin.clients.activate[foundClient.id].patch({
           inmobiliaria_id: inmobiliaria_id!,
           dni: data.dni
         });
