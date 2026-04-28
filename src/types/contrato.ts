@@ -19,7 +19,7 @@ export const TipoAumentoEnum = z.enum(['PORCENTAJE_MANUAL', 'INDICE_ICL_IPC', 'I
  * Garantiza integridad antes de enviar al Endpoint `POST /api/v1/contratos`.
  */
 export const contratoSchema = z.object({
-  inmobiliaria_id: z.string().uuid().optional(), // Inyectado programáticamente, NO por UI
+  inmobiliaria_id: z.string().uuid().optional().or(z.literal('')), // Inyectado programáticamente, NO por UI
   
   // Vínculos Atómicos
   uid_propiedad: z.string().uuid({ message: "Debe seleccionar una propiedad DISPONIBLE." }),
