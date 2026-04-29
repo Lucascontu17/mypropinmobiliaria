@@ -79,12 +79,25 @@ export function InquilinosPage() {
             </thead>
             <tbody className="divide-y divide-admin-border-subtle">
               {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-renta-500">
-                    <Loader2 className="mx-auto h-8 w-8 text-renta-200 mb-3 animate-spin" />
-                    {t('inquilinos_cargando', 'Sincronizando legajos reales...')}
-                  </td>
-                </tr>
+                [...Array(5)].map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="px-6 py-4"><div className="h-6 w-16 bg-renta-50 rounded border border-slate-100" /></td>
+                    <td className="px-6 py-4">
+                      <div className="space-y-2">
+                        <div className="h-4 w-32 bg-renta-50 rounded" />
+                        <div className="h-3 w-20 bg-renta-50 rounded" />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4"><div className="h-4 w-24 bg-renta-50 rounded" /></td>
+                    <td className="px-6 py-4">
+                      <div className="space-y-2">
+                        <div className="h-4 w-28 bg-renta-50 rounded" />
+                        <div className="h-3 w-36 bg-renta-50 rounded" />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right"><div className="h-8 w-8 bg-renta-50 rounded-lg ml-auto" /></td>
+                  </tr>
+                ))
               ) : (filteredInquilinos?.length === 0) ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-renta-500">

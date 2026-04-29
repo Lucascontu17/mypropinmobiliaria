@@ -106,9 +106,31 @@ export function ContratosPage() {
       <div className="rounded-2xl border border-admin-border bg-white shadow-sm overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
         <div className="overflow-x-auto">
           {isLoading ? (
-            <div className="p-12 text-center text-renta-500">Cargando contratos...</div>
+            <table className="w-full text-left text-sm font-inter">
+              <thead className="bg-renta-50/50 text-renta-600 border-b border-admin-border">
+                <tr>
+                  <th className="px-6 py-4 font-semibold">{t('contratos_th_prop', 'Propiedad Alquilada')}</th>
+                  <th className="px-6 py-4 font-semibold">{t('contratos_th_inq', 'Inquilino (Locatario)')}</th>
+                  <th className="px-6 py-4 font-semibold">{t('contratos_th_fechas', 'Inicio / Fin')}</th>
+                  <th className="px-6 py-4 font-semibold">{t('contratos_th_status', 'Status')}</th>
+                  <th className="px-6 py-4 font-semibold text-right">{t('contratos_th_acc', 'Acciones')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-admin-border-subtle">
+                {[...Array(5)].map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="px-6 py-4"><div className="h-4 w-48 bg-renta-50 rounded" /></td>
+                    <td className="px-6 py-4"><div className="h-4 w-32 bg-renta-50 rounded" /></td>
+                    <td className="px-6 py-4"><div className="h-4 w-24 bg-renta-50 rounded" /></td>
+                    <td className="px-6 py-4"><div className="h-6 w-16 bg-renta-50 rounded-full" /></td>
+                    <td className="px-6 py-4 text-right"><div className="h-8 w-20 bg-renta-50 rounded-xl ml-auto" /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : (
           <table className="w-full text-left text-sm font-inter">
+            {/* ... rest of the table */}
             <thead className="bg-renta-50/50 text-renta-600 border-b border-admin-border">
               <tr>
                 <th className="px-6 py-4 font-semibold">{t('contratos_th_prop', 'Propiedad Alquilada')}</th>
