@@ -1,6 +1,7 @@
 import { X, Calendar, User, Home, AlertTriangle, MessageSquare, Loader2, TrendingUp, ShieldCheck, Key, Clock, Percent } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface Contrato {
   id: string;
@@ -55,14 +56,24 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
     if (target === 'inquilino') {
       if (!confirmInq) {
         setConfirmInq(true);
-        setTimeout(() => setConfirmInq(false), 3000); // Reset después de 3 seg
+        setTimeout(() => {
+          setConfirmInq(prev => {
+            if (prev) toast.info('No se confirmó la solicitud de cita');
+            return false;
+          });
+        }, 3000);
         return;
       }
       setIsMeetingInq(true);
     } else {
       if (!confirmProp) {
         setConfirmProp(true);
-        setTimeout(() => setConfirmProp(false), 3000);
+        setTimeout(() => {
+          setConfirmProp(prev => {
+            if (prev) toast.info('No se confirmó la solicitud de cita');
+            return false;
+          });
+        }, 3000);
         return;
       }
       setIsMeetingProp(true);
