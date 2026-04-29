@@ -157,9 +157,16 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
       console.log('📝 Creando Contrato con Inquilino:', finalUidInquilino);
       const contratoPayload = {
         ...data,
-        uid_inquilino: finalUidInquilino,
+        propiedad_uid: (data as any).uid_propiedad,
+        inquilino_id: finalUidInquilino,
+        monto_actual: data.monto_inicial, // Usamos el monto inicial como actual
         inmobiliaria_id: inmobiliaria_id!
       };
+      
+      // Limpiamos campos auxiliares del frontend
+      delete (contratoPayload as any).uid_propiedad;
+      delete (contratoPayload as any).uid_inquilino;
+
       console.table(contratoPayload);
 
       // @ts-ignore
