@@ -1,14 +1,28 @@
-import { X, Calendar, User, Home, AlertTriangle, MessageSquare, Loader2 } from 'lucide-react';
+import { X, Calendar, User, Home, AlertTriangle, MessageSquare, Loader2, TrendingUp, ShieldCheck, Key, Clock, Percent } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
 interface Contrato {
   id: string;
   propiedad: string;
+  propietario: string;
   inquilino: string;
   fecha_inicio: string;
+  fecha_fin: string;
   precio: number;
   estado: string;
+  reglas_aumento?: {
+    aplicar_aumento: boolean;
+    tipo_aumento?: string;
+    periodicidad?: string;
+    porcentaje?: number;
+  };
+  reglas_mora?: {
+    aplicar_mora: boolean;
+    periodicidad?: string;
+    porcentaje?: number;
+    dias_gracia?: number;
+  };
 }
 
 interface ContratoDetailsModalProps {
@@ -42,16 +56,16 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-renta-950/40 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-renta-950/40 backdrop-blur-sm animate-in fade-in duration-300 overflow-y-auto">
+      <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[95vh]">
         {/* Header */}
-        <div className="bg-renta-50 px-6 py-5 border-b border-admin-border-subtle flex justify-between items-center">
+        <div className="bg-renta-50 px-6 py-5 border-b border-admin-border-subtle flex justify-between items-center shrink-0">
           <div>
             <h2 className="text-xl font-bold font-jakarta text-renta-950 flex items-center gap-2">
-              <FileTextIcon className="w-5 h-5 text-renta-400" />
+              <ShieldCheck className="w-5 h-5 text-renta-600" />
               Detalles del Contrato
             </h2>
-            <p className="text-xs text-renta-500 font-inter mt-0.5">Vista de solo lectura</p>
+            <p className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mt-0.5">Vigencia y Reglas Financieras</p>
           </div>
           <button 
             onClick={onClose} 
@@ -62,64 +76,138 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6 flex-1 overflow-y-auto">
-          {/* Status Badge */}
-          <div className="flex justify-between items-center bg-renta-50/50 p-4 rounded-2xl border border-admin-border-subtle">
-            <span className="text-sm font-semibold text-renta-700">Estado del Contrato</span>
-            <span className={cn(
-              "px-3 py-1 rounded-full text-xs font-bold font-jakarta border",
-              contrato.estado === 'ACTIVO' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-renta-100 text-renta-600 border-renta-200"
-            )}>
-              {contrato.estado}
-            </span>
+        <div className="p-6 space-y-6 flex-1 overflow-y-auto custom-scrollbar">
+          {/* Top Status & Main Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-renta-50/50 p-4 rounded-2xl border border-admin-border-subtle flex flex-col justify-center">
+              <span className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mb-1">Estado Actual</span>
+              <span className={cn(
+                "px-3 py-1 rounded-full text-xs font-bold font-jakarta border w-fit",
+                contrato.estado === 'ACTIVO' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-renta-100 text-renta-600 border-renta-200"
+              )}>
+                {contrato.estado}
+              </span>
+            </div>
+            <div className="bg-renta-50/50 p-4 rounded-2xl border border-admin-border-subtle flex flex-col justify-center">
+              <span className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mb-1">Valor del Alquiler</span>
+              <span className="text-lg font-black text-renta-950 font-jakarta">
+                ${contrato.precio.toLocaleString('es-AR')}
+              </span>
+            </div>
           </div>
 
-          {/* Details Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-renta-400 mb-1">
-                <Home className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-tight">Propiedad</span>
-              </div>
-              <p className="text-sm font-medium text-renta-900 bg-admin-surface px-3 py-2 rounded-xl border border-admin-border-subtle">
-                {contrato.propiedad}
-              </p>
-            </div>
+          {/* Vínculos Principales */}
+          <div className="space-y-4">
+             <h3 className="text-xs font-bold text-renta-900 uppercase tracking-widest flex items-center gap-2 border-b border-admin-border-subtle pb-2">
+                <Home className="w-3.5 h-3.5" /> Actores y Propiedad
+             </h3>
+             <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-center gap-3 p-3 bg-white border border-admin-border rounded-2xl shadow-sm">
+                   <div className="h-9 w-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                      <Home className="w-4 h-4" />
+                   </div>
+                   <div className="min-w-0">
+                      <p className="text-[10px] font-bold text-renta-400 uppercase tracking-tighter">Propiedad Alquilada</p>
+                      <p className="text-sm font-bold text-renta-950 truncate">{contrato.propiedad}</p>
+                   </div>
+                </div>
 
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-renta-400 mb-1">
-                <User className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-tight">Inquilino</span>
-              </div>
-              <p className="text-sm font-medium text-renta-900 bg-admin-surface px-3 py-2 rounded-xl border border-admin-border-subtle">
-                {contrato.inquilino}
-              </p>
-            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                   <div className="flex items-center gap-3 p-3 bg-white border border-admin-border rounded-2xl shadow-sm">
+                      <div className="h-9 w-9 rounded-xl bg-renta-50 flex items-center justify-center text-renta-600 shrink-0">
+                         <Key className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                         <p className="text-[10px] font-bold text-renta-400 uppercase tracking-tighter">Propietario</p>
+                         <p className="text-sm font-bold text-renta-950 truncate">{contrato.propietario}</p>
+                      </div>
+                   </div>
+                   <div className="flex items-center gap-3 p-3 bg-white border border-admin-border rounded-2xl shadow-sm">
+                      <div className="h-9 w-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                         <User className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                         <p className="text-[10px] font-bold text-renta-400 uppercase tracking-tighter">Locatario (Inquilino)</p>
+                         <p className="text-sm font-bold text-renta-950 truncate">{contrato.inquilino}</p>
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
 
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-renta-400 mb-1">
-                <Calendar className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-tight">Fecha de Inicio</span>
-              </div>
-              <p className="text-sm font-medium text-renta-900 bg-admin-surface px-3 py-2 rounded-xl border border-admin-border-subtle">
-                {contrato.fecha_inicio}
-              </p>
-            </div>
+          {/* Fechas y Vigencia */}
+          <div className="space-y-4">
+             <h3 className="text-xs font-bold text-renta-900 uppercase tracking-widest flex items-center gap-2 border-b border-admin-border-subtle pb-2">
+                <Calendar className="w-3.5 h-3.5" /> Ciclo de Vida
+             </h3>
+             <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center text-center">
+                   <span className="text-[9px] font-black text-slate-400 uppercase mb-1">Inicio</span>
+                   <span className="text-sm font-bold text-slate-700">{contrato.fecha_inicio}</span>
+                </div>
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center text-center">
+                   <span className="text-[9px] font-black text-slate-400 uppercase mb-1">Finalización</span>
+                   <span className="text-sm font-bold text-slate-700">{contrato.fecha_fin}</span>
+                </div>
+             </div>
+          </div>
 
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-renta-400 mb-1">
-                <FileTextIcon className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-tight">Valor Actual</span>
-              </div>
-              <p className="text-sm font-medium text-renta-900 bg-admin-surface px-3 py-2 rounded-xl border border-admin-border-subtle">
-                ${contrato.precio.toLocaleString('es-AR')}
-              </p>
-            </div>
+          {/* Reglas Financieras */}
+          <div className="space-y-4">
+             <h3 className="text-xs font-bold text-renta-900 uppercase tracking-widest flex items-center gap-2 border-b border-admin-border-subtle pb-2">
+                <TrendingUp className="w-3.5 h-3.5" /> Motor de Rentabilidad
+             </h3>
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Aumentos */}
+                <div className="p-4 rounded-2xl border border-emerald-100 bg-emerald-50/30 space-y-2">
+                   <div className="flex items-center gap-2 text-emerald-700">
+                      <TrendingUp className="w-4 h-4" />
+                      <span className="text-xs font-bold uppercase">Aumentos</span>
+                   </div>
+                   {contrato.reglas_aumento?.aplicar_aumento ? (
+                     <div className="space-y-1">
+                        <p className="text-[11px] text-emerald-800 font-medium">
+                           Tipo: <span className="font-bold">{contrato.reglas_aumento.tipo_aumento?.replace(/_/g, ' ')}</span>
+                        </p>
+                        <p className="text-[11px] text-emerald-800 font-medium">
+                           Cada: <span className="font-bold">{contrato.reglas_aumento.periodicidad}</span>
+                        </p>
+                        {contrato.reglas_aumento.porcentaje && (
+                           <p className="text-[11px] text-emerald-800 font-medium">
+                              Tasa: <span className="font-bold">{contrato.reglas_aumento.porcentaje}%</span>
+                           </p>
+                        )}
+                     </div>
+                   ) : (
+                     <p className="text-[10px] text-emerald-600 font-medium italic">Sin aumentos configurados</p>
+                   )}
+                </div>
+
+                {/* Mora */}
+                <div className="p-4 rounded-2xl border border-amber-100 bg-amber-50/30 space-y-2">
+                   <div className="flex items-center gap-2 text-amber-700">
+                      <Clock className="w-4 h-4" />
+                      <span className="text-xs font-bold uppercase">Interés Moroso</span>
+                   </div>
+                   {contrato.reglas_mora?.aplicar_mora ? (
+                     <div className="space-y-1">
+                        <p className="text-[11px] text-amber-800 font-medium">
+                           Mora: <span className="font-bold">{contrato.reglas_mora.porcentaje}% {contrato.reglas_mora.periodicidad}</span>
+                        </p>
+                        <p className="text-[11px] text-amber-800 font-medium">
+                           Gracia: <span className="font-bold">{contrato.reglas_mora.dias_gracia} días</span>
+                        </p>
+                     </div>
+                   ) : (
+                     <p className="text-[10px] text-amber-600 font-medium italic">Sin intereses morosos</p>
+                   )}
+                </div>
+             </div>
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="bg-admin-surface p-6 border-t border-admin-border-subtle space-y-3">
+        <div className="bg-admin-surface p-6 border-t border-admin-border-subtle space-y-3 shrink-0">
           <button 
             onClick={handleReunion}
             disabled={isMeeting || contrato.estado !== 'ACTIVO'}
@@ -141,27 +229,4 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
       </div>
     </div>
   );
-}
-
-function FileTextIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-      <polyline points="14 2 14 8 20 8" />
-      <line x1="16" x2="8" y1="13" y2="13" />
-      <line x1="16" x2="8" y1="17" y2="17" />
-      <line x1="10" x2="8" y1="9" y2="9" />
-    </svg>
-  )
 }
