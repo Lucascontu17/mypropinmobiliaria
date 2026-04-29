@@ -208,14 +208,31 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
 
         {/* Footer Actions */}
         <div className="bg-admin-surface p-6 border-t border-admin-border-subtle space-y-3 shrink-0">
-          <button 
-            onClick={handleReunion}
-            disabled={isMeeting || contrato.estado !== 'ACTIVO'}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-renta-600 text-white rounded-xl font-bold font-jakarta shadow-lg shadow-renta-600/20 hover:bg-renta-700 transition disabled:opacity-50 disabled:shadow-none"
-          >
-            {isMeeting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
-            Solicitar Reunión en Inmobiliaria
-          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button 
+              onClick={() => handleReunion('inquilino')}
+              disabled={isMeetingInq || contrato.estado !== 'ACTIVO'}
+              className={cn(
+                "flex items-center justify-center gap-2 py-3 rounded-xl font-bold font-jakarta transition shadow-lg disabled:opacity-50",
+                confirmInq ? "bg-amber-500 text-white shadow-amber-500/20" : "bg-renta-600 text-white shadow-renta-600/20 hover:bg-renta-700"
+              )}
+            >
+              {isMeetingInq ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
+              {confirmInq ? '¿Confirmar Cita?' : 'Citar Inquilino'}
+            </button>
+
+            <button 
+              onClick={() => handleReunion('propietario')}
+              disabled={isMeetingProp || contrato.estado !== 'ACTIVO'}
+              className={cn(
+                "flex items-center justify-center gap-2 py-3 rounded-xl font-bold font-jakarta transition shadow-lg disabled:opacity-50",
+                confirmProp ? "bg-amber-500 text-white shadow-amber-500/20" : "bg-renta-950 text-white shadow-renta-950/20 hover:bg-renta-800"
+              )}
+            >
+              {isMeetingProp ? <Loader2 className="w-4 h-4 animate-spin" /> : <User className="w-4 h-4" />}
+              {confirmProp ? '¿Confirmar Cita?' : 'Citar Propietario'}
+            </button>
+          </div>
 
           <button 
             onClick={handleFinalizar}

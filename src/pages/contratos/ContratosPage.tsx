@@ -56,11 +56,11 @@ export function ContratosPage() {
     }
   };
 
-  const handleReunion = async (contratoId: string) => {
+  const handleReunion = async (contratoId: string, target: 'inquilino' | 'propietario') => {
     try {
       // @ts-ignore
-      await eden.admin.contratos[contratoId].reunion.post();
-      toast.success('Notificación de reunión enviada al inquilino.');
+      await eden.admin.contratos[contratoId].reunion.post({ target });
+      toast.success(`Notificación de reunión enviada al ${target}.`);
     } catch (e: any) {
       toast.error('Error al solicitar reunión: ' + e.message);
     }
