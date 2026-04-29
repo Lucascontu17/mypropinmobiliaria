@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { Plus, Search, FileText, Trash2, StopCircle } from 'lucide-react';
+import { Plus, Search, FileText, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useEden } from '@/services/eden';
@@ -144,18 +144,14 @@ export function ContratosPage() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         {hasPermission(['superadmin', 'admin']) && (
-                          <>
-                            <button 
-                              onClick={() => setSelectedContrato(c)}
-                              title="Gestionar Contrato" 
-                              className="p-2 text-renta-400 hover:text-renta-600 hover:bg-renta-50 rounded-lg transition-colors"
-                            >
-                              <StopCircle className="h-4 w-4" />
-                            </button>
-                            <button title="Eliminar Contrato (Rollback)" className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </>
+                          <button 
+                            onClick={() => setSelectedContrato(c)}
+                            title="Gestionar y Finalizar Contrato" 
+                            className="flex items-center gap-2 px-3 py-1.5 bg-renta-50 text-renta-600 hover:bg-renta-100 border border-renta-200 rounded-xl transition-all font-semibold text-xs shadow-sm"
+                          >
+                            <Settings className="h-3.5 w-3.5" />
+                            Gestionar
+                          </button>
                         )}
                       </div>
                     </td>
