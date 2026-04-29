@@ -7,18 +7,14 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Activity,
+  AlertCircle,
+  BarChart3,
+  Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 import { useEden } from '@/services/eden';
-
-/**
- * DashboardPage — Vista principal del Panel Administrativo.
- * Muestra KPIs de resumen con diseño Luxury Minimalist y animaciones escalonadas.
- * Todos los textos localizados via useRegion().t() desde archivos de dialectos .md.
- */
 
 interface StatCardProps {
   label: string;
@@ -40,7 +36,10 @@ function StatCard({ label, value, change, trend, icon: Icon, delay, loading }: S
       style={{ animationDelay: `${delay}ms` }}>
       <div className="flex items-start justify-between">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-renta-100 to-renta-200/50 transition-transform duration-300 group-hover:scale-110">
-          <Icon className="h-5 w-5 text-renta-700" />
+          <Icon className={cn(
+            "h-5 w-5",
+            trend === 'down' ? "text-red-600" : "text-renta-700"
+          )} />
         </div>
         {!loading && (
           <span
@@ -62,7 +61,10 @@ function StatCard({ label, value, change, trend, icon: Icon, delay, loading }: S
         {loading ? (
           <div className="h-8 w-24 bg-renta-100 rounded-md mb-2" />
         ) : (
-          <p className="admin-stat-value">{value}</p>
+          <p className={cn(
+            "admin-stat-value",
+            trend === 'down' && value !== '$0' && "text-red-600"
+          )}>{value}</p>
         )}
         <p className="admin-stat-label mt-1">{label}</p>
       </div>
@@ -80,45 +82,6 @@ interface StatDef {
   requiresAdmin: boolean;
 }
 
-const STAT_DEFS: StatDef[] = [
-  {
-    dialectKey: 'kpi_propiedades',
-    fallbackLabel: 'Propiedades Activas',
-    value: '—',
-    change: 'Sin datos',
-    trend: 'neutral',
-    icon: Building2,
-    requiresAdmin: false,
-  },
-  {
-    dialectKey: 'kpi_inquilinos',
-    fallbackLabel: 'Inquilinos Registrados',
-    value: '—',
-    change: 'Sin datos',
-    trend: 'neutral',
-    icon: Users,
-    requiresAdmin: false,
-  },
-  {
-    dialectKey: 'kpi_cobranza',
-    fallbackLabel: 'Cobranza del Mes',
-    value: '—',
-    change: 'Sin datos',
-    trend: 'neutral',
-    icon: Wallet,
-    requiresAdmin: true,
-  },
-  {
-    dialectKey: 'kpi_ocupacion',
-    fallbackLabel: 'Tasa de Ocupación',
-    value: '—',
-    change: 'Sin datos',
-    trend: 'neutral',
-    icon: TrendingUp,
-    requiresAdmin: true,
-  },
-];
-
 export function DashboardPage() {
   const { role, hasPermission } = useInmobiliaria();
   const { t, formatCurrency } = useRegion();
@@ -135,14 +98,12 @@ export function DashboardPage() {
       try {
         const { data, error } = await eden.admin.metrics.get();
         if (error || !data) {
-          console.error('[DASHBOARD] Error fetching metrics:', error);
           setError(t('error_dashboard', 'Servicio momentáneamente no disponible.'));
         } else {
           // @ts-ignore
           setMetrics(data?.metrics);
         }
       } catch (err) {
-        console.error('[DASHBOARD] Connection error:', err);
         setError(t('error_dashboard_conn', 'Error de conexión con el servidor.'));
       } finally {
         setIsLoading(false);
@@ -162,21 +123,21 @@ export function DashboardPage() {
       requiresAdmin: false,
     },
     {
-      dialectKey: 'kpi_inquilinos',
-      fallbackLabel: 'Inquilinos Registrados',
-      value: isLoading ? '...' : (metrics?.totalInquilinos?.toString() || '0'),
-      change: '+0%',
-      trend: 'neutral',
-      icon: Users,
-      requiresAdmin: false,
+      dialectKey: 'kpi_cobranza',
+      fallbackLabel: 'Recaudación del Mes',
+      value: isLoading ? '...' : (formatCurrency(metrics?.cobranzaMes || 0)),
+      change: t('kpi_real', 'Cobrado'),
+      trend: 'up',
+      icon: Wallet,
+      requiresAdmin: true,
     },
     {
-      dialectKey: 'kpi_cobranza',
-      fallbackLabel: 'Cobranza del Mes',
-      value: isLoading ? '...' : (formatCurrency(metrics?.cobranzaMes || 0)),
-      change: '+0%',
-      trend: 'neutral',
-      icon: Wallet,
+      dialectKey: 'kpi_morosidad',
+      fallbackLabel: 'Morosidad (Deuda)',
+      value: isLoading ? '...' : (formatCurrency(metrics?.deudaPendiente || 0)),
+      change: t('kpi_riesgo', 'Pendiente'),
+      trend: (metrics?.deudaPendiente || 0) > 0 ? 'down' : 'up',
+      icon: AlertCircle,
       requiresAdmin: true,
     },
     {
@@ -188,58 +149,56 @@ export function DashboardPage() {
       icon: TrendingUp,
       requiresAdmin: true,
     },
+    {
+      dialectKey: 'kpi_comisiones',
+      fallbackLabel: 'Mis Comisiones',
+      value: isLoading ? '...' : (formatCurrency(metrics?.comisionesEstimadas || 0)),
+      change: t('kpi_ganancia', 'Tu Utilidad'),
+      trend: 'up',
+      icon: BarChart3,
+      requiresAdmin: true,
+    },
+    {
+      dialectKey: 'kpi_vencimientos',
+      fallbackLabel: 'Vencimientos (60d)',
+      value: isLoading ? '...' : (metrics?.proximosVencimientos?.toString() || '0'),
+      change: t('kpi_operacion', 'A Renovar'),
+      trend: 'neutral',
+      icon: Clock,
+      requiresAdmin: true,
+    },
   ];
 
-  // Vendedores no ven finanzas / cobranza
   const visibleStats = getStats().filter(stat => {
     if (stat.requiresAdmin && !hasPermission(['superadmin', 'admin'])) return false;
     return true;
   });
 
-  const shepherdSteps: ShepherdStep[] = [
-    {
-      target: '[data-shepherd="kpi-grid"]',
-      title: t('tour_sa_kpi_title', 'Centro de Control'),
-      content: t('tour_sa_kpi_desc', 'Métricas globales en tiempo real. Observe el estado general de su plataforma inmobiliaria.'),
-      placement: 'bottom',
-    },
-    {
-       target: '[data-shepherd="user-profile"]',
-       title: t('tour_sa_roles_title', 'Su Identidad'),
-       content: t('tour_sa_roles_desc', 'Desde aquí puede administrar su cuenta, configurar su perfil y cerrar sesión.'),
-       placement: 'bottom',
-     }
-  ];
-
   return (
-    <div className="space-y-8">
-      <LocalShepherd steps={shepherdSteps} storageKey={`enjoy_local_dashboard_${role}`} />
+    <div className="space-y-8 pb-12">
       {/* ── Page Header ── */}
       <div className="opacity-0 animate-fade-in-up">
-        <h1 className="text-2xl font-bold text-renta-950 lg:text-3xl">
+        <h1 className="text-2xl font-bold text-renta-950 lg:text-3xl font-jakarta">
           {t('panel_titulo', 'Panel de Control')}
         </h1>
-        <p className="mt-1 text-sm text-renta-600">
-          {t('panel_subtitulo', 'Resumen general de tu inmobiliaria.')}{' '}
-          <span className="emphasis-text text-renta-400">
-             {t('rol_label', 'Logueado como')} {role.toUpperCase()}
+        <p className="mt-1 text-sm text-renta-600 font-inter">
+          {t('panel_subtitulo', 'Resumen estratégico de tu inmobiliaria.')}{' '}
+          <span className="text-renta-400 font-bold ml-1">
+             {role.toUpperCase()} MODE
           </span>
         </p>
       </div>
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in">
-          <Activity className="h-5 w-5 text-red-500" />
+          <AlertCircle className="h-5 w-5 text-red-500" />
           <p className="text-sm font-medium">{error}</p>
         </div>
       )}
 
       {/* ── Stats Grid ── */}
-      <div 
-        data-shepherd="kpi-grid"
-        className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading ? (
-          // Skeletons for KPIs
           [...Array(6)].map((_, i) => (
             <div key={i} className="admin-card p-6 animate-pulse bg-white border border-admin-border rounded-2xl">
               <div className="flex justify-between items-start">
@@ -261,40 +220,14 @@ export function DashboardPage() {
               change={stat.change}
               trend={stat.trend}
               icon={stat.icon}
-              delay={100 + index * 80}
+              delay={100 + index * 60}
               loading={isLoading}
             />
           ))
         )}
       </div>
 
-      {/* ── Quick Actions / Empty State ── */}
-      {!isLoading && (
-        <div
-          className="admin-card flex flex-col items-center justify-center p-12 text-center opacity-0 animate-fade-in-up"
-          style={{ animationDelay: '500ms' }}
-        >
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-renta-100 to-renta-200/50">
-            <Activity className="h-8 w-8 text-renta-600" />
-          </div>
-        <h3 className="mt-5 text-lg font-semibold text-renta-900">
-          {t('bienvenida_titulo', 'Bienvenido al Panel MyProp')}
-        </h3>
-        <p className="mt-2 max-w-md text-sm text-renta-500 leading-relaxed">
-          {t('bienvenida_descripcion', 'Este es tu centro de comando. Una vez configurada la conexión con El Búnker, aquí verás el resumen completo de propiedades, inquilinos y cobranzas de tu inmobiliaria.')}
-        </p>
-        <div className="mt-6 flex gap-3">
-          {hasPermission(['superadmin', 'admin']) && (
-            <button className="rounded-xl bg-renta-950 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-renta-950/20 transition-all hover:bg-renta-800 hover:shadow-xl hover:shadow-renta-900/25">
-              {t('boton_configurar', 'Configurar Conexión')}
-            </button>
-          )}
-          <button className="rounded-xl border border-admin-border bg-white px-5 py-2.5 text-sm font-semibold text-renta-700 transition-all hover:bg-renta-50 hover:shadow-sm">
-            {t('boton_documentacion', 'Ver Documentación')}
-          </button>
-        </div>
-      </div>
-    )}
+      {/* El contenedor de bienvenida fue eliminado por ser redundante en una inmobiliaria con datos activos */}
     </div>
   );
 }
