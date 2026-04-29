@@ -237,10 +237,10 @@ export function DashboardPage() {
       {/* ── Stats Grid ── */}
       <div 
         data-shepherd="kpi-grid"
-        className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading ? (
           // Skeletons for KPIs
-          [...Array(4)].map((_, i) => (
+          [...Array(6)].map((_, i) => (
             <div key={i} className="admin-card p-6 animate-pulse bg-white border border-admin-border rounded-2xl">
               <div className="flex justify-between items-start">
                 <div className="h-11 w-11 rounded-xl bg-renta-50" />
