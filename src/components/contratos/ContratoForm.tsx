@@ -111,12 +111,16 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
         if (foundClient) {
           // VINCULACIÓN: Cliente que ya existe en la red global
           // @ts-ignore
-          const { error: linkError } = await eden.admin.clients.activate[foundClient.id].patch({
+          const { data: linkData, error: linkError } = await eden.admin.clients.activate[foundClient.id].patch({
             inmobiliaria_id: inmobiliaria_id!,
             dni: data.nuevo_inquilino.dni
           });
 
-          if (linkError) throw new Error('No se pudo vincular el cliente global.');
+          if (linkError) {
+            console.error('[LINK-ERROR]', linkError);
+            const serverMsg = linkError.value?.error || linkError.value?.message || linkError.statusText || 'Error de conexión con el servidor (500)';
+            throw new Error(`Error ${linkError.status}: ${serverMsg}`);
+          }
           finalUidInquilino = foundClient.id;
           toast.success('Cliente vinculado con éxito');
         } else {
@@ -131,7 +135,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
 
           if (inqError) throw new Error(inqError.value?.message || inqError.value?.error || 'Error al crear inquilino');
           
-          finalUidInquilino = response.id;
+          finalUidInquilino = response?.data?.id || response?.id;
           toast.success('Inquilino creado con éxito');
         }
       }
