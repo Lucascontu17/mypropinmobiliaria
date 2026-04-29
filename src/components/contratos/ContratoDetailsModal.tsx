@@ -29,12 +29,17 @@ interface ContratoDetailsModalProps {
   contrato: Contrato;
   onClose: () => void;
   onFinalizar: (contratoId: string) => Promise<void>;
-  onReunion: (contratoId: string) => Promise<void>;
+  onReunion: (contratoId: string, target: 'inquilino' | 'propietario') => Promise<void>;
 }
 
 export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion }: ContratoDetailsModalProps) {
   const [isFinishing, setIsFinishing] = useState(false);
-  const [isMeeting, setIsMeeting] = useState(false);
+  const [isMeetingInq, setIsMeetingInq] = useState(false);
+  const [isMeetingProp, setIsMeetingProp] = useState(false);
+  
+  // Estados para el Double Check
+  const [confirmInq, setConfirmInq] = useState(false);
+  const [confirmProp, setConfirmProp] = useState(false);
 
   const handleFinalizar = async () => {
     if (!window.confirm('¿Está seguro que desea finalizar anticipadamente este contrato? Esta acción es irreversible.')) return;
@@ -46,12 +51,30 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
     }
   };
 
-  const handleReunion = async () => {
-    setIsMeeting(true);
+  const handleReunion = async (target: 'inquilino' | 'propietario') => {
+    if (target === 'inquilino') {
+      if (!confirmInq) {
+        setConfirmInq(true);
+        setTimeout(() => setConfirmInq(false), 3000); // Reset después de 3 seg
+        return;
+      }
+      setIsMeetingInq(true);
+    } else {
+      if (!confirmProp) {
+        setConfirmProp(true);
+        setTimeout(() => setConfirmProp(false), 3000);
+        return;
+      }
+      setIsMeetingProp(true);
+    }
+
     try {
-      await onReunion(contrato.id);
+      await onReunion(contrato.id, target);
+      setConfirmInq(false);
+      setConfirmProp(false);
     } finally {
-      setIsMeeting(false);
+      setIsMeetingInq(false);
+      setIsMeetingProp(false);
     }
   };
 
