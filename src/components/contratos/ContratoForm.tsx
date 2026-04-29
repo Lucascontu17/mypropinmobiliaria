@@ -101,15 +101,18 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
   };
 
   const onSubmit = async (data: ContratoFormData) => {
+    console.group('🚀 [CONTRATO-DEBUG] Iniciando Transacción Atómica');
+    console.log('📦 Form Data:', data);
+    console.log('🏢 Inmobiliaria ID:', inmobiliaria_id);
+    
     try {
       let finalUidInquilino = data.uid_inquilino;
 
-      // ── PASO 1: Creación Atómica de Inquilino (Si aplica) ──
       if (data.is_nuevo_inquilino && data.nuevo_inquilino) {
-        toast.info('Procesando inquilino...');
+        console.log('👤 Procesando Inquilino Nuevo/Global...');
         
         if (foundClient) {
-          // VINCULACIÓN: Cliente que ya existe en la red global
+          console.log('🔗 Vinculando Cliente Global Existente:', foundClient.id);
           // @ts-ignore
           const { data: linkData, error: linkError } = await eden.admin.clients.activate[foundClient.id].patch({
             inmobiliaria_id: inmobiliaria_id!,
@@ -117,40 +120,46 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
           });
 
           if (linkError) {
-            console.error('[LINK-ERROR]', linkError);
-            const serverMsg = linkError.value?.error || linkError.value?.message || linkError.statusText || 'Error de conexión con el servidor (500)';
+            console.error('❌ [VINCULACIÓN-ERROR]', {
+              status: linkError.status,
+              value: linkError.value,
+              msg: linkError.statusText
+            });
+            const serverMsg = linkError.value?.error || linkError.value?.message || linkError.statusText || 'Error de conexión (500)';
             throw new Error(`Error ${linkError.status}: ${serverMsg}`);
           }
+          
+          console.log('✅ Vinculación exitosa:', linkData);
           finalUidInquilino = foundClient.id;
           toast.success('Cliente vinculado con éxito');
         } else {
-          // CREACIÓN: Inquilino totalmente nuevo
+          console.log('🆕 Creando nuevo registro de inquilino local...');
           // @ts-ignore
           const { data: response, error: inqError } = await eden.admin.inquilinos.post({
             nombre: data.nuevo_inquilino.nombre,
-            email: data.nuevo_inquilino.email || undefined,
-            celular: data.nuevo_inquilino.celular || undefined,
-            dni: data.nuevo_inquilino.dni || undefined
+            dni: data.nuevo_inquilino.dni,
+            email: data.nuevo_inquilino.email,
+            celular: data.nuevo_inquilino.celular,
+            country_code: country_code!
           });
 
-          if (inqError) throw new Error(inqError.value?.message || inqError.value?.error || 'Error al crear inquilino');
+          if (inqError) {
+             console.error('❌ [CREACIÓN-INQUILINO-ERROR]', inqError);
+             throw new Error(inqError.value?.message || inqError.value?.error || 'Error al crear inquilino');
+          }
           
+          console.log('✅ Inquilino creado:', response);
           finalUidInquilino = response?.data?.id || response?.id;
           toast.success('Inquilino creado con éxito');
         }
       }
 
-      // ── PASO 2: Creación del Contrato ──
-      toast.info('Generando contrato...');
-      const contractPayload = {
+      console.log('📝 Creando Contrato con Inquilino:', finalUidInquilino);
+      const contratoPayload = {
         ...data,
-        uid_inquilino: finalUidInquilino!,
-        inmobiliaria_id: inmobiliaria_id || undefined
+        uid_inquilino: finalUidInquilino,
+        inmobiliaria_id: inmobiliaria_id!
       };
-      
-      // Eliminar el objeto temporal de nuevo inquilino antes del envío final
-      delete (contractPayload as any).nuevo_inquilino;
-      delete (contractPayload as any).is_nuevo_inquilino;
 
       // @ts-ignore
       const { error: contractError } = await eden.contratos.post(contractPayload);
