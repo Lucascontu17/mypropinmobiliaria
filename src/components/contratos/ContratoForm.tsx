@@ -13,7 +13,7 @@ import { useRegion } from '@/hooks/useRegion';
 
 interface ContratoFormProps {
   propiedadesDisponibles: { uid_prop: string; direccion: string; valor_alquiler?: string | number }[];
-  inquilinosSeleccionables: { uid_inq: string; nombre: string; dni: string }[];
+  inquilinosSeleccionables: { id: string; nombre: string; dni: string }[];
   onCancel?: () => void;
   onSubmitSuccess?: () => void;
 }
@@ -253,7 +253,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                       >
                         <option value="">-- Seleccione un Inquilino --</option>
                         {inquilinosSeleccionables?.map(inq => (
-                          <option key={inq.uid_inq} value={inq.uid_inq}>{inq.nombre || 'Sin nombre'} (DNI: {inq.dni || '-'})</option>
+                          <option key={inq.id} value={inq.id}>{inq.nombre || 'Sin nombre'} (DNI: {inq.dni || '-'})</option>
                         ))}
                       </select>
                       {errors.uid_inquilino && <p className="text-xs text-red-500 font-medium">{errors.uid_inquilino.message}</p>}
