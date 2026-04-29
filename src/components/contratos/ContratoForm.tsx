@@ -160,11 +160,12 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
         uid_inquilino: finalUidInquilino,
         inmobiliaria_id: inmobiliaria_id!
       };
+      console.table(contratoPayload);
 
       // @ts-ignore
-      const { error: contractError } = await eden.contratos.post(contractPayload);
+      const { data: result, error: contratoError } = await eden.admin.contratos.post(contratoPayload);
       
-      if (contractError) throw new Error('Error al generar el contrato.');
+      if (contratoError) throw new Error('Error al generar el contrato.');
 
       toast.success('Contrato Generado Correctamente');
       if (onSubmitSuccess) onSubmitSuccess();
