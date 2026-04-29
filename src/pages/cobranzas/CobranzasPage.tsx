@@ -198,12 +198,21 @@ export function CobranzasPage() {
             </thead>
             <tbody className="divide-y divide-admin-border-subtle">
               {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
-                    <Loader2 className="mx-auto h-8 w-8 text-renta-400 animate-spin mb-2" />
-                    <p className="text-sm text-renta-500">Cargando cobranzas reales...</p>
-                  </td>
-                </tr>
+                [...Array(5)].map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="px-6 py-4">
+                      <div className="space-y-2">
+                        <div className="h-4 w-32 bg-renta-50 rounded" />
+                        <div className="h-3 w-24 bg-renta-50 rounded" />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right"><div className="h-4 w-20 bg-renta-50 rounded ml-auto" /></td>
+                    <td className="px-6 py-4 text-right"><div className="h-4 w-20 bg-renta-50 rounded ml-auto" /></td>
+                    <td className="px-6 py-4 text-right"><div className="h-4 w-20 bg-renta-50 rounded ml-auto" /></td>
+                    <td className="px-6 py-4 text-center"><div className="h-6 w-16 bg-renta-50 rounded-full mx-auto" /></td>
+                    <td className="px-6 py-4 text-right"><div className="h-8 w-24 bg-renta-50 rounded-lg ml-auto" /></td>
+                  </tr>
+                ))
               ) : (pagosVisibles?.length === 0) ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-renta-500">
