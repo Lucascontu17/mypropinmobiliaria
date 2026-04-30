@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
+import { NumericInput } from '@/components/common/NumericInput';
 import { 
   WalletCards, 
   Rocket, 
@@ -354,10 +355,9 @@ export function MarketplacePage() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-renta-400 uppercase tracking-widest">Cantidad de Puntos</label>
                   <div className="relative">
-                    <input 
-                      type="number"
+                    <NumericInput 
                       value={customPoints}
-                      onChange={(e) => setCustomPoints(Math.max(0, parseInt(e.target.value) || 0))}
+                      onChange={(val) => setCustomPoints(Math.max(0, Math.floor(val)))}
                       className="w-full bg-white border border-admin-border rounded-xl px-4 py-4 text-2xl font-black font-jakarta outline-none focus:ring-2 focus:ring-renta-500"
                     />
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 text-renta-400 font-bold">PTS</div>
