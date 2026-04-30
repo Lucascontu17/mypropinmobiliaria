@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, Controller } from 'react-hook-form';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { propertySchema, type PropertyFormData } from '@/types/property';
 import { Save, X, Home, Map, Zap, DollarSign, Loader2, CheckCircle2, Tag, RefreshCw, UserPlus, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRegion } from '@/hooks/useRegion';
+import { NumericInput } from '@/components/common/NumericInput';
 import { useActiveAddons } from '@/hooks/useActiveAddons';
 import { useApi } from '@/hooks/useApi';
 import { GalleryUploader } from './GalleryUploader';
@@ -391,15 +392,21 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                     {currentOperacion === 'alquiler' ? 'Valor Alquiler' : 'Valor de Venta'}
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase">{currentMoneda}</span>
-                    <input
-                      {...register(currentOperacion === 'alquiler' ? 'valor_alquiler' : 'valor_venta')}
-                      type="text"
-                      className={cn(
-                        "w-full rounded-xl border bg-white pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 text-renta-950 font-bold",
-                        (currentOperacion === 'alquiler' ? errors.valor_alquiler : errors.valor_venta) ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                    <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase z-10">{currentMoneda}</span>
+                    <Controller
+                      control={methods.control}
+                      name={currentOperacion === 'alquiler' ? 'valor_alquiler' : 'valor_venta'}
+                      render={({ field }) => (
+                        <NumericInput
+                          placeholder="0.00"
+                          value={field.value}
+                          onChange={field.onChange}
+                          className={cn(
+                            "w-full rounded-xl border bg-white pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 text-renta-950 font-bold",
+                            (currentOperacion === 'alquiler' ? errors.valor_alquiler : errors.valor_venta) ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                          )}
+                        />
                       )}
-                      placeholder="0.00"
                     />
                   </div>
                 </div>
@@ -486,11 +493,11 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                            <label className="text-[10px] font-bold text-renta-700 uppercase">Valor de Alquiler Inicial</label>
                            <div className="relative">
                               <span className="absolute left-2.5 top-1.5 text-[10px] text-renta-500 font-bold uppercase">{currentMoneda}</span>
-                              <input 
-                                type="text"
+                              <NumericInput 
+                                placeholder="0.00"
+                                value={watch('valor_alquiler')}
+                                onChange={(val) => setValue('valor_alquiler', val.toString())}
                                 className="w-full rounded-lg border border-admin-border bg-white pl-6 pr-3 py-1.5 text-xs font-bold"
-                                placeholder="Monto para la nueva ficha"
-                                onChange={(e) => setValue('valor_alquiler', e.target.value)}
                               />
                            </div>
                         </div>
@@ -659,14 +666,20 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
               <div className="grid grid-cols-2 gap-x-4 gap-y-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Superficie Total (m²)</label>
-                  <input
-                    {...register('mts2')}
-                    type="text"
-                    className={cn(
-                      "w-full rounded-xl border bg-admin-surface px-4 py-2 text-sm font-inter focus:ring-1 focus:ring-renta-200 transition-all text-renta-950",
-                      errors.mts2 ? "border-red-400" : "border-admin-border focus:border-renta-300"
+                  <Controller
+                    control={methods.control}
+                    name="mts2"
+                    render={({ field }) => (
+                      <NumericInput
+                        placeholder="0.00"
+                        value={field.value}
+                        onChange={field.onChange}
+                        className={cn(
+                          "w-full rounded-xl border bg-admin-surface px-4 py-2 text-sm font-inter focus:ring-1 focus:ring-renta-200 transition-all text-renta-950",
+                          errors.mts2 ? "border-red-400" : "border-admin-border focus:border-renta-300"
+                        )}
+                      />
                     )}
-                    placeholder="0.00"
                   />
                   {errors.mts2 && <p className="text-[10px] text-red-500 font-medium">{errors.mts2.message}</p>}
                 </div>
@@ -763,18 +776,24 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                           <label className="text-[10px] font-bold text-renta-700 uppercase tracking-wider mb-1.5 block">
                             Valor Mensual de Expensas <span className="text-red-500">*</span>
                           </label>
-                          <div className="relative">
-                            <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase">{currentMoneda}</span>
-                            <input
-                              {...register('valor_expensas', { required: watch('has_expensas') ? "Ingrese el valor de las expensas" : false })}
-                              type="text"
-                              placeholder="0.00"
-                              className={cn(
-                                "w-full rounded-xl border bg-white pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 text-renta-950 font-bold",
-                                errors.valor_expensas ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
-                              )}
-                            />
-                          </div>
+                           <div className="relative">
+                             <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase z-10">{currentMoneda}</span>
+                             <Controller
+                               control={methods.control}
+                               name="valor_expensas"
+                               render={({ field }) => (
+                                 <NumericInput
+                                   placeholder="0.00"
+                                   value={field.value}
+                                   onChange={field.onChange}
+                                   className={cn(
+                                     "w-full rounded-xl border bg-white pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 text-renta-950 font-bold",
+                                     errors.valor_expensas ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                                   )}
+                                 />
+                               )}
+                             />
+                           </div>
                           {errors.valor_expensas && <p className="text-[10px] text-red-500 font-medium mt-1">{errors.valor_expensas.message}</p>}
                         </div>
                       )}
@@ -803,14 +822,20 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                                 Valor Fijo Mensual de ABL <span className="text-red-500">*</span>
                               </label>
                               <div className="relative">
-                                <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase">{currentMoneda}</span>
-                                <input
-                                  {...register('valor_abl', { required: watch('tipo_abl') === 'fijo' ? "Ingrese el valor fijo" : false })}
-                                  type="text"
-                                  placeholder="0.00"
-                                  className={cn(
-                                    "w-full rounded-xl border bg-white pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 text-renta-950 font-bold",
-                                    errors.valor_abl ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                                <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase z-10">{currentMoneda}</span>
+                                <Controller
+                                  control={methods.control}
+                                  name="valor_abl"
+                                  render={({ field }) => (
+                                    <NumericInput
+                                      placeholder="0.00"
+                                      value={field.value}
+                                      onChange={field.onChange}
+                                      className={cn(
+                                        "w-full rounded-xl border bg-white pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 text-renta-950 font-bold",
+                                        errors.valor_abl ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                                      )}
+                                    />
                                   )}
                                 />
                               </div>

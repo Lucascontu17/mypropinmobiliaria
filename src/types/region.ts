@@ -81,6 +81,10 @@ export interface RegionContextValue {
   isAuditOverride: boolean;
   /** Permite al Audit Mode sobreescribir la región en memoria */
   setAuditRegion: (code: CountryCode | null) => void;
+  /** Formatea un número con separadores de miles para inputs */
+  formatInputNumber: (value: number | string | undefined | null) => string;
+  /** Limpia el formato de un input para obtener el número puro */
+  parseInputNumber: (value: string) => number;
 }
 
 // ── Marketplace Booster Plan (respuesta del API v1.7.0) ──

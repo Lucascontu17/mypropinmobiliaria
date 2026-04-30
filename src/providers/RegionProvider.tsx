@@ -105,6 +105,46 @@ export function RegionProvider({ children }: RegionProviderProps) {
       setAuditRegion: (code: CountryCode | null) => {
         setAuditOverride(code);
       },
+
+      /**
+       * formatInputNumber(value) — Formats a number with thousands separators for use in text inputs.
+       */
+      formatInputNumber: (value: number | string | undefined | null): string => {
+        if (value === undefined || value === null || value === '') return '';
+        const strValue = value.toString().replace(/[^0-9.,-]/g, '');
+        if (!strValue) return '';
+        
+        // Use a simple formatter that only adds thousands separators
+        const parts = strValue.split(activeCountry === 'AR' ? ',' : '.');
+        const integerPart = parts[0].replace(/[^0-9-]/g, '');
+        const decimalPart = parts[1];
+
+        const formattedInteger = new Intl.NumberFormat(config.currency_locale, {
+          useGrouping: true,
+          minimumFractionDigits: 0,
+        }).format(Number(integerPart));
+
+        if (decimalPart !== undefined) {
+           return formattedInteger + (activeCountry === 'AR' ? ',' : '.') + decimalPart.slice(0, 2);
+        }
+        return formattedInteger;
+      },
+
+      /**
+       * parseInputNumber(value) — Removes thousands separators and normalizes decimal separator.
+       */
+      parseInputNumber: (value: string): number => {
+        if (!value) return 0;
+        // AR uses '.' as thousands and ',' as decimal
+        // MX/US uses ',' as thousands and '.' as decimal
+        let cleanValue = value;
+        if (activeCountry === 'AR') {
+          cleanValue = value.replace(/\./g, '').replace(',', '.');
+        } else {
+          cleanValue = value.replace(/,/g, '');
+        }
+        return parseFloat(cleanValue) || 0;
+      }
     };
   }, [activeCountry, dialect, auditOverride]);
 

@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { transaccionSchema, type TransaccionFormData, type PagoEnCuenta } from '@/types/cobranzas';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { useRegion } from '@/hooks/useRegion';
+import { NumericInput } from '@/components/common/NumericInput';
 import { X, Save, Wallet, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEden } from '@/services/eden';
@@ -19,6 +21,7 @@ interface RegistrarIngresoModalProps {
 
 export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: RegistrarIngresoModalProps) {
   const { inmobiliaria_id, nombre: nombreInmobiliaria } = useInmobiliaria();
+  const { config, formatCurrency } = useRegion();
   const { client: eden } = useEden();
   const [montoAblVariable, setMontoAblVariable] = useState<number | ''>('');
   
@@ -26,7 +29,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
   const totalConImpuestos = pagoDestino.monto_a_abonar + (pagoDestino.tipo_abl === 'variable' ? ablDinamico : 0);
   const saldoRestante = totalConImpuestos - pagoDestino.monto_abonado;
   
-  const { register, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<TransaccionFormData>({
+  const { control, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<TransaccionFormData>({
     resolver: zodResolver(transaccionSchema),
     defaultValues: {
       inmobiliaria_id: '',
@@ -158,13 +161,12 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
                       <AlertCircle className="h-3 w-3 text-renta-400" />
                       ABL Mes
                     </span>
-                    <div className="relative w-20">
+                    <div className="relative w-24">
                       <span className="absolute left-1.5 top-0.5 text-renta-400 font-bold text-[8px]">{config.currency_code}</span>
-                      <input 
-                        type="number" 
+                      <NumericInput 
                         placeholder="0"
                         value={montoAblVariable}
-                        onChange={(e) => setMontoAblVariable(Number(e.target.value))}
+                        onChange={(val) => setMontoAblVariable(val)}
                         className="w-full text-right pl-4 pr-1.5 py-0.5 bg-white border border-admin-border rounded text-[10px] font-bold focus:outline-none focus:border-renta-400"
                       />
                     </div>
@@ -192,13 +194,19 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
           <div className="space-y-2">
             <div className="space-y-1">
               <label className="text-xs font-semibold text-renta-900">Monto ({config.currency_code}) *</label>
-              <input
-                type="number"
-                step="0.01"
-                {...register('monto')}
-                className={cn(
-                  "w-full rounded-lg border px-3 py-1.5 text-sm focus:outline-none focus:ring-1",
-                  errors.monto ? "border-red-400 focus:ring-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+              <Controller
+                control={control}
+                name="monto"
+                render={({ field }) => (
+                  <NumericInput
+                    placeholder="0.00"
+                    value={field.value}
+                    onChange={field.onChange}
+                    className={cn(
+                      "w-full rounded-lg border px-3 py-1.5 text-sm focus:outline-none focus:ring-1",
+                      errors.monto ? "border-red-400 focus:ring-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                    )}
+                  />
                 )}
               />
               {errors.monto && <p className="text-[10px] text-red-500">{errors.monto.message}</p>}

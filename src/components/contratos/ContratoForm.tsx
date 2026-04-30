@@ -10,6 +10,7 @@ import { contratoSchema, type ContratoFormData } from '@/types/contrato';
 import { useInmobiliaria } from '../../hooks/useInmobiliaria';
 import { CountryPhoneSelector } from '../common/CountryPhoneSelector';
 import { useRegion } from '@/hooks/useRegion';
+import { NumericInput } from '@/components/common/NumericInput';
 
 interface ContratoFormProps {
   propiedadesDisponibles: { uid_prop: string; direccion: string; valor_alquiler?: string | number }[];
@@ -376,14 +377,20 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                  <label className="text-sm font-semibold text-renta-900">Valor del Alquiler <span className="text-red-500">*</span></label>
                  <div className="relative">
                    <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase">{config.currency_code}</span>
-                   <input
-                     type="number"
-                     {...register('monto_inicial')}
-                     className={cn(
-                       "w-full rounded-xl border bg-white pl-8 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 font-medium text-renta-950",
-                       errors.monto_inicial ? "border-red-400" : "border-admin-border focus:border-renta-300"
+                   <Controller
+                     control={control}
+                     name="monto_inicial"
+                     render={({ field }) => (
+                       <NumericInput
+                         placeholder="0.00"
+                         value={field.value}
+                         onChange={field.onChange}
+                         className={cn(
+                           "w-full rounded-xl border bg-white pl-8 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 font-medium text-renta-950",
+                           errors.monto_inicial ? "border-red-400" : "border-admin-border focus:border-renta-300"
+                         )}
+                       />
                      )}
-                     placeholder="0.00"
                    />
                  </div>
                  {errors.monto_inicial && <p className="text-xs text-red-500 font-medium">{errors.monto_inicial.message}</p>}
