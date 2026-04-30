@@ -32,7 +32,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
   const { control, register, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<TransaccionFormData>({
     resolver: zodResolver(transaccionSchema),
     defaultValues: {
-      inmobiliaria_id: '',
+      inmobiliaria_id: undefined,
       pago_id: pagoDestino.pago_id,
       monto: saldoRestante > 0 ? saldoRestante : 0,
       metodo: 'TRANSFERENCIA',
@@ -244,6 +244,20 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
                </div>
             </div>
           </div>
+
+          {/* Debug Global Errors */}
+          {Object.keys(errors).length > 0 && (
+            <div className="mt-2 p-2 bg-red-50 border border-red-100 rounded-lg text-[10px] text-red-600 animate-fade-in">
+               <div className="font-bold flex items-center gap-1.5 mb-1">
+                 <AlertCircle className="h-3 w-3" /> Errores detectados:
+               </div>
+               <ul className="list-disc list-inside space-y-0.5">
+                 {Object.entries(errors).map(([key, value]: [string, any]) => (
+                   <li key={key}>{value.message || `${key} inválido`}</li>
+                 ))}
+               </ul>
+            </div>
+          )}
 
           <div className="pt-2 border-t border-admin-border-subtle flex justify-end gap-2">
              <button
