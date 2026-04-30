@@ -29,7 +29,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
   const totalConImpuestos = pagoDestino.monto_a_abonar + (pagoDestino.tipo_abl === 'variable' ? ablDinamico : 0);
   const saldoRestante = totalConImpuestos - pagoDestino.monto_abonado;
   
-  const { control, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<TransaccionFormData>({
+  const { control, register, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<TransaccionFormData>({
     resolver: zodResolver(transaccionSchema),
     defaultValues: {
       inmobiliaria_id: '',
