@@ -10,11 +10,17 @@ import {
   AlertCircle,
   BarChart3,
   Clock,
+  Calendar,
+  DollarSign,
+  PlusCircle,
+  ChevronRight,
+  Eye,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
 import { useEden } from '@/services/eden';
+import { useNavigate } from 'react-router-dom';
 
 interface StatCardProps {
   label: string;
@@ -89,6 +95,7 @@ export function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { client: eden, isReady } = useEden();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -227,7 +234,65 @@ export function DashboardPage() {
         )}
       </div>
 
-      {/* El contenedor de bienvenida fue eliminado por ser redundante en una inmobiliaria con datos activos */}
+      {/* ── Quick Actions Section ── */}
+      <div className="space-y-4 opacity-0 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+         <h2 className="text-sm font-bold text-renta-900 uppercase tracking-widest flex items-center gap-2">
+            <Activity className="w-4 h-4 text-renta-500" /> Acciones Rápidas y Actividad
+         </h2>
+         
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Visitas de Hoy */}
+            <button 
+              onClick={() => navigate('/visitas')}
+              className="flex items-center justify-between p-4 bg-white border border-admin-border rounded-2xl hover:border-renta-300 hover:shadow-md transition-all group"
+            >
+               <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                     <Calendar className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                     <p className="text-xs font-bold text-renta-400 uppercase tracking-tighter">Visitas de Hoy</p>
+                     <p className="text-lg font-black text-renta-950">{isLoading ? '...' : (metrics?.visitasHoy || 0)} <span className="text-xs font-medium text-renta-500">agendadas</span></p>
+                  </div>
+               </div>
+               <ChevronRight className="w-5 h-5 text-renta-300 group-hover:text-renta-600 group-hover:translate-x-1 transition-all" />
+            </button>
+
+            {/* Cobros Pendientes */}
+            <button 
+              onClick={() => navigate('/cobranzas')}
+              className="flex items-center justify-between p-4 bg-white border border-admin-border rounded-2xl hover:border-emerald-300 hover:shadow-md transition-all group"
+            >
+               <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                     <DollarSign className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                     <p className="text-xs font-bold text-renta-400 uppercase tracking-tighter">Cobranzas</p>
+                     <p className="text-sm font-bold text-renta-950">Gestionar Pagos</p>
+                  </div>
+               </div>
+               <ChevronRight className="w-5 h-5 text-renta-300 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+            </button>
+
+            {/* Nuevo Contrato */}
+            <button 
+              onClick={() => navigate('/contratos')}
+              className="flex items-center justify-between p-4 bg-renta-950 border border-renta-900 rounded-2xl hover:bg-renta-800 hover:shadow-lg transition-all group"
+            >
+               <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-renta-800 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                     <PlusCircle className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                     <p className="text-xs font-bold text-renta-200/50 uppercase tracking-tighter">Operación</p>
+                     <p className="text-sm font-bold text-white">Nuevo Contrato</p>
+                  </div>
+               </div>
+               <ChevronRight className="w-5 h-5 text-renta-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
+            </button>
+         </div>
+      </div>
     </div>
   );
 }
