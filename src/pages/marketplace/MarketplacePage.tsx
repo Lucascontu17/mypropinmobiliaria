@@ -12,7 +12,8 @@ import {
   Zap, 
   PlusCircle, 
   Info,
-  ArrowRight
+  ArrowRight,
+  Mail
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEden } from '@/services/eden';
