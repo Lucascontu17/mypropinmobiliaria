@@ -111,7 +111,7 @@ export function MarketplacePage() {
 
   const handleProcessPayment = async (puntos: number, monto: number) => {
     if (!cardData.email || !cardData.cardNumber) {
-      alert("Por favor complete todos los campos de pago.");
+      toast.error("Por favor complete todos los campos de pago.");
       return;
     }
 
@@ -153,12 +153,12 @@ export function MarketplacePage() {
 
       if (error) throw new Error((error as any).value?.error || 'Error en el cobro');
 
-      alert(t('marketplace_success_points', `¡Compra Exitosa! Has adquirido ${puntos} puntos. Balance actualizado.`));
+      toast.success(t('marketplace_success_points', `¡Compra Exitosa! Has adquirido ${puntos} puntos. Balance actualizado.`));
       setShowPaymentModal(null);
       fetchCatalog();
     } catch (err: any) {
       console.error('Payment Error:', err);
-      alert('Error en la transacción: ' + (err.message || 'Verifique sus datos'));
+      toast.error('Error en la transacción: ' + (err.message || 'Verifique sus datos'));
     } finally {
       setIsProcessing(null);
     }
@@ -347,34 +347,41 @@ export function MarketplacePage() {
           </div>
 
           {/* Custom Points */}
-          <div className="bg-admin-surface rounded-3xl border border-admin-border p-8 max-w-2xl">
-             <h3 className="text-xl font-bold font-jakarta text-renta-950 mb-2">Compra Personalizada</h3>
-             <p className="text-sm text-renta-600 mb-8 font-inter">Indique la cantidad exacta de puntos que necesita para su estrategia.</p>
+          <div className="bg-gradient-to-br from-white to-renta-50/30 rounded-[32px] border border-admin-border p-10 max-w-2xl shadow-sm hover:shadow-md transition-shadow">
+             <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
+                   <PlusCircle className="h-6 w-6 text-emerald-600" />
+                </div>
+                <div>
+                   <h3 className="text-xl font-black font-jakarta text-renta-950">Compra Personalizada</h3>
+                   <p className="text-xs text-renta-500 font-medium font-inter">Indique la cantidad exacta de puntos para su estrategia.</p>
+                </div>
+             </div>
              
-             <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-renta-400 uppercase tracking-widest">Cantidad de Puntos</label>
-                  <div className="relative">
+             <div className="space-y-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-renta-400 uppercase tracking-[0.2em] ml-1">Cantidad de Puntos</label>
+                  <div className="relative group">
                     <NumericInput 
                       value={customPoints}
                       onChange={(val) => setCustomPoints(Math.max(0, Math.floor(val)))}
-                      className="w-full bg-white border border-admin-border rounded-xl px-4 py-4 text-2xl font-black font-jakarta outline-none focus:ring-2 focus:ring-renta-500"
+                      className="w-full bg-white border-2 border-renta-100 rounded-2xl px-6 py-5 text-3xl font-black font-jakarta outline-none focus:ring-4 focus:ring-renta-500/10 focus:border-renta-400 transition-all text-renta-950"
                     />
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-renta-400 font-bold">PTS</div>
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 text-renta-300 font-black text-xl tracking-tighter group-focus-within:text-renta-900 transition-colors">PTS</div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-6 bg-white rounded-2xl border border-admin-border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-8 bg-renta-950 rounded-3xl border border-white/10 shadow-2xl shadow-renta-950/20 gap-6">
                   <div>
-                    <p className="text-[10px] font-bold text-renta-400 uppercase mb-1">Total a Pagar</p>
-                    <div className="text-3xl font-black text-renta-950">{formatCurrency(customPoints * pricePerPoint)}</div>
+                    <p className="text-[10px] font-bold text-renta-400 uppercase tracking-[0.2em] mb-1">Total a Invertir</p>
+                    <div className="text-4xl font-black text-white tracking-tight">{formatCurrency(customPoints * pricePerPoint)}</div>
                   </div>
                   <button 
                     onClick={() => comprarPuntos(customPoints, customPoints * pricePerPoint)}
                     disabled={customPoints <= 0 || isProcessing !== null}
-                    className="bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold hover:bg-emerald-600 transition-all flex items-center gap-2 disabled:opacity-50"
+                    className="bg-emerald-500 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 shadow-lg shadow-emerald-500/20"
                   >
-                    Confirmar Compra <ArrowRight className="h-4 w-4" />
+                    Confirmar Compra <ArrowRight className="h-5 w-5" />
                   </button>
                 </div>
              </div>
@@ -390,106 +397,149 @@ export function MarketplacePage() {
 
       {/* ── Payment Modal ── */}
       {showPaymentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-renta-950/60 backdrop-blur-sm animate-in fade-in duration-300">
-           <div className="bg-white rounded-[32px] w-full max-w-lg overflow-hidden shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300">
-              <div className="bg-renta-950 p-8 text-white relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-renta-950/80 backdrop-blur-md animate-in fade-in duration-500">
+           <div className="bg-white rounded-[40px] w-full max-w-lg overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] border border-white/20 animate-in zoom-in-95 duration-500">
+              {/* Header Premium */}
+              <div className="relative bg-gradient-to-br from-renta-950 via-renta-900 to-renta-950 p-10 text-white">
+                 {/* Decorative background effects */}
+                 <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
+                    <div className="absolute -top-24 -left-24 w-64 h-64 bg-renta-400 rounded-full blur-[80px]" />
+                    <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-amber-400 rounded-full blur-[80px]" />
+                 </div>
+
                  <button 
                   onClick={() => setShowPaymentModal(null)}
-                  className="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full transition-colors"
+                  className="absolute top-8 right-8 p-2.5 hover:bg-white/10 rounded-full transition-all hover:rotate-90 text-white/60 hover:text-white"
                  >
-                   <PlusCircle className="h-5 w-5 rotate-45" />
+                   <PlusCircle className="h-6 w-6 rotate-45" />
                  </button>
-                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">
-                    <Shield className="h-3 w-3 text-emerald-400" /> Pago Seguro
+
+                 <div className="relative z-10">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-[0.2em] mb-6 border border-white/10">
+                       <Shield className="h-3.5 w-3.5 text-emerald-400" /> Pago 100% Seguro
+                    </div>
+                    <h2 className="text-3xl font-black font-jakarta tracking-tight mb-2">Finalizar Compra</h2>
+                    <p className="text-renta-300/80 text-sm font-medium">
+                      Estás adquiriendo <span className="text-white font-bold">{showPaymentModal.puntos} puntos</span> de visibilidad estratégica.
+                    </p>
                  </div>
-                 <h2 className="text-2xl font-black font-jakarta tracking-tight">Finalizar Compra</h2>
-                 <p className="text-renta-300 text-sm mt-1">Estás adquiriendo {showPaymentModal.puntos} puntos de visibilidad.</p>
               </div>
 
-              <div className="p-8 space-y-6">
-                 <div className="flex items-center justify-between p-4 bg-renta-50 rounded-2xl border border-renta-100">
-                    <div className="flex items-center gap-3">
-                       <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                          <Rocket className="h-5 w-5 text-amber-500" />
+              <div className="p-10 space-y-8 bg-white">
+                 {/* Resumen de Orden */}
+                 <div className="relative group p-6 bg-renta-50/50 rounded-3xl border border-renta-100/50 transition-all hover:bg-renta-50">
+                    <div className="flex items-center justify-between relative z-10">
+                       <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-renta-100 group-hover:scale-110 transition-transform">
+                             <Rocket className="h-7 w-7 text-amber-500" />
+                          </div>
+                          <div>
+                             <p className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mb-0.5">Producto</p>
+                             <span className="font-bold text-renta-950 text-lg">{showPaymentModal.puntos} Puntos</span>
+                          </div>
                        </div>
-                       <span className="font-bold text-renta-900">{showPaymentModal.puntos} Puntos</span>
+                       <div className="text-right">
+                          <p className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mb-0.5">Precio Final</p>
+                          <span className="text-2xl font-black text-renta-950 leading-none">{formatCurrency(showPaymentModal.monto)}</span>
+                       </div>
                     </div>
-                    <span className="text-xl font-black text-renta-950">{formatCurrency(showPaymentModal.monto)}</span>
                  </div>
 
-                 <div className="space-y-4">
-                    <div className="space-y-1.5">
-                       <label className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Email del Pagador</label>
-                       <input 
-                         type="email" 
-                         placeholder="ejemplo@email.com"
-                         value={cardData.email}
-                         onChange={(e) => setCardData({...cardData, email: e.target.value})}
-                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all"
-                       />
+                 {/* Formulario de Pago */}
+                 <div className="space-y-5">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-bold text-renta-500 uppercase tracking-[0.1em] ml-1">Email del Pagador</label>
+                       <div className="relative group">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-renta-300 group-focus-within:text-renta-600 transition-colors" />
+                          <input 
+                            type="email" 
+                            placeholder="ejemplo@email.com"
+                            value={cardData.email}
+                            onChange={(e) => setCardData({...cardData, email: e.target.value})}
+                            className="w-full bg-renta-50/30 border border-renta-100 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold text-renta-900 outline-none focus:ring-4 focus:ring-renta-500/10 focus:border-renta-300 transition-all placeholder:text-renta-300"
+                          />
+                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                       <label className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Número de Tarjeta</label>
-                       <div className="relative">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-bold text-renta-500 uppercase tracking-[0.1em] ml-1">Número de Tarjeta</label>
+                       <div className="relative group">
+                          <WalletCards className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-renta-300 group-focus-within:text-renta-600 transition-colors" />
                           <input 
                             type="text" 
                             placeholder="0000 0000 0000 0000"
                             value={cardData.cardNumber}
                             onChange={(e) => setCardData({...cardData, cardNumber: e.target.value})}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all"
+                            className="w-full bg-renta-50/30 border border-renta-100 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold text-renta-900 outline-none focus:ring-4 focus:ring-renta-500/10 focus:border-renta-300 transition-all placeholder:text-renta-300"
                           />
-                          <WalletCards className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-1">
+                             <div className="w-6 h-4 bg-renta-100 rounded-sm" />
+                             <div className="w-6 h-4 bg-renta-200 rounded-sm" />
+                          </div>
                        </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                       <div className="space-y-1.5">
-                          <label className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Vencimiento</label>
+                    <div className="grid grid-cols-2 gap-5">
+                       <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-renta-500 uppercase tracking-[0.1em] ml-1">Vencimiento</label>
                           <input 
                             type="text" 
                             placeholder="MM/AA"
                             value={cardData.expirationDate}
                             onChange={(e) => setCardData({...cardData, expirationDate: e.target.value})}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all"
+                            className="w-full bg-renta-50/30 border border-renta-100 rounded-2xl px-5 py-4 text-sm font-bold text-renta-900 outline-none focus:ring-4 focus:ring-renta-500/10 focus:border-renta-300 transition-all placeholder:text-renta-300 text-center"
                           />
                        </div>
-                       <div className="space-y-1.5">
-                          <label className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">CVV</label>
+                       <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-renta-500 uppercase tracking-[0.1em] ml-1">CVV</label>
                           <input 
                             type="password" 
                             placeholder="***"
                             value={cardData.cvv}
                             onChange={(e) => setCardData({...cardData, cvv: e.target.value})}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all"
+                            className="w-full bg-renta-50/30 border border-renta-100 rounded-2xl px-5 py-4 text-sm font-bold text-renta-900 outline-none focus:ring-4 focus:ring-renta-500/10 focus:border-renta-300 transition-all placeholder:text-renta-300 text-center"
                           />
                        </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                       <label className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Nombre en la Tarjeta</label>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-bold text-renta-500 uppercase tracking-[0.1em] ml-1">Nombre en la Tarjeta</label>
                        <input 
                          type="text" 
                          placeholder="EJ. JUAN PEREZ"
                          value={cardData.cardholderName}
                          onChange={(e) => setCardData({...cardData, cardholderName: e.target.value})}
-                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:ring-2 focus:ring-renta-500 transition-all uppercase"
+                         className="w-full bg-renta-50/30 border border-renta-100 rounded-2xl px-5 py-4 text-sm font-bold text-renta-900 outline-none focus:ring-4 focus:ring-renta-500/10 focus:border-renta-300 transition-all placeholder:text-renta-300 uppercase"
                        />
                     </div>
                  </div>
 
-                 <button 
-                  onClick={() => handleProcessPayment(showPaymentModal.puntos, showPaymentModal.monto)}
-                  disabled={isProcessing !== null}
-                  className="w-full bg-renta-950 text-white rounded-2xl py-4 font-black tracking-tight hover:bg-renta-800 transition-all active:scale-[0.98] shadow-lg shadow-renta-950/20 flex items-center justify-center gap-2 disabled:opacity-50"
-                 >
-                   {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Shield className="h-5 w-5 text-emerald-400" />}
-                   {isProcessing ? 'Procesando Pago...' : `Pagar ${formatCurrency(showPaymentModal.monto)}`}
-                 </button>
-                 
-                 <p className="text-[10px] text-center text-slate-400 font-medium">
-                    Al confirmar, aceptas nuestros términos y condiciones de compra de créditos digitales.
-                 </p>
+                 {/* Botón de Pago */}
+                 <div className="pt-2">
+                    <button 
+                      onClick={() => handleProcessPayment(showPaymentModal.puntos, showPaymentModal.monto)}
+                      disabled={isProcessing !== null}
+                      className="w-full relative group"
+                    >
+                      <div className="absolute inset-0 bg-renta-400 rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity" />
+                      <div className="relative bg-renta-950 text-white rounded-2xl py-5 font-black tracking-tight flex items-center justify-center gap-3 transition-all active:scale-[0.98] group-hover:bg-renta-900 shadow-xl shadow-renta-950/20">
+                        {isProcessing === 'points_purchase' ? (
+                          <Loader2 className="h-5 w-5 animate-spin text-renta-400" />
+                        ) : (
+                          <Shield className="h-5 w-5 text-emerald-400" />
+                        )}
+                        <span className="text-lg">
+                          {isProcessing === 'points_purchase' ? 'Procesando Pago...' : `Pagar ${formatCurrency(showPaymentModal.monto)}`}
+                        </span>
+                      </div>
+                    </button>
+                    
+                    <div className="mt-6 flex flex-col items-center gap-2">
+                       <p className="text-[9px] text-center text-renta-400 font-bold uppercase tracking-widest max-w-[80%] leading-relaxed">
+                          Al confirmar, aceptas nuestros términos de créditos digitales. Transacción encriptada de punto a punto.
+                       </p>
+                    </div>
+                 </div>
               </div>
            </div>
         </div>
