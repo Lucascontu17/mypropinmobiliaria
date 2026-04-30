@@ -1,9 +1,13 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { Settings, BellRing, Mail, MessageSquare, Save, ShieldAlert, Globe, RotateCcw } from 'lucide-react';
+import { Settings, BellRing, Mail, MessageSquare, Save, ShieldAlert, Globe, RotateCcw, Building2, Lock, Image as ImageIcon, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
+import { useSWRConfig } from 'swr';
+import { useEden } from '@/services/eden';
+import { useActiveAddons } from '@/hooks/useActiveAddons';
 import { COUNTRY_FLAG, type CountryCode } from '@/types/region';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 import { useShepherd } from '@/providers/ShepherdProvider';
@@ -23,14 +27,22 @@ const REGION_NAMES: Record<CountryCode, string> = {
 };
 
 export function ConfiguracionPage() {
-  const { role } = useInmobiliaria();
+  const { role, nombre: nombreInmoActual, logo_url: logoInmoActual } = useInmobiliaria();
   const { t, country_code, flag, isAuditOverride, setAuditRegion, config } = useRegion();
   const { resetTour } = useShepherd();
+  const { client } = useEden();
+  const { mutate } = useSWRConfig();
+  const { hasAddon } = useActiveAddons();
+
   const isSuperadmin = role === 'superadmin';
   const isAdmin = role === 'admin';
   const canViewConfig = isSuperadmin || isAdmin;
   const canEditConfig = isSuperadmin; // Solo Superadmin guarda cambios técnicos
+  
+  const hasLogoAddon = hasAddon('Logo Personalizado en Panel');
 
+  const [nombreAgencia, setNombreAgencia] = useState(nombreInmoActual);
+  const [logoUrl, setLogoUrl] = useState(logoInmoActual || '');
   const [whatsappActivo, setWhatsappActivo] = useState(true);
   const [emailActivo, setEmailActivo] = useState(true);
   const [telefono, setTelefono] = useState(config.phone_prefix + '1100000000');
@@ -38,7 +50,7 @@ export function ConfiguracionPage() {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     try {
       configSchema.parse({
         enviar_whatsapp_rollover: whatsappActivo,
@@ -48,14 +60,31 @@ export function ConfiguracionPage() {
       setErrorTelefono('');
       
       setIsSaving(true);
+      
+      // Update Branding if changed
+      if (nombreAgencia !== nombreInmoActual || (hasLogoAddon && logoUrl !== logoInmoActual)) {
+        const { error } = await client.admin.me.put({ 
+          nombre: nombreAgencia,
+          ...(hasLogoAddon ? { logo_url: logoUrl } : {})
+        });
+        if (error) {
+          alert("Error al actualizar los datos de la agencia: " + error.value);
+          setIsSaving(false);
+          return;
+        }
+        // Force refresh all useInmobiliaria hooks
+        mutate('/admin/me');
+      }
+
       setTimeout(() => {
         setIsSaving(false);
-        alert(t('config_guardar', 'Configuración maestra de Notificaciones (Twilio/SendGrid) guardada para la Inmobiliaria.'));
-      }, 1000);
+        alert(t('config_guardar', 'Configuración guardada correctamente.'));
+      }, 500);
     } catch (e) {
        if (e instanceof z.ZodError) {
          setErrorTelefono(e.issues[0]?.message || 'Número inválido.');
        }
+       setIsSaving(false);
     }
   };
 
@@ -214,6 +243,104 @@ export function ConfiguracionPage() {
           </div>
         </div>
       )}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          BRANDING DE LA AGENCIA
+          ══════════════════════════════════════════════════════════════════ */}
+      <div className="bg-white rounded-2xl border border-admin-border shadow-sm overflow-hidden">
+         <div className="bg-renta-50/50 px-6 py-4 flex items-center justify-between border-b border-admin-border-subtle">
+            <h2 className="text-sm font-bold text-renta-950 font-jakarta flex items-center gap-2">
+               <Building2 className="h-4 w-4 text-renta-600" />
+               {t('config_branding', 'Branding de la Agencia')}
+            </h2>
+         </div>
+         
+         <div className="p-6 space-y-8 font-inter">
+            {/* Nombre de la Agencia */}
+            <div className="space-y-2">
+               <label className="text-sm font-bold text-renta-950">
+                 {t('config_nombre_agencia', 'Nombre de la Inmobiliaria')}
+               </label>
+               <input
+                 type="text"
+                 value={nombreAgencia}
+                 onChange={(e) => setNombreAgencia(e.target.value)}
+                 placeholder="Ej: Mi Inmobiliaria Prop"
+                 className="w-full max-w-md h-10 px-4 rounded-xl border border-admin-border bg-white text-sm text-renta-900 focus:outline-none focus:ring-2 focus:ring-renta-500/20"
+               />
+               <p className="text-[10px] text-renta-500">
+                 {t('config_nombre_agencia_desc', 'Este nombre aparecerá en la barra superior y en todas las comunicaciones oficiales.')}
+               </p>
+            </div>
+
+            {/* Logo de la Agencia (Protegido por Add-on) */}
+            <div className="border-t border-admin-border-subtle pt-6 space-y-4">
+               <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold text-renta-950 flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-renta-400" />
+                    {t('config_logo', 'Logo de la Agencia')}
+                  </label>
+                  {!hasLogoAddon && (
+                    <Link 
+                      to="/marketplace"
+                      className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 hover:bg-amber-100 transition-colors"
+                    >
+                      <Lock className="h-3 w-3" />
+                      Add-on Requerido
+                    </Link>
+                  )}
+               </div>
+
+               <div className="flex items-center gap-6">
+                  {/* Preview */}
+                  <div className={cn(
+                    "h-20 w-20 rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden bg-renta-50",
+                    hasLogoAddon ? "border-renta-200" : "border-amber-200 opacity-60"
+                  )}>
+                    {logoUrl ? (
+                      <img src={logoUrl.startsWith('/') ? `${import.meta.env.VITE_API_URL || ''}${logoUrl}` : logoUrl} alt="Preview" className="h-full w-full object-contain" />
+                    ) : (
+                      <ImageIcon className="h-8 w-8 text-renta-200" />
+                    )}
+                  </div>
+
+                  <div className="flex-1 space-y-3">
+                     <div className="relative group max-w-md">
+                        <input
+                          type="text"
+                          value={logoUrl}
+                          onChange={(e) => setLogoUrl(e.target.value)}
+                          disabled={!hasLogoAddon}
+                          placeholder={hasLogoAddon ? "URL del logo (png, jpg...)" : "Funcionalidad bloqueada"}
+                          className={cn(
+                            "w-full h-10 px-4 pr-10 rounded-xl border text-sm transition-all",
+                            hasLogoAddon 
+                              ? "border-admin-border bg-white text-renta-900 focus:ring-2 focus:ring-renta-500/20" 
+                              : "border-amber-100 bg-amber-50/30 text-amber-400 cursor-not-allowed"
+                          )}
+                        />
+                        {!hasLogoAddon && (
+                          <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-400" />
+                        )}
+                     </div>
+                     <p className="text-[10px] text-renta-500 leading-relaxed">
+                       {hasLogoAddon 
+                         ? t('config_logo_desc', 'Ingrese la URL directa de su logo o utilice el uploader de propiedades para generar una. Recomendado: 400x400px fondo transparente.')
+                         : t('config_logo_bloqueado', 'Para personalizar el logo en el panel, debe adquirir el add-on "Logo Personalizado en Panel" desde el Marketplace.')}
+                     </p>
+                     {!hasLogoAddon && (
+                       <Link 
+                         to="/marketplace"
+                         className="inline-flex items-center gap-1.5 text-[10px] font-bold text-renta-600 hover:text-renta-950 underline decoration-renta-200 underline-offset-4"
+                       >
+                         Explorar Marketplace <ExternalLink className="h-3 w-3" />
+                       </Link>
+                     )}
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
 
       {/* ══════════════════════════════════════════════════════════════════
           CONFIGURACIÓN DE NOTIFICACIONES (Twilio & SendGrid) — Original
