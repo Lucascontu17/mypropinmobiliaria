@@ -222,6 +222,28 @@ export function MarketplacePage() {
         </div>
       )}
 
+      {/* ── Welcome Gift Banner ── */}
+      {catalog?.balance === 50 && (
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl p-1 shadow-lg shadow-emerald-500/20 animate-fade-in-up">
+           <div className="bg-white/5 backdrop-blur-md rounded-[22px] px-6 py-5 flex items-center justify-between text-white border border-white/10">
+              <div className="flex items-center gap-4">
+                 <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                    <Rocket className="h-6 w-6 text-emerald-600 animate-bounce" />
+                 </div>
+                 <div>
+                    <h4 className="text-lg font-black font-jakarta leading-tight tracking-tight">¡Bienvenido al Ecosistema Zonatia!</h4>
+                    <p className="text-xs text-emerald-50/80 font-medium mt-0.5">Te hemos acreditado <span className="text-white font-bold border-b border-white/30">50 puntos de cortesía</span> para que empieces a destacar tus propiedades hoy mismo.</p>
+                 </div>
+              </div>
+              <div className="hidden md:block">
+                 <div className="flex items-center gap-2 px-4 py-2 bg-emerald-400/20 rounded-xl border border-white/20 text-[10px] font-black uppercase tracking-widest">
+                   <Zap className="h-3.5 w-3.5 text-amber-300" /> Regalo de Bienvenida
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
+
       {/* ── Header & Balance ── */}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between border-b border-admin-border-subtle pb-8">
         <div className="space-y-1">
