@@ -19,7 +19,7 @@ export function CobranzasPage() {
   const [filtro, setFiltro] = useState<FiltroEstado>('TODOS');
   const [pagos, setPagos] = useState<PagoEnCuenta[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { client: eden } = useEden();
+  const { client: eden, isReady } = useEden();
   const [periodoActual, setPeriodoActual] = useState(new Date().toISOString().slice(0, 7));
   
   // Modals state
@@ -47,8 +47,10 @@ export function CobranzasPage() {
   };
 
   useEffect(() => {
-    fetchPagos();
-  }, [periodoActual, eden]);
+    if (isReady) {
+      fetchPagos();
+    }
+  }, [periodoActual, eden, isReady]);
 
   // Business Logic Filtering
   const pagosVisibles = useMemo(() => {

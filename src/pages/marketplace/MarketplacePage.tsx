@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 export function MarketplacePage() {
   const { hasPermission, inmobiliaria_id } = useInmobiliaria();
   const { t, formatCurrency, country_code, config } = useRegion();
-  const { client: eden } = useEden();
+  const { client: eden, isReady } = useEden();
 
   const [activeTab, setActiveTab] = useState<'addons' | 'points'>('addons');
   
@@ -41,8 +41,10 @@ export function MarketplacePage() {
   const pricePerPoint = country_code === 'AR' ? 100 : country_code === 'MX' ? 20 : 1; // Valuación definida por negocio
 
   useEffect(() => {
-    fetchCatalog();
-  }, [eden]);
+    if (isReady) {
+      fetchCatalog();
+    }
+  }, [eden, isReady]);
 
   const fetchCatalog = async () => {
     setIsLoading(true);

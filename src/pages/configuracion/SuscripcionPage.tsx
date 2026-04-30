@@ -24,7 +24,7 @@ import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShe
 
 export function SuscripcionPage() {
   const { t, formatCurrency, currency_code } = useRegion();
-  const { client: eden } = useEden();
+  const { client: eden, isReady } = useEden();
   
   const [summary, setSummary] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -34,8 +34,10 @@ export function SuscripcionPage() {
   const [isGeneratingPayment, setIsGeneratingPayment] = useState(false);
 
   useEffect(() => {
-    fetchBillingData();
-  }, [eden]);
+    if (isReady) {
+      fetchBillingData();
+    }
+  }, [eden, isReady]);
 
   const fetchBillingData = async () => {
     setIsLoading(true);
