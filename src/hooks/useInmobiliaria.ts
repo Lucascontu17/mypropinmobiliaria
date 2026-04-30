@@ -1,5 +1,7 @@
 import { useUser } from '@clerk/clerk-react';
 import type { CountryCode } from '@/types/region';
+import useSWR from 'swr';
+import { useEden } from '@/services/eden';
 
 export type UserRole = 'superadmin' | 'admin' | 'vendedor';
 
@@ -21,10 +23,28 @@ export interface InmobiliariaMetadata {
  */
 export function useInmobiliaria() {
   const { user, isLoaded, isSignedIn } = useUser();
+  const { client, isReady } = useEden();
 
   const metadata = (user?.publicMetadata ?? {}) as Partial<InmobiliariaMetadata>;
 
+  // Fetch real-time data from DB as fallback/sync for branding (Zero Leaks compliant)
+  const { data: dbData } = useSWR(
+    isSignedIn && isReady ? '/admin/me' : null,
+    async () => {
+      const { data, error } = await client.admin.me.get();
+      if (error) {
+        console.warn('[useInmobiliaria] DB branding fetch failed, using metadata.');
+        return null;
+      }
+      // @ts-ignore
+      return data?.data;
+    },
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+
   const role = metadata.role ?? 'vendedor';
+  const nombre = dbData?.nombre ?? metadata.nombre ?? 'Mi Inmobiliaria';
+  const logo_url = dbData?.logo_url ?? metadata.logo_url ?? undefined;
 
   /**
    * Valida jerarquías de roles contra la UI para componentes que necesitan ocultarse o 
@@ -42,8 +62,8 @@ export function useInmobiliaria() {
 
   return {
     inmobiliaria_id: metadata.inmobiliaria_id ?? undefined,
-    nombre: metadata.nombre ?? 'Mi Inmobiliaria',
-    logo_url: metadata.logo_url ?? undefined,
+    nombre,
+    logo_url,
     country_code: metadata.country_code ?? undefined,
     role,
     isLoaded,
