@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useEden } from '@/services/eden';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
+import { toast } from 'sonner';
 
 export function PropiedadesPage() {
   const { hasPermission, role } = useInmobiliaria();
@@ -54,13 +55,28 @@ export function PropiedadesPage() {
   const handleAssignPoints = async () => {
     if (!boosterModal || boosterPuntos <= 0) return;
     setIsAssigning(true);
-    // Modo Demo: Éxito local
-    setTimeout(() => {
-      alert(`${boosterPuntos} puntos asignados a ${boosterModal.direccion}`);
+    try {
+      // @ts-ignore
+      const { data, error } = await eden.admin.propiedades[boosterModal.uid].booster.post({ puntos: boosterPuntos });
+      
+      if (error) throw new Error((error as any).value?.error || 'Error al aplicar booster');
+
+      toast.success(data?.message || 'Booster aplicado con éxito');
+      
+      // Update local state to reflect new points if needed (or just re-fetch)
+      setProperties(prev => prev.map(p => 
+        p.uid_prop === boosterModal.uid 
+          ? { ...p, puntos: (p.puntos || 0) + boosterPuntos } 
+          : p
+      ));
+      
       setBoosterModal(null);
       setBoosterPuntos(5);
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
       setIsAssigning(false);
-    }, 1200);
+    }
   };
 
   const shepherdSteps: ShepherdStep[] = role === 'superadmin' || role === 'admin' 
