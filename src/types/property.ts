@@ -16,7 +16,7 @@ export const propertySchema = z.object({
 
   // Datos Generales
   direccion: z.string().min(5, "La dirección debe tener al menos 5 caracteres."),
-  valor_alquiler: z.string().min(1, "El valor es requerido."),
+  valor_alquiler: z.coerce.string().min(1, "El valor es requerido."),
   provincia: z.string().optional().nullable(),
   ciudad: z.string().optional().nullable(),
   barrio: z.string().optional().nullable(),
@@ -28,7 +28,7 @@ export const propertySchema = z.object({
   interno: z.string().optional(),
   operacion: z.enum(["alquiler", "venta"]).default("alquiler"),
   moneda: z.enum(["ARS", "MXN", "USD"]).default("ARS"),
-  valor_venta: z.string().optional(),
+  valor_venta: z.coerce.string().optional(),
 
   // Soporte Geoespacial
   latitud: z.coerce.number()
@@ -48,7 +48,7 @@ export const propertySchema = z.object({
     .max(20, "El límite máximo es 20 imágenes por propiedad."),
 
   // Detalles Técnicos (v1.9.0 Bunker Expansion)
-  mts2: z.string().min(1, "La superficie es requerida"),
+  mts2: z.coerce.string().min(1, "La superficie es requerida"),
   habitaciones: z.coerce.number().int().min(0, "Mínimo 0 habitaciones"),
   ambientes: z.coerce.number().int().min(1, "Al menos 1 ambiente."),
   banos: z.coerce.number().int().min(0, "Mínimo 0 baños"),
@@ -60,10 +60,10 @@ export const propertySchema = z.object({
   has_gas: z.boolean().default(false),
   has_agua: z.boolean().default(false),
   has_expensas: z.boolean().default(false),
-  valor_expensas: z.string().optional(),
+  valor_expensas: z.coerce.string().optional(),
   has_abl: z.boolean().default(false),
   tipo_abl: z.enum(["fijo", "variable"]).optional().nullable(),
-  valor_abl: z.string().optional(),
+  valor_abl: z.coerce.string().optional(),
   
   status: z.enum(["DISPONIBLE", "ALQUILADA", "VENTA", "RESERVADA", "VENDIDA"]).default("DISPONIBLE"),
   titulo: z.string().optional().nullable(),
