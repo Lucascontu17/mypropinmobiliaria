@@ -15,6 +15,7 @@ import {
   PlusCircle,
   ChevronRight,
   Eye,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
@@ -233,6 +234,37 @@ export function DashboardPage() {
           ))
         )}
       </div>
+
+      {/* ── Suscripción y Extras AI ── */}
+      {!isLoading && metrics?.suscripcion && (
+        <div className="bg-gradient-to-r from-renta-900 to-renta-950 p-6 rounded-2xl border border-renta-800 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-6 opacity-0 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center text-white backdrop-blur-sm border border-white/10 flex-shrink-0">
+              <Sparkles className="w-8 h-8 text-amber-400" />
+            </div>
+            <div>
+              <h3 className="text-white font-bold text-lg leading-tight">Zonatia AI & Servicios</h3>
+              <p className="text-renta-400 text-xs sm:text-sm mt-0.5 font-medium">Consumo acumulado a liquidar en tu próxima factura.</p>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-x-8 gap-y-4 items-center justify-end w-full lg:w-auto">
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-renta-500 uppercase tracking-widest">Abono Base</p>
+              <p className="text-white font-mono text-lg font-bold">{formatCurrency(metrics.suscripcion.monto_base)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Consumo IA</p>
+              <p className="text-amber-400 font-mono text-xl font-black">+{formatCurrency(metrics.suscripcion.acumulado_ia)}</p>
+            </div>
+            <div className="h-10 w-[1px] bg-white/10 hidden lg:block" />
+            <div className="text-right bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+              <p className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Total Próximo Pago</p>
+              <p className="text-white font-mono text-2xl font-black">{formatCurrency(metrics.suscripcion.total_proximo)}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Quick Actions Section ── */}
       <div className="space-y-4 opacity-0 animate-fade-in-up" style={{ animationDelay: '400ms' }}>

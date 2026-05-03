@@ -28,9 +28,10 @@ interface PropertyFormProps {
 export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }: PropertyFormProps) {
   const { inmobiliaria_id } = useInmobiliaria();
   const { currency_code } = useRegion();
-  const { hasAddon } = useActiveAddons();
+  const { hasAddon, getAddonPrice } = useActiveAddons();
   const { apiFetch } = useApi();
-  const hasAiCopilot = hasAddon('Zonatia AI Copilot');
+  const hasAiCopilot = hasAddon('Asistente de IA (Smart-Copy)');
+  const aiPrice = getAddonPrice('Asistente de IA (Smart-Copy)');
 
   const methods = useForm<PropertyFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -521,12 +522,13 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                    <h3 className="text-sm font-jakarta font-bold text-blue-900 flex items-center gap-2">
                       <Tag className="h-4 w-4" /> Datos de Publicación (Landing Page)
                    </h3>
-                   {hasAiCopilot && (
+                   <div className="flex flex-col items-end gap-1">
                      <div className="flex items-center gap-2">
                         <select 
                           value={aiTone}
                           onChange={(e) => setAiTone(e.target.value)}
-                          className="text-xs border-blue-200 bg-white rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-300 text-blue-900 font-medium"
+                          disabled={!hasAiCopilot}
+                          className="text-xs border-blue-200 bg-white rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-300 text-blue-900 font-medium disabled:opacity-50"
                         >
                            <option value="Lujoso y Profesional">💎 Lujoso</option>
                            <option value="Dinámico y Juvenil">🚀 Dinámico</option>
@@ -536,14 +538,28 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                         <button
                           type="button"
                           onClick={handleGenerateAiCopy}
-                          disabled={isGeneratingAi}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-xs font-bold shadow-sm hover:from-blue-700 hover:to-indigo-700 disabled:opacity-70 transition-all"
+                          disabled={isGeneratingAi || !hasAiCopilot}
+                          className={cn(
+                            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-all",
+                            hasAiCopilot 
+                              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700" 
+                              : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          )}
                         >
                            {isGeneratingAi ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                           {isGeneratingAi ? 'Pensando...' : 'Autocompletar'}
+                           {isGeneratingAi ? 'Pensando...' : hasAiCopilot ? 'Generar con IA' : 'IA Bloqueada'}
                         </button>
                      </div>
-                   )}
+                     {hasAiCopilot ? (
+                       <p className="text-[9px] text-blue-600/70 font-medium italic">
+                         ✨ Costo por uso: {currentMoneda} {aiPrice} (se cargará a tu cuenta)
+                       </p>
+                     ) : (
+                       <p className="text-[9px] text-gray-400 font-medium">
+                         Activa el Asistente de IA en el Marketplace para usar esta función.
+                       </p>
+                     )}
+                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1.5">
