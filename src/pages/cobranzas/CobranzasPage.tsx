@@ -20,24 +20,39 @@ export function CobranzasPage() {
   const [pagos, setPagos] = useState<PagoEnCuenta[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { client: eden, isReady } = useEden();
-  const [periodoActual, setPeriodoActual] = useState(new Date().toISOString().slice(0, 7));
+  const [periodoActual, setPeriodoActual] = useState('');
+  const [periodoIniciado, setPeriodoIniciado] = useState(false);
   
   // Modals state
   const [selectedPago, setSelectedPago] = useState<PagoEnCuenta | null>(null);
   const [showCierreModal, setShowCierreModal] = useState(false);
   const [boletasPagoId, setBoletasPagoId] = useState<{ id: string, nombre: string } | null>(null);
 
-  const fetchPagos = async () => {
+  const fetchPagos = async (periodoOverride?: string) => {
     setIsLoading(true);
     try {
+        // Si hay un periodo específico pedido (manual o ya resuelto), enviarlo.
+        // Si no, dejar que el backend resuelva el periodo activo.
+        const queryParams: any = {};
+        if (periodoOverride) {
+          queryParams.periodo = periodoOverride;
+        }
+
         const { data, error } = await eden.admin.pagos.get({
-            query: { periodo: periodoActual }
+            query: queryParams
         });
         if (error) {
             toast.error('No se pudo cargar la cobranza');
         } else {
             // @ts-ignore
             setPagos(data?.pagos ?? []);
+            // Sincronizar el periodo activo desde el backend
+            // @ts-ignore
+            if (data?.periodo_activo && !periodoIniciado) {
+              // @ts-ignore
+              setPeriodoActual(data.periodo_activo);
+              setPeriodoIniciado(true);
+            }
         }
     } catch (err) {
         toast.error('Error al conectar con el servidor');
@@ -48,9 +63,17 @@ export function CobranzasPage() {
 
   useEffect(() => {
     if (isReady) {
+      // Primera carga: sin periodo, el backend decide
       fetchPagos();
     }
-  }, [periodoActual, eden, isReady]);
+  }, [eden, isReady]);
+
+  // Cuando el usuario cambia manualmente el periodo (ej: navegación histórica)
+  useEffect(() => {
+    if (isReady && periodoIniciado && periodoActual) {
+      fetchPagos(periodoActual);
+    }
+  }, [periodoActual]);
 
   // Business Logic Filtering
   const pagosVisibles = useMemo(() => {
@@ -321,6 +344,8 @@ export function CobranzasPage() {
            saldoAFavorEstimado={saldoFavorEstimado}
            onClose={() => setShowCierreModal(false)}
            onSuccess={() => {
+             // Resetear para que la próxima carga resuelva el nuevo periodo activo
+             setPeriodoIniciado(false);
              fetchPagos();
              toast.success('El periodo ha sido procesado.');
            }}
