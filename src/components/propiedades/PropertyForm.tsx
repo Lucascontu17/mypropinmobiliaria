@@ -28,9 +28,10 @@ interface PropertyFormProps {
 export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }: PropertyFormProps) {
   const { inmobiliaria_id } = useInmobiliaria();
   const { currency_code } = useRegion();
-  const { hasAddon } = useActiveAddons();
+  const { hasAddon, getAddonPrice } = useActiveAddons();
   const { apiFetch } = useApi();
   const hasAiCopilot = hasAddon('Asistente de IA (Smart-Copy)');
+  const aiPrice = getAddonPrice('Asistente de IA (Smart-Copy)');
 
   const methods = useForm<PropertyFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -551,7 +552,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                      </div>
                      {hasAiCopilot ? (
                        <p className="text-[9px] text-blue-600/70 font-medium italic">
-                         ✨ Costo por uso: {currentMoneda === 'ARS' ? '$750' : currentMoneda === 'MXN' ? '$15' : 'u$d 2'} (se cargará a tu cuenta)
+                         ✨ Costo por uso: {currentMoneda} {aiPrice} (se cargará a tu cuenta)
                        </p>
                      ) : (
                        <p className="text-[9px] text-gray-400 font-medium">
