@@ -96,8 +96,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <img src={resolvedLogoUrl} alt={nombre} className="h-full w-full object-contain" />
           </div>
         ) : (
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-renta-400 to-renta-600 shadow-lg shadow-renta-500/20">
-            <Gem className="h-5 w-5 text-white" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 overflow-hidden">
+            <img src="/logo.png" alt="Zonatia Logo" className="h-full w-full object-contain" />
           </div>
         )}
         {!isCollapsed && (
