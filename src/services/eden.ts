@@ -6,6 +6,12 @@ import { useMemo, useState, useEffect } from 'react';
 import type { App } from 'mypropapi';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.zonatia.com';
+
+// Alerta de seguridad para entorno Staging/Prod con API apuntando a Localhost
+if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && API_BASE.includes('localhost')) {
+  console.warn(`[SECURITY-EDEN] High risk detected: Frontend is running on "${window.location.hostname}" but VITE_API_URL is pointing to "${API_BASE}". API calls will fail.`);
+}
+
 export const BASE_URL = API_BASE.replace(/\/v1$/, '').replace(/\/api$/, '').replace(/\/$/, '');
 const FULL_API_URL = `${BASE_URL}/api/v1`;
 

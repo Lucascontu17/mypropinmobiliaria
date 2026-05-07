@@ -112,7 +112,8 @@ export function DashboardPage() {
           setMetrics(data?.metrics);
         }
       } catch (err) {
-        setError(t('error_dashboard_conn', 'Error de conexión con el servidor.'));
+        console.error('[DASHBOARD-FETCH-ERROR]', err);
+        setError(t('error_dashboard_conn', 'Error de conexión con el servidor. Verifique su configuración de API.'));
       } finally {
         setIsLoading(false);
       }
