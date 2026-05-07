@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEden } from '@/services/eden';
-import { format } from 'date-fns';
+import { format, isBefore, startOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 
@@ -103,6 +103,8 @@ export function SuscripcionPage() {
     }
   ];
 
+  const isNotDueYet = summary?.period ? isBefore(startOfDay(new Date()), startOfDay(new Date(summary.period))) : false;
+
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in-up">
       <LocalShepherd steps={shepherdSteps} storageKey="enjoy_local_suscripcion" />
@@ -134,7 +136,7 @@ export function SuscripcionPage() {
               {/* Main Total */}
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Fecha Estimada de Cobro</p>
+                  <p className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Próximo Pago</p>
                   <div className="flex items-center gap-2 text-renta-950 font-bold">
                     <Calendar className="h-4 w-4 text-renta-600" />
                     {summary?.period ? format(new Date(summary.period), "dd 'de' MMMM, yyyy", { locale: es }) : '---'}
@@ -184,7 +186,7 @@ export function SuscripcionPage() {
               {!preferenceId ? (
                 <button 
                   onClick={handlePayClick}
-                  disabled={isGeneratingPayment || !summary?.total_amount}
+                  disabled={isGeneratingPayment || !summary?.total_amount || isNotDueYet}
                   className={cn(
                     "mt-6 w-full py-3.5 px-4 rounded-xl font-bold transition-all border",
                     "bg-renta-950 text-white border-renta-950 hover:bg-renta-900",
@@ -192,7 +194,7 @@ export function SuscripcionPage() {
                   )}
                 >
                   {isGeneratingPayment ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
-                  {isGeneratingPayment ? 'Inicializando Pago Seguro...' : 'Abonar con Tarjeta'}
+                  {isGeneratingPayment ? 'Inicializando Pago Seguro...' : isNotDueYet ? 'Aún no es fecha de pago' : 'Abonar con Tarjeta'}
                 </button>
               ) : (
                 <div className="mt-6 pt-6 border-t border-admin-border-subtle animate-fade-in">
