@@ -15,7 +15,7 @@ export const ownerSchema = z.object({
     .min(7, 'El DNI/CUIT debe tener al menos 7 dígitos')
     .max(20, 'El DNI/CUIT es demasiado largo')
     .regex(/^\d+$/, 'El DNI/CUIT debe contener solo números'),
-  email: z.string().email('Formato de email inválido'),
+  email: z.string().email('Formato de email inválido').optional().or(z.literal('')),
   celular: z.string()
     .regex(e164Regex, 'El celular debe tener formato internacional (Ej: +549...)'),
   cbu: z.string().min(5, 'CBU/Alias incompleto').optional().or(z.literal('')),

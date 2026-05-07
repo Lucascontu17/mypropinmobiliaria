@@ -134,9 +134,13 @@ export function PropietariosPage() {
                     </td>
                     <td className="px-6 py-4 text-renta-600 font-medium">{p?.dni || '-'}</td>
                     <td className="px-6 py-4">
-                      <div className="flex flex-col">
+                      <div className="flex flex-col items-start gap-1">
                         <span className="text-renta-900 font-medium">{p?.celular || 'No registrado'}</span>
-                        <span className="text-xs text-renta-500">{p?.email || 'Sin email'}</span>
+                        {p?.email ? (
+                          <span className="text-xs text-renta-500">{p.email}</span>
+                        ) : (
+                          <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200 shadow-sm">Sin Cuenta</span>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
