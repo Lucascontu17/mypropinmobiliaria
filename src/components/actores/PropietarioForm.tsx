@@ -102,7 +102,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
     try {
       const payload = {
         nombre: data.nombre,
-        email: sinCuenta ? undefined : (data.email || undefined),
+        email: sinCuenta ? "" : (data.email || ""),
         dni: data.dni,
         celular: data.celular,
         cbu: data.cbu || undefined,
