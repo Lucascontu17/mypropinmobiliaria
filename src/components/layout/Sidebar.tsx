@@ -113,7 +113,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       </div>
 
       {/* ── Navigation ── */}
-      <nav className="flex-1 overflow-y-auto min-h-0 space-y-1 px-3 py-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+      <nav className="flex-1 overflow-y-auto min-h-0 space-y-1 px-3 py-4 sidebar-scrollbar">
         {visibleNavItems.map((item) => {
           const isActive = location.pathname === item.href;
           const Icon = item.icon;
