@@ -90,7 +90,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       )}
     >
       {/* ── Logo Area ── */}
-      <div className="flex h-16 items-center gap-3 border-b border-white/10 px-4">
+      <div className="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-4">
         {showCustomLogo && resolvedLogoUrl ? (
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 overflow-hidden">
             <img src={resolvedLogoUrl} alt={nombre} className="h-full w-full object-contain" />
@@ -113,7 +113,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       </div>
 
       {/* ── Navigation ── */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 overflow-y-auto min-h-0 space-y-1 px-3 py-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
         {visibleNavItems.map((item) => {
           const isActive = location.pathname === item.href;
           const Icon = item.icon;
@@ -150,7 +150,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
       {/* ── Region Badge + Version ── */}
       {!isCollapsed && (
-        <div className="animate-fade-in border-t border-white/10 px-4 py-3 space-y-1">
+        <div className="shrink-0 animate-fade-in border-t border-white/10 px-4 py-3 space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-sm" aria-label={`Región: ${country_code}`}>{flag}</span>
             <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">
