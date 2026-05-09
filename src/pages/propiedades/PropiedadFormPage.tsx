@@ -19,7 +19,8 @@ export function PropiedadFormPage() {
     if (isReady) {
       fetchData();
     }
-  }, [isReady, client, id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReady, id]);
 
   const fetchData = async () => {
     setIsLoading(true);

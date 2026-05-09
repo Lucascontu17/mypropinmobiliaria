@@ -62,12 +62,12 @@ export function useEden() {
     }
   }, [getToken, isLoaded, isSignedIn]);
 
-  // Recreate the Eden client whenever the token or user changes
-  const client = useMemo(() => {
-    const region = (user?.publicMetadata?.country_code as string) || 
-                   localStorage.getItem('zonatia_audit_region') || 'AR';
-    const inmobiliariaId = (user?.publicMetadata?.inmobiliaria_id as string) || '';
+  // Recreate the Eden client whenever the token or specific metadata changes
+  const region = (user?.publicMetadata?.country_code as string) || 
+                 localStorage.getItem('zonatia_audit_region') || 'AR';
+  const inmobiliariaId = (user?.publicMetadata?.inmobiliaria_id as string) || '';
 
+  const client = useMemo(() => {
     return treaty<App>(FULL_API_URL, {
       headers: {
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
@@ -78,7 +78,7 @@ export function useEden() {
         credentials: 'include'
       }
     });
-  }, [token, user]);
+  }, [token, region, inmobiliariaId]);
 
   return {
     client,
