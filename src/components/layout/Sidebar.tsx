@@ -92,11 +92,11 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       {/* ── Logo Area ── */}
       <div className="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-4">
         {showCustomLogo && resolvedLogoUrl ? (
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 overflow-hidden">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg overflow-hidden">
             <img src={resolvedLogoUrl} alt={nombre} className="h-full w-full object-contain" />
           </div>
         ) : (
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 overflow-hidden">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg overflow-hidden">
             <img src="/logo.png" alt="Zonatia Logo" className="h-full w-full object-contain" />
           </div>
         )}
