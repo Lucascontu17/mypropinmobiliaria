@@ -65,7 +65,7 @@ export function VerBoletasModal({ pagoId, inquilinoNombre, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-renta-950/40 p-4 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-admin-border overflow-hidden">
+      <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl ring-1 ring-inset ring-admin-border border-transparent overflow-hidden">
         
         <div className="bg-renta-50 px-6 py-4 flex items-center justify-between border-b border-admin-border-subtle">
           <div>

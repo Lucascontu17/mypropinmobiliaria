@@ -95,15 +95,15 @@
   }
 
   .admin-card {
-    @apply bg-admin-surface rounded-2xl border border-admin-border shadow-sm
+    @apply bg-admin-surface rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm
            transition-all duration-300 ease-out
-           hover:shadow-md hover:border-renta-200;
+           hover:shadow-md hover:ring-renta-200;
   }
 
   .admin-card-interactive {
-    @apply bg-admin-surface rounded-2xl border border-admin-border shadow-sm
+    @apply bg-admin-surface rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm
            transition-all duration-300 ease-out cursor-pointer
-           hover:translate-y-[-2px] hover:shadow-lg hover:border-renta-200;
+           hover:translate-y-[-2px] hover:shadow-lg hover:ring-renta-200;
   }
 
   .admin-sidebar {

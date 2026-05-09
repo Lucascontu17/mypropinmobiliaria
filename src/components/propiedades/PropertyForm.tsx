@@ -306,7 +306,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 rounded-2xl border border-admin-border shadow-sm max-w-5xl mx-auto">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm max-w-5xl mx-auto">
         <div className="flex justify-between items-center border-b border-admin-border-subtle pb-4">
           <h2 className="text-xl font-bold font-jakarta text-renta-950 flex items-center gap-2">
             <Home className="h-5 w-5 text-renta-600" />
@@ -318,7 +318,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
           
           {/* Columna Izquierda: Datos Básicos y Geografía */}
           <div className="space-y-6">
-            <div className="bg-renta-50/30 p-5 rounded-2xl border border-admin-border space-y-4">
+            <div className="bg-renta-50/30 p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent space-y-4">
               <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-3">
                 <DollarSign className="h-4 w-4" /> Datos Comerciales
               </h3>
@@ -328,7 +328,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                   <label className="text-sm font-semibold text-renta-900">Tipo de Operación <span className="text-red-500">*</span></label>
                   <select 
                     {...register('operacion')}
-                    className="w-full rounded-xl border border-admin-border bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950 font-bold"
+                    className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950 font-bold"
                   >
                     <option value="alquiler">🔑 Alquiler</option>
                     <option value="venta">💰 Venta</option>
@@ -339,7 +339,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                   <label className="text-sm font-semibold text-renta-900">Divisa de Negocio <span className="text-red-500">*</span></label>
                   <select 
                     {...register('moneda')}
-                    className="w-full rounded-xl border border-admin-border bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950"
+                    className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950"
                   >
                     <option value={currency_code}>{currency_code} (Local)</option>
                     <option value="USD">USD (Dólares)</option>
@@ -483,7 +483,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                               <UserPlus className="h-3 w-3" /> Nuevo Propietario (Titular Adquiriente)
                            </label>
                            <select 
-                             className="w-full rounded-lg border border-admin-border bg-white px-3 py-2 text-xs"
+                             className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent bg-white px-3 py-2 text-xs"
                              onChange={(e) => setValue('owner_id', e.target.value)}
                            >
                               <option value="">-- Seleccionar Comprador --</option>
@@ -498,7 +498,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                                 placeholder="0.00"
                                 value={watch('valor_alquiler')}
                                 onChange={(val) => setValue('valor_alquiler', val.toString())}
-                                className="w-full rounded-lg border border-admin-border bg-white pl-6 pr-3 py-1.5 text-xs font-bold"
+                                className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent bg-white pl-6 pr-3 py-1.5 text-xs font-bold"
                               />
                            </div>
                         </div>
@@ -585,7 +585,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
               </div>
             )}
 
-            <div className="bg-renta-50/30 p-5 rounded-2xl border border-admin-border space-y-4">
+            <div className="bg-renta-50/30 p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent space-y-4">
               <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-3">
                 <Map className="h-4 w-4" /> Geoespacial
               </h3>
@@ -608,7 +608,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                   <label className="text-[10px] font-bold text-renta-500 uppercase tracking-wider">Provincia / Estado</label>
                   <input
                     {...register('provincia')}
-                    className="w-full rounded-lg border border-admin-border bg-white px-3 py-1.5 text-xs focus:ring-1 focus:ring-renta-200 text-renta-900"
+                    className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent bg-white px-3 py-1.5 text-xs focus:ring-1 focus:ring-renta-200 text-renta-900"
                     placeholder="Auto-fill..."
                   />
                 </div>
@@ -616,7 +616,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                   <label className="text-[10px] font-bold text-renta-500 uppercase tracking-wider">Ciudad</label>
                   <input
                     {...register('ciudad')}
-                    className="w-full rounded-lg border border-admin-border bg-white px-3 py-1.5 text-xs focus:ring-1 focus:ring-renta-200 text-renta-900"
+                    className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent bg-white px-3 py-1.5 text-xs focus:ring-1 focus:ring-renta-200 text-renta-900"
                     placeholder="Auto-fill..."
                   />
                 </div>
@@ -624,7 +624,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                   <label className="text-[10px] font-bold text-renta-500 uppercase tracking-wider">Barrio / Colonia</label>
                   <input
                     {...register('barrio')}
-                    className="w-full rounded-lg border border-admin-border bg-white px-3 py-1.5 text-xs focus:ring-1 focus:ring-renta-200 text-renta-900"
+                    className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent bg-white px-3 py-1.5 text-xs focus:ring-1 focus:ring-renta-200 text-renta-900"
                     placeholder="Auto-fill..."
                   />
                 </div>
@@ -634,7 +634,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
             </div>
 
             {/* Nueva Sección: Detalles Técnicos (Luxury Minimalist) */}
-            <div className="bg-white p-5 rounded-2xl border border-admin-border space-y-4 shadow-sm">
+            <div className="bg-white p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent space-y-4 shadow-sm">
               <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-3 tracking-tight">
                 <div className="bg-renta-100 p-1 rounded-md">
                    <Home className="h-4 w-4 text-renta-600" />
@@ -649,7 +649,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                     <input
                       {...register('piso')}
                       type="text"
-                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
                       placeholder="Ej: 2"
                     />
                   </div>
@@ -658,7 +658,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                     <input
                       {...register('departamento_unidad')}
                       type="text"
-                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
                       placeholder="Ej: B"
                     />
                   </div>
@@ -672,7 +672,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                     <input
                       {...register('interno')}
                       type="text"
-                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
                       placeholder="Ej: PB, 1er Piso al fondo"
                     />
                   </div>
@@ -705,7 +705,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                     <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Ambientes</label>
                     <select
                       {...register('ambientes', { valueAsNumber: true })}
-                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950 cursor-pointer"
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950 cursor-pointer"
                     >
                       <option value={1}>1</option>
                       <option value={2}>2</option>
@@ -720,7 +720,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                       {...register('habitaciones', { valueAsNumber: true })}
                       type="number"
                       min="0"
-                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
                     />
                   </div>
                    <div className="space-y-1.5">
@@ -729,7 +729,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                       {...register('banos', { valueAsNumber: true })}
                       type="number"
                       min="0"
-                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
                     />
                   </div>
                 </div>
@@ -741,7 +741,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                       {...register('cocheras', { valueAsNumber: true })}
                       type="number"
                       min="0"
-                      className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -751,7 +751,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                         {...register('antiguedad', { valueAsNumber: true })}
                         type="number"
                         min="0"
-                        className="w-full rounded-xl border border-admin-border bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                        className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
                       />
                       <span className="absolute right-3 top-2 text-[10px] text-renta-400 font-bold">AÑOS</span>
                     </div>
@@ -763,7 +763,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
 
           {/* Columna Derecha: Multimedia y Servicios */}
           <div className="space-y-6">
-            <div className="bg-renta-50/30 p-5 rounded-2xl border border-admin-border">
+            <div className="bg-renta-50/30 p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent">
                <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-4">
                   <Zap className="h-4 w-4" /> Configuración de Servicios
                </h3>
@@ -777,7 +777,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                    { key: 'has_abl', label: 'Impuesto ABL / Municipal' }
                  ].map((servicio) => (
                     <div key={servicio.key} className="space-y-2">
-                      <label className="flex items-center gap-3 p-3 bg-white rounded-xl border border-admin-border-subtle cursor-pointer hover:bg-renta-50 transition-colors">
+                      <label className="flex items-center gap-3 p-3 bg-white rounded-xl ring-1 ring-inset ring-admin-border border-transparent-subtle cursor-pointer hover:bg-renta-50 transition-colors">
                         <input 
                           type="checkbox"
                           {...register(servicio.key as keyof PropertyFormData)}
@@ -823,7 +823,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                             </label>
                             <select
                               {...register('tipo_abl', { required: watch('has_abl') ? "Seleccione la modalidad" : false })}
-                              className="w-full rounded-xl border border-admin-border bg-white px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950 font-bold"
+                              className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950 font-bold"
                             >
                               <option value="">-- Seleccionar --</option>
                               <option value="fijo">Monto Fijo Mensual</option>
@@ -865,7 +865,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                </div>
             </div>
 
-            <div className="bg-renta-50/30 p-5 rounded-2xl border border-admin-border">
+            <div className="bg-renta-50/30 p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent">
               <GalleryUploader name="imagenes" />
             </div>
           </div>
@@ -878,7 +878,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
             <button 
               type="button" 
               onClick={onCancel}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl border border-admin-border bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
             >
               <X className="h-4 w-4" /> Cancelar
             </button>

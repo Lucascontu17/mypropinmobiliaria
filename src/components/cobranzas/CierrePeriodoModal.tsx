@@ -76,7 +76,7 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
               El motor financiero del Búnker realizará un <em>Rollover Automatizado</em> hacia el periodo <strong className="text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200">{nextPeriodo}</strong>.
             </p>
 
-            <div className="bg-admin-surface border border-admin-border rounded-xl p-4 space-y-3">
+            <div className="bg-admin-surface ring-1 ring-inset ring-admin-border border-transparent rounded-xl p-4 space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-widest text-renta-500 mb-2 border-b border-admin-border-subtle pb-2">Proyección del Rollover</h4>
               
               <div className="flex justify-between items-center text-sm">
@@ -101,7 +101,7 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
              <button
                type="button"
                onClick={onClose}
-               className="px-5 py-2.5 bg-white border border-admin-border hover:border-renta-300 rounded-xl text-renta-700 text-sm font-bold transition-all hover:bg-renta-50"
+               className="px-5 py-2.5 bg-white ring-1 ring-inset ring-admin-border border-transparent hover:border-renta-300 rounded-xl text-renta-700 text-sm font-bold transition-all hover:bg-renta-50"
              >
                Abortar Operación
              </button>

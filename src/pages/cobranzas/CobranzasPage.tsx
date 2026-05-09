@@ -132,7 +132,7 @@ export function CobranzasPage() {
 
       {/* ── KPI Widgets ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '50ms' }}>
-         <div className="bg-white border border-admin-border p-5 rounded-2xl shadow-sm">
+         <div className="bg-white ring-1 ring-inset ring-admin-border border-transparent p-5 rounded-2xl shadow-sm">
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <CheckCircle2 className="h-3 w-3" /> {t('cobranza_recaudacion', 'Recaudación Real')}
             </p>
@@ -142,7 +142,7 @@ export function CobranzasPage() {
               <p className="text-2xl font-bold text-emerald-600 font-jakarta mt-1">{formatCurrency(totalRecaudado)}</p>
             )}
          </div>
-         <div className="bg-white border border-admin-border p-5 rounded-2xl shadow-sm">
+         <div className="bg-white ring-1 ring-inset ring-admin-border border-transparent p-5 rounded-2xl shadow-sm">
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <Clock className="h-3 w-3" /> {t('cobranza_esperado', 'Total Esperado N')}
             </p>
@@ -154,7 +154,7 @@ export function CobranzasPage() {
          </div>
           <div 
             data-shepherd="kpi-morosidad"
-            className="bg-white border border-admin-border p-5 rounded-2xl shadow-sm">
+            className="bg-white ring-1 ring-inset ring-admin-border border-transparent p-5 rounded-2xl shadow-sm">
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <AlertCircle className="h-3 w-3" /> {t('cobranza_morosidad', 'Morosidad (A arrastrar)')}
             </p>
@@ -164,7 +164,7 @@ export function CobranzasPage() {
               <p className="text-2xl font-bold text-red-600 font-jakarta mt-1">{formatCurrency(deudaEstimadaCierre)}</p>
             )}
           </div>
-         <div className="bg-white border border-admin-border p-5 rounded-2xl shadow-sm">
+         <div className="bg-white ring-1 ring-inset ring-admin-border border-transparent p-5 rounded-2xl shadow-sm">
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <Plus className="h-3 w-3" /> {t('cobranza_saldos', 'Saldos a Favor Inq.')}
             </p>
@@ -185,7 +185,7 @@ export function CobranzasPage() {
             placeholder={t('cobranza_buscar', 'Buscar contrato o inquilino...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-xl border border-admin-border bg-white pl-10 pr-4 py-2.5 text-sm text-renta-900 placeholder:text-renta-400 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all"
+            className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white pl-10 pr-4 py-2.5 text-sm text-renta-900 placeholder:text-renta-400 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all"
           />
         </div>
 
@@ -196,7 +196,7 @@ export function CobranzasPage() {
                 onClick={() => setFiltro(f)}
                 className={cn(
                   "px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors",
-                  filtro === f ? "bg-renta-900 text-white" : "bg-white border border-admin-border text-renta-600 hover:bg-renta-50"
+                  filtro === f ? "bg-renta-900 text-white" : "bg-white ring-1 ring-inset ring-admin-border border-transparent text-renta-600 hover:bg-renta-50"
                 )}
               >
                 {f.replace(/_/g, ' ')}
@@ -207,7 +207,7 @@ export function CobranzasPage() {
 
       {/* ── Data Table ── */}
       <div 
-        className="rounded-2xl border border-admin-border bg-white shadow-sm overflow-hidden animate-fade-in-up" 
+        className="rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-white shadow-sm overflow-hidden animate-fade-in-up" 
         style={{ animationDelay: '200ms' }}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm font-inter">
@@ -292,7 +292,7 @@ export function CobranzasPage() {
                              <button 
                                data-shepherd="btn-registrar-pago"
                                onClick={() => setSelectedPago(p)}
-                               className="text-[11px] uppercase tracking-wider font-bold text-renta-600 bg-white border border-admin-border hover:bg-renta-50 hover:text-renta-900 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+                               className="text-[11px] uppercase tracking-wider font-bold text-renta-600 bg-white ring-1 ring-inset ring-admin-border border-transparent hover:bg-renta-50 hover:text-renta-900 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
                              >
                                <Plus className="h-3 w-3" /> {t('cobranza_cobrar', 'Cobrar')}
                              </button>

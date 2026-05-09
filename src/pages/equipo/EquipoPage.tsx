@@ -147,7 +147,7 @@ export function EquipoPage() {
         className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-in-up"
         style={{ animationDelay: '80ms' }}
       >
-        <div className="flex items-center gap-4 rounded-2xl border border-admin-border bg-white p-4 shadow-sm">
+        <div className="flex items-center gap-4 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-white p-4 shadow-sm">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 border border-amber-200">
             <ShieldCheck className="h-5 w-5 text-amber-600" />
           </div>
@@ -159,7 +159,7 @@ export function EquipoPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 rounded-2xl border border-admin-border bg-white p-4 shadow-sm">
+        <div className="flex items-center gap-4 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-white p-4 shadow-sm">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 border border-blue-200">
             <Briefcase className="h-5 w-5 text-blue-600" />
           </div>
@@ -171,7 +171,7 @@ export function EquipoPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 rounded-2xl border border-admin-border bg-white p-4 shadow-sm">
+        <div className="flex items-center gap-4 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-white p-4 shadow-sm">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-200">
             <UserCheckIcon className="h-5 w-5 text-emerald-600" />
           </div>
@@ -199,7 +199,7 @@ export function EquipoPage() {
             placeholder={t('equipo_buscar', 'Buscar por nombre o email...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-xl border border-admin-border bg-white pl-10 pr-4 py-2 text-sm text-renta-900 placeholder:text-renta-400 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all"
+            className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white pl-10 pr-4 py-2 text-sm text-renta-900 placeholder:text-renta-400 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -226,7 +226,7 @@ export function EquipoPage() {
 
       {/* ── Data Table ── */}
       <div
-        className="rounded-2xl border border-admin-border bg-white shadow-sm overflow-hidden animate-fade-in-up"
+        className="rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-white shadow-sm overflow-hidden animate-fade-in-up"
         style={{ animationDelay: '240ms' }}
       >
         <div className="overflow-x-auto">
@@ -371,7 +371,7 @@ export function EquipoPage() {
 
                           {/* Context Menu */}
                           {contextMenu === m?.id && (
-                            <div className="absolute right-0 top-full mt-1 z-10 bg-white border border-admin-border rounded-xl shadow-lg py-1 min-w-[180px] animate-fade-in">
+                            <div className="absolute right-0 top-full mt-1 z-10 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-xl shadow-lg py-1 min-w-[180px] animate-fade-in">
                               <button
                                 onClick={() => setContextMenu(null)}
                                 className="w-full flex items-center gap-2 px-4 py-2 text-xs text-renta-700 hover:bg-renta-50 transition-colors"
@@ -410,7 +410,7 @@ export function EquipoPage() {
 
       {/* ── Permisos Info ── */}
       <div
-        className="rounded-2xl border border-admin-border-subtle bg-renta-50/30 p-5 animate-fade-in-up"
+        className="rounded-2xl ring-1 ring-inset ring-admin-border border-transparent-subtle bg-renta-50/30 p-5 animate-fade-in-up"
         style={{ animationDelay: '320ms' }}
       >
         <h3 className="text-xs font-bold text-renta-700 uppercase tracking-widest mb-3 flex items-center gap-2">

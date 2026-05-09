@@ -191,7 +191,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 md:p-8 rounded-2xl border border-admin-border shadow-sm max-w-6xl mx-auto">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 md:p-8 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm max-w-6xl mx-auto">
         
         <div className="flex justify-between items-center border-b border-admin-border-subtle pb-5">
           <h2 className="text-xl font-bold font-jakarta text-renta-950 flex items-center gap-2">
@@ -209,7 +209,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
           <div className="space-y-6">
             
             {/* Vinculación Inmobiliaria */}
-            <div className="p-5 rounded-2xl border border-admin-border bg-renta-50/40 space-y-5">
+            <div className="p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-renta-50/40 space-y-5">
                <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 border-b border-admin-border-subtle pb-2">
                   <Building className="h-4 w-4 text-renta-500" /> Vínculos Funcionales
                </h3>
@@ -295,19 +295,19 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                       <div className="grid grid-cols-2 gap-3">
                         <div className="col-span-2 space-y-1">
                           <label className="text-[10px] font-bold text-renta-600 uppercase">Nombre Completo</label>
-                          <input {...register('nuevo_inquilino.nombre')} className="w-full rounded-lg border border-admin-border px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="Nombre y Apellido" />
+                          <input {...register('nuevo_inquilino.nombre')} className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="Nombre y Apellido" />
                           {errors.nuevo_inquilino?.nombre && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.nombre.message}</p>}
                         </div>
 
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-renta-600 uppercase">DNI</label>
-                          <input {...register('nuevo_inquilino.dni')} className="w-full rounded-lg border border-admin-border px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="12345678" />
+                          <input {...register('nuevo_inquilino.dni')} className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="12345678" />
                           {errors.nuevo_inquilino?.dni && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.dni.message}</p>}
                         </div>
                         
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-renta-600 uppercase">Email</label>
-                          <input {...register('nuevo_inquilino.email')} className="w-full rounded-lg border border-admin-border px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="inquilino@email.com" />
+                          <input {...register('nuevo_inquilino.email')} className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="inquilino@email.com" />
                           {errors.nuevo_inquilino?.email && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.email.message}</p>}
                         </div>
 
@@ -341,7 +341,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
             </div>
 
             {/* Duración y Monto */}
-            <div className="p-5 rounded-2xl border border-admin-border bg-renta-50/40 space-y-5">
+            <div className="p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-renta-50/40 space-y-5">
                <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 border-b border-admin-border-subtle pb-2">
                   <Calendar className="h-4 w-4 text-renta-500" /> Ciclo de Vida Financiero
                </h3>
@@ -630,7 +630,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
           <button 
             type="button" 
             onClick={() => onCancel ? onCancel() : navigate('/contratos')}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl border border-admin-border bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
           >
             <X className="h-4 w-4" /> Cancelar
           </button>

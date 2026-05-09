@@ -108,7 +108,8 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
         cbu: data.cbu || undefined,
         commission_type: data.comision_tipo as any,
         commission_value: data.comision_valor ? Number(data.comision_valor) : undefined,
-        client_number: data.client_number || undefined
+        client_number: data.client_number || undefined,
+        sin_cuenta: sinCuenta
       };
 
       const ownerId = (initialData as any)?.id;
@@ -135,9 +136,11 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
 
       const clientCode = response?.client_number;
       toast.success('Propietario Guardado', {
-        description: clientCode 
-          ? `${data.nombre} registrado con código ${clientCode}.`
-          : `${data.nombre} ha sido registrado con éxito.`,
+        description: sinCuenta 
+          ? `${data.nombre} registrado como ficha local (sin cuenta Zonatia). Se le asignará un ID de cliente cuando se cree su cuenta.`
+          : clientCode 
+            ? `${data.nombre} registrado con código ${clientCode}.`
+            : `${data.nombre} ha sido registrado con éxito.`,
         duration: 6000
       });
 
@@ -151,7 +154,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 rounded-2xl border border-admin-border shadow-sm">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm">
       <div className="flex justify-between items-center border-b border-admin-border-subtle pb-4">
         <h2 className="text-xl font-bold font-jakarta text-renta-950">
           {initialData ? 'Editar Propietario' : 'Nuevo Propietario'}
@@ -176,7 +179,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
               placeholder="Ej: AR001"
               value={searchCode}
               onChange={(e) => setSearchCode(e.target.value.toUpperCase())}
-              className="flex-1 rounded-xl border border-admin-border px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-renta-200 uppercase"
+              className="flex-1 rounded-xl ring-1 ring-inset ring-admin-border border-transparent px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-renta-200 uppercase"
             />
             <button
               type="button"
@@ -296,7 +299,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
           <label className="text-sm font-semibold text-renta-900">Tipo de Comisión</label>
           <select 
             {...register('comision_tipo')}
-            className="w-full rounded-xl border border-admin-border bg-white px-4 py-2 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950"
+            className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white px-4 py-2 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950"
           >
             <option value="percent">Porcentaje (%)</option>
             <option value="fixed">Monto Fijo ($)</option>
@@ -326,7 +329,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
           <button 
             type="button" 
             onClick={onCancel}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-admin-border bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
           >
             <X className="h-4 w-4" /> Cancelar
           </button>

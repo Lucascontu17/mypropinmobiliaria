@@ -108,7 +108,7 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
             }
 
             return (
-              <div key={idx} className="relative group rounded-xl overflow-hidden shadow-sm border border-admin-border aspect-[4/3] bg-renta-100">
+              <div key={idx} className="relative group rounded-xl overflow-hidden shadow-sm ring-1 ring-inset ring-admin-border border-transparent aspect-[4/3] bg-renta-100">
                 <img 
                   src={previewUrl} 
                   alt={`Preview ${idx}`} 

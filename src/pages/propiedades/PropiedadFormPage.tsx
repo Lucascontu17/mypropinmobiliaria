@@ -67,7 +67,7 @@ export function PropiedadFormPage() {
       <div className="flex items-center gap-4">
         <button 
           onClick={() => navigate('/propiedades')}
-          className="p-2 bg-white border border-admin-border rounded-xl text-renta-500 hover:text-renta-900 hover:bg-renta-50 transition-colors"
+          className="p-2 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-xl text-renta-500 hover:text-renta-900 hover:bg-renta-50 transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>

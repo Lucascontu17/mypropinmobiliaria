@@ -141,14 +141,14 @@ export function PropiedadesPage() {
             placeholder={t('prop_buscar', 'Buscar por dirección o propietario...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-xl border border-admin-border bg-white pl-10 pr-4 py-2 text-sm text-renta-900 placeholder:text-renta-400 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all"
+            className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white pl-10 pr-4 py-2 text-sm text-renta-900 placeholder:text-renta-400 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all"
           />
         </div>
 
         <select
           value={filterTipo}
           onChange={(e) => setFilterTipo(e.target.value)}
-          className="rounded-xl border border-admin-border bg-white px-4 py-2 text-sm text-renta-900 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all font-semibold"
+          className="rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white px-4 py-2 text-sm text-renta-900 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all font-semibold"
         >
           <option value="todos">Todos los Tipos</option>
           <option value="departamento">🏢 Departamento</option>
@@ -163,7 +163,7 @@ export function PropiedadesPage() {
       {/* ── Data Table ── */}
       <div 
         data-shepherd="assigned-catalog"
-        className="rounded-2xl border border-admin-border bg-white shadow-sm overflow-hidden animate-fade-in-up" 
+        className="rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-white shadow-sm overflow-hidden animate-fade-in-up" 
         style={{ animationDelay: '200ms' }}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm font-inter">
@@ -325,7 +325,7 @@ export function PropiedadesPage() {
 
             {/* Modal Body */}
             <div className="p-6 space-y-6">
-              <div className="bg-renta-50 rounded-xl p-4 border border-admin-border-subtle">
+              <div className="bg-renta-50 rounded-xl p-4 ring-1 ring-inset ring-admin-border border-transparent-subtle">
                 <p className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mb-1">Propiedad Seleccionada</p>
                 <p className="text-sm font-bold text-renta-950 flex items-center gap-2">
                   <Home className="h-4 w-4 text-renta-400" /> {boosterModal.direccion}
@@ -339,7 +339,7 @@ export function PropiedadesPage() {
                   min={1}
                   value={boosterPuntos}
                   onChange={(e) => setBoosterPuntos(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-full rounded-xl border border-admin-border px-4 py-3 text-2xl font-black font-jakarta text-renta-950 outline-none focus:ring-2 focus:ring-amber-400 text-center"
+                  className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent px-4 py-3 text-2xl font-black font-jakarta text-renta-950 outline-none focus:ring-2 focus:ring-amber-400 text-center"
                 />
                 <p className="text-[10px] text-renta-400 text-center">
                   Se descontarán del balance total de su inmobiliaria.
@@ -351,7 +351,7 @@ export function PropiedadesPage() {
             <div className="px-6 pb-6 flex gap-3">
               <button 
                 onClick={() => setBoosterModal(null)}
-                className="flex-1 py-3 rounded-xl border border-admin-border text-sm font-bold text-renta-600 hover:bg-renta-50 transition-colors"
+                className="flex-1 py-3 rounded-xl ring-1 ring-inset ring-admin-border border-transparent text-sm font-bold text-renta-600 hover:bg-renta-50 transition-colors"
               >
                 Cancelar
               </button>

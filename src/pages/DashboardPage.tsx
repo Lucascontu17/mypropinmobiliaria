@@ -209,7 +209,7 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading ? (
           [...Array(6)].map((_, i) => (
-            <div key={i} className="admin-card p-6 animate-pulse bg-white border border-admin-border rounded-2xl">
+            <div key={i} className="admin-card p-6 animate-pulse bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-2xl">
               <div className="flex justify-between items-start">
                 <div className="h-11 w-11 rounded-xl bg-renta-50" />
                 <div className="h-5 w-12 rounded-full bg-renta-50" />
@@ -277,7 +277,7 @@ export function DashboardPage() {
             {/* Visitas de Hoy */}
             <button 
               onClick={() => navigate('/visitas')}
-              className="flex items-center justify-between p-4 bg-white border border-admin-border rounded-2xl hover:border-renta-300 hover:shadow-md transition-all group"
+              className="flex items-center justify-between p-4 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-2xl hover:border-renta-300 hover:shadow-md transition-all group"
             >
                <div className="flex items-center gap-4">
                   <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
@@ -294,7 +294,7 @@ export function DashboardPage() {
             {/* Cobros Pendientes */}
             <button 
               onClick={() => navigate('/cobranzas')}
-              className="flex items-center justify-between p-4 bg-white border border-admin-border rounded-2xl hover:border-emerald-300 hover:shadow-md transition-all group"
+              className="flex items-center justify-between p-4 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-2xl hover:border-emerald-300 hover:shadow-md transition-all group"
             >
                <div className="flex items-center gap-4">
                   <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">

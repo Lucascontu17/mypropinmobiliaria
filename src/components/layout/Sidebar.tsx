@@ -190,7 +190,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       {/* ── Collapse Toggle ── */}
       <button
         onClick={onToggle}
-        className="absolute -right-3 top-20 flex h-6 w-6 items-center justify-center rounded-full border border-admin-border bg-white text-renta-700 shadow-md transition-all hover:scale-110 hover:shadow-lg"
+        className="absolute -right-3 top-20 flex h-6 w-6 items-center justify-center rounded-full ring-1 ring-inset ring-admin-border border-transparent bg-white text-renta-700 shadow-md transition-all hover:scale-110 hover:shadow-lg"
         aria-label={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
       >
         {isCollapsed ? (

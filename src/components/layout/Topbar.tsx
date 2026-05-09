@@ -44,7 +44,7 @@ export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps)
             data-shepherd="search-bar"
             placeholder={t('buscar_placeholder', 'Buscar propiedades, inquilinos...')}
             className={cn(
-              'h-9 w-72 rounded-xl border border-admin-border bg-renta-50/50 pl-10 pr-4',
+              'h-9 w-72 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-renta-50/50 pl-10 pr-4',
               'text-sm text-renta-900 placeholder:text-renta-400',
               'transition-all duration-200',
               'focus:border-renta-300 focus:outline-none focus:ring-2 focus:ring-renta-200/50'
@@ -73,7 +73,7 @@ export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps)
 
         {/* Notifications */}
         <button
-          className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-admin-border bg-white text-renta-600 transition-all hover:bg-renta-50 hover:shadow-sm"
+          className="relative flex h-9 w-9 items-center justify-center rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-renta-600 transition-all hover:bg-renta-50 hover:shadow-sm"
           aria-label="Notificaciones"
         >
           <Bell className="h-4 w-4" />
@@ -83,7 +83,7 @@ export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps)
         {/* Tenant Badge */}
         <div 
           data-shepherd="user-profile"
-          className="flex items-center gap-3 rounded-xl border border-admin-border bg-white px-3 py-1.5">
+          className="flex items-center gap-3 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white px-3 py-1.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white overflow-hidden border border-renta-100 text-xs font-bold text-renta-600">
             {showCustomLogo && resolvedLogoUrl ? (
               <img src={resolvedLogoUrl} alt={nombre} className="h-full w-full object-contain" />

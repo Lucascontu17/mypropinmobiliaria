@@ -268,12 +268,12 @@ export function MarketplacePage() {
       </div>
 
       {/* ── Tabs ── */}
-      <div data-shepherd="mkt-tabs" className="flex gap-2 p-1 bg-admin-surface rounded-xl border border-admin-border w-fit">
+      <div data-shepherd="mkt-tabs" className="flex gap-2 p-1 bg-admin-surface rounded-xl ring-1 ring-inset ring-admin-border border-transparent w-fit">
         <button
           onClick={() => setActiveTab('addons')}
           className={cn(
             "px-6 py-2.5 rounded-lg text-sm font-bold transition-all",
-            activeTab === 'addons' ? "bg-white text-renta-950 shadow-sm border border-admin-border" : "text-renta-500 hover:text-renta-700"
+            activeTab === 'addons' ? "bg-white text-renta-950 shadow-sm ring-1 ring-inset ring-admin-border border-transparent" : "text-renta-500 hover:text-renta-700"
           )}
         >
           Funciones Extra
@@ -282,7 +282,7 @@ export function MarketplacePage() {
           onClick={() => setActiveTab('points')}
           className={cn(
             "px-6 py-2.5 rounded-lg text-sm font-bold transition-all",
-            activeTab === 'points' ? "bg-white text-renta-950 shadow-sm border border-admin-border" : "text-renta-500 hover:text-renta-700"
+            activeTab === 'points' ? "bg-white text-renta-950 shadow-sm ring-1 ring-inset ring-admin-border border-transparent" : "text-renta-500 hover:text-renta-700"
           )}
         >
           Comprar Puntos
@@ -353,7 +353,7 @@ export function MarketplacePage() {
           {/* Packages */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {catalog?.packages.map((pkg) => (
-              <div key={pkg.id} className="relative bg-white rounded-2xl border border-admin-border p-6 flex flex-col">
+              <div key={pkg.id} className="relative bg-white rounded-2xl ring-1 ring-inset ring-admin-border border-transparent p-6 flex flex-col">
                 <div className="absolute -top-3 right-4 bg-emerald-500 text-white text-[10px] font-bold tracking-widest px-3 py-1 rounded-full uppercase">
                   Pack {pkg.puntos} Ptos
                 </div>
@@ -370,7 +370,7 @@ export function MarketplacePage() {
           </div>
 
           {/* Custom Points */}
-          <div className="bg-gradient-to-br from-white to-renta-50/30 rounded-[32px] border border-admin-border p-10 max-w-2xl shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-gradient-to-br from-white to-renta-50/30 rounded-[32px] ring-1 ring-inset ring-admin-border border-transparent p-10 max-w-2xl shadow-sm hover:shadow-md transition-shadow">
              <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
                    <PlusCircle className="h-6 w-6 text-emerald-600" />

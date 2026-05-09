@@ -130,7 +130,7 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 rounded-2xl border border-admin-border shadow-sm">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm">
       <div className="flex justify-between items-center border-b border-admin-border-subtle pb-4">
         <h2 className="text-xl font-bold font-jakarta text-renta-950">
           {initialData ? 'Editar Inquilino' : 'Nuevo Inquilino'}
@@ -244,7 +244,7 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
             type="file"
             accept=".pdf,.png,.jpg,.jpeg"
             className={cn(
-              "w-full rounded-xl border border-admin-border bg-white pr-4 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-renta-200 transition-all text-renta-950 file:mr-4 file:-my-1.5 file:py-2.5 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-renta-100 file:text-renta-700 hover:file:bg-renta-200 file:cursor-pointer",
+              "w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white pr-4 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-renta-200 transition-all text-renta-950 file:mr-4 file:-my-1.5 file:py-2.5 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-renta-100 file:text-renta-700 hover:file:bg-renta-200 file:cursor-pointer",
               errors.dni_url ? "border-red-400" : ""
             )}
           />
@@ -259,7 +259,7 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
             type="file"
             accept=".pdf,.png,.jpg,.jpeg"
             className={cn(
-              "w-full rounded-xl border border-admin-border bg-white pr-4 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-renta-200 transition-all text-renta-950 file:mr-4 file:-my-1.5 file:py-2.5 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-renta-100 file:text-renta-700 hover:file:bg-renta-200 file:cursor-pointer",
+              "w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white pr-4 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-renta-200 transition-all text-renta-950 file:mr-4 file:-my-1.5 file:py-2.5 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-renta-100 file:text-renta-700 hover:file:bg-renta-200 file:cursor-pointer",
               errors.contrato_url ? "border-red-400" : ""
             )}
           />
@@ -273,7 +273,7 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
           <button 
             type="button" 
             onClick={onCancel}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-admin-border bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
           >
             <X className="h-4 w-4" /> Cancelar
           </button>

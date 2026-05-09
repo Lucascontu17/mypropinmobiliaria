@@ -206,7 +206,7 @@ export function ConfiguracionPage() {
             </div>
 
             {/* Regional Info Panel */}
-            <div className="bg-renta-50/50 rounded-xl border border-admin-border-subtle p-4 space-y-2">
+            <div className="bg-renta-50/50 rounded-xl ring-1 ring-inset ring-admin-border border-transparent-subtle p-4 space-y-2">
               <p className="text-[10px] font-bold uppercase tracking-widest text-renta-500">
                 {t('config_region_actual', 'Región Activa')}
               </p>
@@ -247,7 +247,7 @@ export function ConfiguracionPage() {
       {/* ══════════════════════════════════════════════════════════════════
           BRANDING DE LA AGENCIA
           ══════════════════════════════════════════════════════════════════ */}
-      <div className="bg-white rounded-2xl border border-admin-border shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm overflow-hidden">
          <div className="bg-renta-50/50 px-6 py-4 flex items-center justify-between border-b border-admin-border-subtle">
             <h2 className="text-sm font-bold text-renta-950 font-jakarta flex items-center gap-2">
                <Building2 className="h-4 w-4 text-renta-600" />
@@ -266,7 +266,7 @@ export function ConfiguracionPage() {
                  value={nombreAgencia}
                  onChange={(e) => setNombreAgencia(e.target.value)}
                  placeholder="Ej: Mi Inmobiliaria Prop"
-                 className="w-full max-w-md h-10 px-4 rounded-xl border border-admin-border bg-white text-sm text-renta-900 focus:outline-none focus:ring-2 focus:ring-renta-500/20"
+                 className="w-full max-w-md h-10 px-4 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm text-renta-900 focus:outline-none focus:ring-2 focus:ring-renta-500/20"
                />
                <p className="text-[10px] text-renta-500">
                  {t('config_nombre_agencia_desc', 'Este nombre aparecerá en la barra superior y en todas las comunicaciones oficiales.')}
@@ -345,7 +345,7 @@ export function ConfiguracionPage() {
       {/* ══════════════════════════════════════════════════════════════════
           CONFIGURACIÓN DE NOTIFICACIONES (Twilio & SendGrid) — Original
           ══════════════════════════════════════════════════════════════════ */}
-      <div className="bg-white rounded-2xl border border-admin-border shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm overflow-hidden">
          <div className="bg-renta-50/50 px-6 py-4 flex items-center justify-between border-b border-admin-border-subtle">
             <h2 className="text-sm font-bold text-renta-950 font-jakarta flex items-center gap-2">
                <BellRing className="h-4 w-4 text-renta-600" />
