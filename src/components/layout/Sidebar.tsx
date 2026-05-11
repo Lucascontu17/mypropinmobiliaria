@@ -16,6 +16,7 @@ import {
   CreditCard,
   LogOut,
   Calendar,
+  LifeBuoy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInmobiliaria, type UserRole } from '@/hooks/useInmobiliaria';
@@ -52,6 +53,7 @@ const NAV_ITEMS: NavItem[] = [
   { dialectKey: 'nav_marketplace', fallbackLabel: 'Marketplace', href: '/marketplace', icon: Store, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_suscripcion', fallbackLabel: 'Mi Suscripción', href: '/suscripcion', icon: CreditCard, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_equipo', fallbackLabel: 'Equipo', href: '/equipo', icon: UsersRound, allowedRoles: ['superadmin', 'admin'] },
+  { dialectKey: 'nav_soporte', fallbackLabel: 'Soporte', href: '/soporte', icon: LifeBuoy, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
   { dialectKey: 'nav_configuracion', fallbackLabel: 'Configuración', href: '/configuracion', icon: Settings, allowedRoles: ['superadmin'] },
 ];
 
