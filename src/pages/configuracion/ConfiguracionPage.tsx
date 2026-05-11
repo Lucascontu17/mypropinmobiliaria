@@ -143,13 +143,13 @@ export function ConfiguracionPage() {
           ══════════════════════════════════════════════════════════════════ */}
       {isDev && (
         <div className={cn(
-          "rounded-2xl border-2 border-dashed overflow-hidden transition-all duration-300",
+          "rounded-2xl border-2 border-dashed transition-all duration-300",
           isAuditOverride 
             ? "border-amber-400 bg-amber-50/30" 
             : "border-renta-200 bg-white"
         )}>
           {/* Header */}
-          <div className="bg-gradient-to-r from-renta-950 to-renta-800 px-6 py-4 flex items-center justify-between">
+          <div className="bg-gradient-to-r from-renta-950 to-renta-800 px-6 py-4 flex items-center justify-between rounded-t-[14px]">
             <h2 className="text-sm font-bold text-white font-jakarta flex items-center gap-2.5">
               <Globe className="h-4 w-4 text-renta-400" />
               {t('config_region_titulo', 'Modo Auditoría Regional')}
@@ -247,8 +247,8 @@ export function ConfiguracionPage() {
       {/* ══════════════════════════════════════════════════════════════════
           BRANDING DE LA AGENCIA
           ══════════════════════════════════════════════════════════════════ */}
-      <div className="bg-white rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm overflow-hidden">
-         <div className="bg-renta-50/50 px-6 py-4 flex items-center justify-between border-b border-admin-border-subtle">
+      <div className="bg-white rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm">
+         <div className="bg-renta-50/50 px-6 py-4 flex items-center justify-between border-b border-admin-border-subtle rounded-t-2xl">
             <h2 className="text-sm font-bold text-renta-950 font-jakarta flex items-center gap-2">
                <Building2 className="h-4 w-4 text-renta-600" />
                {t('config_branding', 'Branding de la Agencia')}
@@ -345,8 +345,8 @@ export function ConfiguracionPage() {
       {/* ══════════════════════════════════════════════════════════════════
           CONFIGURACIÓN DE NOTIFICACIONES (Twilio & SendGrid) — Original
           ══════════════════════════════════════════════════════════════════ */}
-      <div className="bg-white rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm overflow-hidden">
-         <div className="bg-renta-50/50 px-6 py-4 flex items-center justify-between border-b border-admin-border-subtle">
+      <div className="bg-white rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm">
+         <div className="bg-renta-50/50 px-6 py-4 flex items-center justify-between border-b border-admin-border-subtle rounded-t-2xl">
             <h2 className="text-sm font-bold text-renta-950 font-jakarta flex items-center gap-2">
                <BellRing className="h-4 w-4 text-renta-600" />
                {t('config_motor', 'Motor de Automatización (Twilio & SendGrid)')}
@@ -408,7 +408,7 @@ export function ConfiguracionPage() {
          </div>
          
          {/* Footer Action */}
-          <div className="bg-admin-surface-hover border-t border-admin-border-subtle px-6 py-4 flex items-center justify-between">
+          <div className="bg-admin-surface-hover border-t border-admin-border-subtle px-6 py-4 flex items-center justify-between rounded-b-2xl">
             {!canEditConfig && (
               <p className="text-[10px] font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
                 {t('config_admin_readonly', 'Modo Lectura: Solo el Superadmin puede modificar estas claves.')}
