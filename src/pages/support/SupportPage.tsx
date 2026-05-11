@@ -54,7 +54,6 @@ export function SupportPage() {
   const [newTicket, setNewTicket] = useState({
     subject: '',
     category: 'Consulta Técnica',
-    priority: 'media',
     description: ''
   });
 
@@ -87,12 +86,12 @@ export function SupportPage() {
     try {
       const res = await apiFetch('/soporte/tickets', {
         method: 'POST',
-        body: JSON.stringify(newTicket)
+        body: JSON.stringify({ ...newTicket, priority: 'media' })
       });
       if (res.success) {
         toast.success('Ticket enviado con éxito');
         setIsModalOpen(false);
-        setNewTicket({ subject: '', category: 'Consulta Técnica', priority: 'media', description: '' });
+        setNewTicket({ subject: '', category: 'Consulta Técnica', description: '' });
         fetchTickets();
       }
     } catch (err) {
@@ -316,31 +315,17 @@ export function SupportPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-renta-400 uppercase ml-1">{t('support_form_category')}</label>
-                  <select 
-                    value={newTicket.category}
-                    onChange={e => setNewTicket({...newTicket, category: e.target.value})}
-                    className="w-full bg-renta-50 border border-renta-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none"
-                  >
-                    <option>Consulta Técnica</option>
-                    <option>Facturación</option>
-                    <option>Sugerencia</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-renta-400 uppercase ml-1">{t('support_form_priority')}</label>
-                  <select 
-                    value={newTicket.priority}
-                    onChange={e => setNewTicket({...newTicket, priority: e.target.value})}
-                    className="w-full bg-renta-50 border border-renta-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none"
-                  >
-                    <option value="baja">{t('support_prioridad_baja')}</option>
-                    <option value="media">{t('support_prioridad_media')}</option>
-                    <option value="alta">{t('support_prioridad_alta')}</option>
-                  </select>
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-renta-400 uppercase ml-1">{t('support_form_category')}</label>
+                <select 
+                  value={newTicket.category}
+                  onChange={e => setNewTicket({...newTicket, category: e.target.value})}
+                  className="w-full bg-renta-50 border border-renta-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-renta-200"
+                >
+                  <option>Consulta Técnica</option>
+                  <option>Facturación</option>
+                  <option>Sugerencia</option>
+                </select>
               </div>
 
               <div className="space-y-1.5">
