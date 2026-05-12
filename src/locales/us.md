@@ -35,6 +35,7 @@ nav_configuracion: Settings
 
 # Topbar
 buscar_placeholder: Search properties, tenants...
+notificaciones_titulo: Recent Activity
 
 # Marketplace
 marketplace_titulo: Booster Marketplace

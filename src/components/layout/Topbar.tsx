@@ -6,6 +6,7 @@ import { useClerk } from '@clerk/clerk-react';
 import { cn } from '@/lib/utils';
 import { BASE_URL } from '@/services/eden';
 import { useActiveAddons } from '@/hooks/useActiveAddons';
+import { NotificationsPopover } from './NotificationsPopover';
 
 interface TopbarProps {
   isSidebarCollapsed: boolean;
@@ -72,13 +73,7 @@ export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps)
         </div>
 
         {/* Notifications */}
-        <button
-          className="relative flex h-9 w-9 items-center justify-center rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-renta-600 transition-all hover:bg-renta-50 hover:shadow-sm"
-          aria-label="Notificaciones"
-        >
-          <Bell className="h-4 w-4" />
-          <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-renta-500" />
-        </button>
+        <NotificationsPopover />
 
         {/* Tenant Badge */}
         <div 
