@@ -126,6 +126,13 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
         });
       }
 
+      if (!methods.getValues('latitud') || !methods.getValues('longitud')) {
+        toast.warning("Atención: No se han detectado coordenadas geográficas.", {
+          description: "La propiedad se guardará, pero no aparecerá en las búsquedas 'Cerca de mí' en el portal público. Intenta seleccionar la dirección de las sugerencias de Google.",
+          duration: 6000
+        });
+      }
+
       if (response && response.success === false) {
         const errorMsg = response?.error || "Error desconocido";
         console.error("[PROPIEDAD-SUBMIT] Error:", errorMsg);
