@@ -4,6 +4,7 @@ import { cierrePeriodoSchema, type CierrePeriodoData } from '@/types/cobranzas';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { AlertCircle, LockKeyhole, FolderSync, ShieldAlert } from 'lucide-react';
 import { useEden } from '@/services/eden';
+import { toast } from 'sonner';
 
 interface CierrePeriodoModalProps {
   periodoActual: string; // Ej. 2026-04
@@ -17,10 +18,10 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
   const { inmobiliaria_id } = useInmobiliaria();
   const { client: eden } = useEden();
   
-  const { handleSubmit, formState: { isSubmitting } } = useForm<CierrePeriodoData>({
+  const { handleSubmit, formState: { isSubmitting, errors } } = useForm<CierrePeriodoData>({
     resolver: zodResolver(cierrePeriodoSchema),
     defaultValues: {
-      inmobiliaria_id: '',
+      inmobiliaria_id: undefined,
       periodo_actual: periodoActual
     }
   });
@@ -32,15 +33,18 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
         inmobiliaria_id: inmobiliaria_id || undefined
       };
       
+      toast.info('Procesando Cierre Maestro en Búnker...');
       // @ts-ignore - Triggering Master Rollover (v2.0.1 Integrity Fix)
       const { error } = await eden.admin.pagos['cierre-maestro'].post(payload);
 
       if (error) throw new Error('Error al ejecutar el cierre maestro.');
 
+      toast.success('Cierre de periodo y Rollover completados con éxito.');
       if (onSuccess) onSuccess();
       onClose();
     } catch (e: any) {
       console.error(e);
+      toast.error('Error al ejecutar el cierre maestro.');
     }
   };
 
@@ -96,6 +100,21 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
                </p>
             </div>
           </div>
+
+          {/* Debug Global Errors */}
+          {Object.keys(errors).length > 0 && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 space-y-1 animate-fade-in">
+               <div className="font-bold flex items-center gap-1.5">
+                 <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0" />
+                 Errores de validación detectados:
+               </div>
+               <ul className="list-disc list-inside pl-1 space-y-0.5">
+                 {Object.entries(errors).map(([key, value]: [string, any]) => (
+                   <li key={key}>{value.message || `${key} inválido`}</li>
+                 ))}
+               </ul>
+            </div>
+          )}
 
           <div className="pt-4 flex justify-between gap-3 items-center">
              <button
