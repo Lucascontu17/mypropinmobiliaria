@@ -127,8 +127,11 @@ export function SuscripcionPage() {
                 </div>
                 <h2 className="text-lg font-bold text-renta-950 font-jakarta">Resumen del Próximo Pago</h2>
               </div>
-              <div className="px-4 py-1.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-widest rounded-full border border-emerald-200">
-                Estado: Activo
+              <div className={cn(
+                "px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full border",
+                summary?.is_vip ? "bg-indigo-100 text-indigo-700 border-indigo-200" : "bg-emerald-100 text-emerald-700 border-emerald-200"
+              )}>
+                Estado: {summary?.is_vip ? 'VIP ACTIVO' : 'ACTIVO'}
               </div>
             </div>
 
@@ -159,7 +162,10 @@ export function SuscripcionPage() {
                 <div className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    <span className="text-sm font-medium text-renta-950">Abono Base MyProp (Inmobiliaria)</span>
+                    <span className="text-sm font-medium text-renta-950">
+                      Abono Base MyProp (Inmobiliaria)
+                      {summary?.is_vip && <span className="ml-2 text-xs font-bold text-indigo-500">(Bonificado)</span>}
+                    </span>
                   </div>
                   <span className="text-sm font-bold text-renta-950">{formatCurrency(summary?.base_price || 0)}</span>
                 </div>
@@ -170,7 +176,10 @@ export function SuscripcionPage() {
                     <div className="flex items-center gap-3">
                       <PlusCircleIcon className="h-4 w-4 text-renta-400" />
                       <div>
-                        <span className="text-sm font-medium text-renta-950">{addon.nombre}</span>
+                        <span className="text-sm font-medium text-renta-950">
+                          {addon.nombre}
+                          {summary?.is_vip && <span className="ml-2 text-xs font-bold text-indigo-500">(Bonificado)</span>}
+                        </span>
                         <p className="text-[10px] text-renta-500">Función Extra Adquirida</p>
                       </div>
                     </div>
