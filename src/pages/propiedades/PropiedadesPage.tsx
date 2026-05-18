@@ -259,6 +259,11 @@ export function PropiedadesPage() {
                           )}>
                             {p?.operacion === 'venta' ? '💰 VENTA' : '🔑 ALQUILER'}
                           </span>
+                          {['DISPONIBLE', 'VENTA'].includes(p?.status) && (
+                            <span className="text-[9px] font-bold text-amber-500 flex items-center gap-1 px-1 tracking-widest">
+                              <Rocket className="h-3 w-3" /> {p?.puntos || 0} PTS
+                            </span>
+                          )}
                         </div>
                       </td>
                      <td className="px-6 py-4 text-renta-900 font-bold">
