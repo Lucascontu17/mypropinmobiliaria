@@ -1,6 +1,13 @@
 ================================================================================
 CHANGELOG MYPROPINMOBILIARIAS (PANEL ADMINISTRATIVO)
 ================================================================================
+## [2.1.1] (Marketplace Dynamic Units and Prompts Hotfix)
+Fecha: 2026-05-18
+Rama: fix
+
+### 🐞 Fixed
+- **Marketplace dynamic units**: Rendered monthly price unit (`/ mes`) and purchase alerts dynamically based on the addon type, shifting AI and Copilot features (like *Zonatia AI Copilot*) to usage-based pricing (`/ uso`) and adjusting payment confirmation alerts and description cards to reflect per-use accumulation on the monthly bill.
+
 ## [2.1.0] (Gestión de Equipo — RBAC Team Management)
 Fecha: 2026-04-11
 Rama: dev

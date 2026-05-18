@@ -66,7 +66,13 @@ export function MarketplacePage() {
   };
 
   const aquirirAddon = async (addonId: string) => {
-    if (!confirm(t('marketplace_confirm_addon', '¿Desea adquirir esta función? El cobro se verá reflejado a partir de su próxima cuota mensual de suscripción.'))) return;
+    const addon = catalog?.addons.find(a => a.id === addonId);
+    const isAi = addon && (addon.nombre.includes('IA') || addon.nombre.includes('AI') || addon.nombre.includes('Copilot'));
+    const confirmMsg = isAi 
+      ? '¿Desea habilitar esta función de Inteligencia Artificial? Se cobrará por cada descripción generada y se acumulará en su próxima cuota mensual.'
+      : t('marketplace_confirm_addon', '¿Desea adquirir esta función? El cobro se verá reflejado a partir de su próxima cuota mensual de suscripción.');
+    
+    if (!confirm(confirmMsg)) return;
     
     setIsProcessing(addonId);
     try {
@@ -316,14 +322,18 @@ export function MarketplacePage() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <span className="text-2xl font-bold text-renta-950">{formatCurrency(addon.costo_mensual)}</span>
-                    <span className="text-[10px] font-bold text-renta-400 ml-1">/ MES</span>
+                    <span className="text-[10px] font-bold text-renta-400 ml-1 uppercase">
+                      / {(addon.nombre.includes('IA') || addon.nombre.includes('AI') || addon.nombre.includes('Copilot')) ? 'uso' : 'mes'}
+                    </span>
                   </div>
                 </div>
                 
                 <div className="bg-amber-50 rounded-lg p-3 mb-4 border border-amber-100 flex gap-2">
                   <Info className="h-4 w-4 text-amber-600 shrink-0" />
                   <p className="text-[10px] text-amber-700 font-medium">
-                    Se cobrará como extra a partir de su próxima cuota mensual de suscripción.
+                    {(addon.nombre.includes('IA') || addon.nombre.includes('AI') || addon.nombre.includes('Copilot'))
+                      ? "Se cobrará por cada descripción generada y se acumulará en su próxima cuota mensual."
+                      : "Se cobrará como cargo extra mensual fijo en su próxima cuota de suscripción."}
                   </p>
                 </div>
 
