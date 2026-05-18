@@ -186,7 +186,7 @@ export function SuscripcionPage() {
               {!preferenceId ? (
                 <button 
                   onClick={handlePayClick}
-                  disabled={isGeneratingPayment || !summary?.total_amount || isNotDueYet}
+                  disabled={isGeneratingPayment || !summary?.total_amount || Number(summary.total_amount) <= 0 || isNotDueYet}
                   className={cn(
                     "mt-6 w-full py-3.5 px-4 rounded-xl font-bold transition-all border",
                     "bg-renta-950 text-white border-renta-950 hover:bg-renta-900",
@@ -194,7 +194,7 @@ export function SuscripcionPage() {
                   )}
                 >
                   {isGeneratingPayment ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
-                  {isGeneratingPayment ? 'Inicializando Pago Seguro...' : isNotDueYet ? 'Aún no es fecha de pago' : 'Abonar con Tarjeta'}
+                  {isGeneratingPayment ? 'Inicializando Pago Seguro...' : Number(summary?.total_amount) <= 0 ? 'Suscripción Bonificada' : isNotDueYet ? 'Aún no es fecha de pago' : 'Abonar con Tarjeta'}
                 </button>
               ) : (
                 <div className="mt-6 pt-6 border-t border-admin-border-subtle animate-fade-in">
