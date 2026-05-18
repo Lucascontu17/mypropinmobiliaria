@@ -22,7 +22,7 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
     resolver: zodResolver(cierrePeriodoSchema),
     defaultValues: {
       inmobiliaria_id: undefined,
-      periodo_actual: periodoActual
+      periodo_actual: (periodoActual || '').trim()
     }
   });
 
