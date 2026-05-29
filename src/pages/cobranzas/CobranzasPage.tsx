@@ -344,9 +344,10 @@ export function CobranzasPage() {
            deudaEstimada={deudaEstimadaCierre}
            saldoAFavorEstimado={saldoFavorEstimado}
            onClose={() => setShowCierreModal(false)}
-           onSuccess={() => {
-             // Forzar resincronización de periodo: el backend devolverá N+1
-             fetchPagos(undefined, true);
+           onSuccess={(nextPeriodo) => {
+             // Forzar avance visual del periodo, incluso si la BD está vacía
+             setPeriodoActual(nextPeriodo);
+             fetchPagos(nextPeriodo);
              toast.success('El periodo ha sido procesado.');
            }}
          />

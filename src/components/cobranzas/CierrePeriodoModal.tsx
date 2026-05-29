@@ -11,7 +11,7 @@ interface CierrePeriodoModalProps {
   deudaEstimada: number;
   saldoAFavorEstimado: number;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (nextPeriodo: string) => void;
 }
 
 export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEstimado, onClose, onSuccess }: CierrePeriodoModalProps) {
@@ -40,7 +40,7 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
       if (error) throw new Error('Error al ejecutar el cierre maestro.');
 
       toast.success('Cierre de periodo y Rollover completados con éxito.');
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess(nextPeriodo);
       onClose();
     } catch (e: any) {
       console.error(e);
