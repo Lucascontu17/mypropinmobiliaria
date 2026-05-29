@@ -31,6 +31,7 @@ export function useInmobiliaria() {
   const { data: dbData } = useSWR(
     isSignedIn && isReady ? '/admin/me' : null,
     async () => {
+      // @ts-ignore
       const { data, error } = await client.admin.me.get();
       if (error) {
         console.warn('[useInmobiliaria] DB branding fetch failed, using metadata.');
