@@ -50,7 +50,8 @@ export function CobranzasPage() {
             // @ts-ignore
             if (data?.periodo_activo && !periodoIniciado) {
               // @ts-ignore
-              setPeriodoActual(data.periodo_activo.trim());
+              const nuevoPeriodo = data.periodo_activo.trim();
+              setPeriodoActual(nuevoPeriodo);
               setPeriodoIniciado(true);
             }
         }
