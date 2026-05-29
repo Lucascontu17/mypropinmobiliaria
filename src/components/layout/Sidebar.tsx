@@ -16,6 +16,7 @@ import {
   CreditCard,
   LogOut,
   Calendar,
+  LifeBuoy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInmobiliaria, type UserRole } from '@/hooks/useInmobiliaria';
@@ -52,6 +53,7 @@ const NAV_ITEMS: NavItem[] = [
   { dialectKey: 'nav_marketplace', fallbackLabel: 'Marketplace', href: '/marketplace', icon: Store, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_suscripcion', fallbackLabel: 'Mi Suscripción', href: '/suscripcion', icon: CreditCard, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_equipo', fallbackLabel: 'Equipo', href: '/equipo', icon: UsersRound, allowedRoles: ['superadmin', 'admin'] },
+  { dialectKey: 'nav_soporte', fallbackLabel: 'Soporte', href: '/soporte', icon: LifeBuoy, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
   { dialectKey: 'nav_configuracion', fallbackLabel: 'Configuración', href: '/configuracion', icon: Settings, allowedRoles: ['superadmin'] },
 ];
 
@@ -90,13 +92,13 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       )}
     >
       {/* ── Logo Area ── */}
-      <div className="flex h-16 items-center gap-3 border-b border-white/10 px-4">
+      <div className="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-4">
         {showCustomLogo && resolvedLogoUrl ? (
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 overflow-hidden">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white p-1 shadow-sm overflow-hidden">
             <img src={resolvedLogoUrl} alt={nombre} className="h-full w-full object-contain" />
           </div>
         ) : (
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 overflow-hidden">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white p-1 shadow-sm overflow-hidden">
             <img src="/logo.png" alt="Zonatia Logo" className="h-full w-full object-contain" />
           </div>
         )}
@@ -113,7 +115,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       </div>
 
       {/* ── Navigation ── */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 overflow-y-auto min-h-0 space-y-1 px-3 py-4 sidebar-scrollbar">
         {visibleNavItems.map((item) => {
           const isActive = location.pathname === item.href;
           const Icon = item.icon;
@@ -150,7 +152,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
       {/* ── Region Badge + Version ── */}
       {!isCollapsed && (
-        <div className="animate-fade-in border-t border-white/10 px-4 py-3 space-y-1">
+        <div className="shrink-0 animate-fade-in border-t border-white/10 px-4 py-3 space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-sm" aria-label={`Región: ${country_code}`}>{flag}</span>
             <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">
@@ -190,7 +192,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       {/* ── Collapse Toggle ── */}
       <button
         onClick={onToggle}
-        className="absolute -right-3 top-20 flex h-6 w-6 items-center justify-center rounded-full border border-admin-border bg-white text-renta-700 shadow-md transition-all hover:scale-110 hover:shadow-lg"
+        className="absolute -right-3 top-20 flex h-6 w-6 items-center justify-center rounded-full ring-1 ring-inset ring-admin-border border-transparent bg-white text-renta-700 shadow-md transition-all hover:scale-110 hover:shadow-lg"
         aria-label={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
       >
         {isCollapsed ? (

@@ -117,7 +117,7 @@ export function MapPicker({ direccionFieldName = 'direccion' }: MapPickerProps) 
       </div>
 
       {/* Visualización de Mapa en iFrame embebido */}
-      <div className="mt-4 rounded-xl overflow-hidden border border-admin-border h-[250px] bg-renta-50 flex items-center justify-center relative">
+      <div className="mt-4 rounded-xl overflow-hidden ring-1 ring-inset ring-admin-border border-transparent h-[250px] bg-renta-50 flex items-center justify-center relative">
         {hasCoords ? (
           <iframe 
             width="100%" 

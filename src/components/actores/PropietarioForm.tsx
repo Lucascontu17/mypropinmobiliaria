@@ -55,6 +55,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
 
   const [searchCode, setSearchCode] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [sinCuenta, setSinCuenta] = useState(false);
 
   const handleSearchClient = async () => {
     if (!searchCode || searchCode.length < 3) {
@@ -101,13 +102,14 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
     try {
       const payload = {
         nombre: data.nombre,
-        email: data.email,
+        email: sinCuenta ? "" : (data.email || ""),
         dni: data.dni,
         celular: data.celular,
         cbu: data.cbu || undefined,
         commission_type: data.comision_tipo as any,
         commission_value: data.comision_valor ? Number(data.comision_valor) : undefined,
-        client_number: data.client_number || undefined
+        client_number: data.client_number || undefined,
+        sin_cuenta: sinCuenta
       };
 
       const ownerId = (initialData as any)?.id;
@@ -134,9 +136,11 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
 
       const clientCode = response?.client_number;
       toast.success('Propietario Guardado', {
-        description: clientCode 
-          ? `${data.nombre} registrado con código ${clientCode}.`
-          : `${data.nombre} ha sido registrado con éxito.`,
+        description: sinCuenta 
+          ? `${data.nombre} registrado como ficha local (sin cuenta Zonatia). Se le asignará un ID de cliente cuando se cree su cuenta.`
+          : clientCode 
+            ? `${data.nombre} registrado con código ${clientCode}.`
+            : `${data.nombre} ha sido registrado con éxito.`,
         duration: 6000
       });
 
@@ -150,7 +154,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 rounded-2xl border border-admin-border shadow-sm">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm">
       <div className="flex justify-between items-center border-b border-admin-border-subtle pb-4">
         <h2 className="text-xl font-bold font-jakarta text-renta-950">
           {initialData ? 'Editar Propietario' : 'Nuevo Propietario'}
@@ -175,7 +179,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
               placeholder="Ej: AR001"
               value={searchCode}
               onChange={(e) => setSearchCode(e.target.value.toUpperCase())}
-              className="flex-1 rounded-xl border border-admin-border px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-renta-200 uppercase"
+              className="flex-1 rounded-xl ring-1 ring-inset ring-admin-border border-transparent px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-renta-200 uppercase"
             />
             <button
               type="button"
@@ -236,24 +240,42 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
 
         {/* Email */}
         <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-renta-900">Email</label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-sm font-semibold text-renta-900">Email</label>
+            {!initialData && !watch('client_number') && (
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input 
+                  type="checkbox" 
+                  checked={sinCuenta}
+                  onChange={(e) => {
+                    setSinCuenta(e.target.checked);
+                    if (e.target.checked) setValue('email', '');
+                  }}
+                  className="rounded border-admin-border text-renta-900 focus:ring-renta-900"
+                />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-renta-500 group-hover:text-renta-900 transition-colors">
+                  Sin cuenta (Solo Ficha)
+                </span>
+              </label>
+            )}
+          </div>
           <input
             {...register('email')}
             type="email"
-            disabled={!!initialData || !!watch('client_number')}
+            disabled={!!initialData || !!watch('client_number') || sinCuenta}
             className={cn(
               "w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
-              (!!initialData || !!watch('client_number')) ? "bg-renta-50 text-renta-400 cursor-not-allowed border-admin-border-subtle" : 
+              (!!initialData || !!watch('client_number') || sinCuenta) ? "bg-renta-50 text-renta-400 cursor-not-allowed border-admin-border-subtle" : 
               errors.email ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
             )}
-            placeholder="propietario@email.com"
+            placeholder={sinCuenta ? "Email no requerido" : "propietario@email.com"}
           />
           {(!!initialData || !!watch('client_number')) && (
             <p className="text-[10px] text-renta-400 font-medium italic">
               El email no puede modificarse una vez vinculado a una cuenta Zonatia.
             </p>
           )}
-          {errors.email && <p className="text-xs text-red-500 font-medium">{errors.email.message}</p>}
+          {errors.email && !sinCuenta && <p className="text-xs text-red-500 font-medium">{errors.email.message}</p>}
         </div>
 
         {/* Celular E164 */}
@@ -277,7 +299,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
           <label className="text-sm font-semibold text-renta-900">Tipo de Comisión</label>
           <select 
             {...register('comision_tipo')}
-            className="w-full rounded-xl border border-admin-border bg-white px-4 py-2 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950"
+            className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white px-4 py-2 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950"
           >
             <option value="percent">Porcentaje (%)</option>
             <option value="fixed">Monto Fijo ($)</option>
@@ -307,7 +329,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
           <button 
             type="button" 
             onClick={onCancel}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-admin-border bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
           >
             <X className="h-4 w-4" /> Cancelar
           </button>

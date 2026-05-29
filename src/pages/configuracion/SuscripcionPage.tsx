@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEden } from '@/services/eden';
-import { format } from 'date-fns';
+import { format, isBefore, startOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 
@@ -103,6 +103,8 @@ export function SuscripcionPage() {
     }
   ];
 
+  const isNotDueYet = summary?.period ? isBefore(startOfDay(new Date()), startOfDay(new Date(summary.period))) : false;
+
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in-up">
       <LocalShepherd steps={shepherdSteps} storageKey="enjoy_local_suscripcion" />
@@ -117,7 +119,7 @@ export function SuscripcionPage() {
         
         {/* ── PRÓXIMO PAGO (Left 2/3) ── */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-3xl border border-admin-border overflow-hidden shadow-sm">
+          <div className="bg-white rounded-3xl ring-1 ring-inset ring-admin-border border-transparent overflow-hidden shadow-sm">
             <div data-shepherd="sub-desglose" className="bg-renta-50/50 px-8 py-6 border-b border-admin-border-subtle flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-renta-950 text-white flex items-center justify-center shadow-lg shadow-renta-950/20">
@@ -125,8 +127,11 @@ export function SuscripcionPage() {
                 </div>
                 <h2 className="text-lg font-bold text-renta-950 font-jakarta">Resumen del Próximo Pago</h2>
               </div>
-              <div className="px-4 py-1.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-widest rounded-full border border-emerald-200">
-                Estado: Activo
+              <div className={cn(
+                "px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full border",
+                summary?.is_vip ? "bg-indigo-100 text-indigo-700 border-indigo-200" : "bg-emerald-100 text-emerald-700 border-emerald-200"
+              )}>
+                Estado: {summary?.is_vip ? 'VIP ACTIVO' : 'ACTIVO'}
               </div>
             </div>
 
@@ -134,7 +139,7 @@ export function SuscripcionPage() {
               {/* Main Total */}
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Fecha Estimada de Cobro</p>
+                  <p className="text-[10px] font-bold text-renta-400 uppercase tracking-widest">Próximo Pago</p>
                   <div className="flex items-center gap-2 text-renta-950 font-bold">
                     <Calendar className="h-4 w-4 text-renta-600" />
                     {summary?.period ? format(new Date(summary.period), "dd 'de' MMMM, yyyy", { locale: es }) : '---'}
@@ -157,7 +162,10 @@ export function SuscripcionPage() {
                 <div className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    <span className="text-sm font-medium text-renta-950">Abono Base MyProp (Inmobiliaria)</span>
+                    <span className="text-sm font-medium text-renta-950">
+                      Abono Base MyProp (Inmobiliaria)
+                      {summary?.is_vip && <span className="ml-2 text-xs font-bold text-indigo-500">(Bonificado)</span>}
+                    </span>
                   </div>
                   <span className="text-sm font-bold text-renta-950">{formatCurrency(summary?.base_price || 0)}</span>
                 </div>
@@ -168,7 +176,10 @@ export function SuscripcionPage() {
                     <div className="flex items-center gap-3">
                       <PlusCircleIcon className="h-4 w-4 text-renta-400" />
                       <div>
-                        <span className="text-sm font-medium text-renta-950">{addon.nombre}</span>
+                        <span className="text-sm font-medium text-renta-950">
+                          {addon.nombre}
+                          {summary?.is_vip && <span className="ml-2 text-xs font-bold text-indigo-500">(Bonificado)</span>}
+                        </span>
                         <p className="text-[10px] text-renta-500">Función Extra Adquirida</p>
                       </div>
                     </div>
@@ -184,7 +195,7 @@ export function SuscripcionPage() {
               {!preferenceId ? (
                 <button 
                   onClick={handlePayClick}
-                  disabled={isGeneratingPayment || !summary?.total_amount}
+                  disabled={isGeneratingPayment || !summary?.total_amount || Number(summary.total_amount) <= 0 || isNotDueYet}
                   className={cn(
                     "mt-6 w-full py-3.5 px-4 rounded-xl font-bold transition-all border",
                     "bg-renta-950 text-white border-renta-950 hover:bg-renta-900",
@@ -192,7 +203,7 @@ export function SuscripcionPage() {
                   )}
                 >
                   {isGeneratingPayment ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
-                  {isGeneratingPayment ? 'Inicializando Pago Seguro...' : 'Abonar con Tarjeta'}
+                  {isGeneratingPayment ? 'Inicializando Pago Seguro...' : Number(summary?.total_amount) <= 0 ? 'Suscripción Bonificada' : isNotDueYet ? 'Aún no es fecha de pago' : 'Abonar con Tarjeta'}
                 </button>
               ) : (
                 <div className="mt-6 pt-6 border-t border-admin-border-subtle animate-fade-in">
@@ -237,7 +248,7 @@ export function SuscripcionPage() {
 
         {/* ── HISTORIAL (Right 1/3) ── */}
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-admin-border shadow-sm flex flex-col h-full">
+          <div className="bg-white rounded-3xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm flex flex-col h-full">
             <div data-shepherd="sub-historial" className="px-6 py-5 border-b border-admin-border-subtle flex items-center gap-2">
               <History className="h-4 w-4 text-renta-600" />
               <h2 className="text-sm font-bold text-renta-950 font-jakarta">Historial de Transacciones</h2>

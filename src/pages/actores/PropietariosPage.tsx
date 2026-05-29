@@ -72,13 +72,13 @@ export function PropietariosPage() {
             placeholder={t('propietarios_buscar', 'Buscar por nombre o DNI...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-xl border border-admin-border bg-white pl-10 pr-4 py-2 text-sm text-renta-900 placeholder:text-renta-400 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all"
+            className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white pl-10 pr-4 py-2 text-sm text-renta-900 placeholder:text-renta-400 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all"
           />
         </div>
       </div>
 
       {/* ── Data Table ── */}
-      <div className="rounded-2xl border border-admin-border bg-white shadow-sm overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+      <div className="rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-white shadow-sm overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm font-inter">
             <thead className="bg-renta-50/50 text-renta-600 border-b border-admin-border">
@@ -134,9 +134,13 @@ export function PropietariosPage() {
                     </td>
                     <td className="px-6 py-4 text-renta-600 font-medium">{p?.dni || '-'}</td>
                     <td className="px-6 py-4">
-                      <div className="flex flex-col">
+                      <div className="flex flex-col items-start gap-1">
                         <span className="text-renta-900 font-medium">{p?.celular || 'No registrado'}</span>
-                        <span className="text-xs text-renta-500">{p?.email || 'Sin email'}</span>
+                        {p?.email ? (
+                          <span className="text-xs text-renta-500">{p.email}</span>
+                        ) : (
+                          <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200 shadow-sm">Sin Cuenta</span>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4">

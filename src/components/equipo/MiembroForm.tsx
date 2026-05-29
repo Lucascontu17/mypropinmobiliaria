@@ -113,7 +113,7 @@ export function MiembroForm({ initialData, onCancel, onSuccess }: MiembroFormPro
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-admin-border shadow-xl overflow-hidden animate-fade-in-up">
+    <div className="bg-white rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-xl overflow-hidden animate-fade-in-up">
       {/* Header */}
       <div className="bg-gradient-to-r from-renta-950 to-renta-800 px-6 py-4 flex items-center justify-between">
         <h2 className="text-base font-bold text-white font-jakarta flex items-center gap-2.5">

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
-import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info, Search, Link as LinkIcon, UserCheck } from 'lucide-react';
+import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info, Search, Link as LinkIcon, UserCheck, UserX } from 'lucide-react';
 import { useForm, FormProvider, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { contratoSchema, type ContratoFormData } from '@/types/contrato';
@@ -28,6 +28,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
   const [isLinking, setIsLinking] = useState(false);
   const [foundClient, setFoundClient] = useState<any>(null);
   const [clientSearch, setClientSearch] = useState('');
+  const [sinCuenta, setSinCuenta] = useState(false);
 
   const methods = useForm<ContratoFormData>({
     resolver: zodResolver(contratoSchema),
@@ -134,14 +135,15 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
           finalUidInquilino = foundClient.id;
           toast.success('Cliente vinculado con éxito');
         } else {
-          console.log('🆕 Creando nuevo registro de inquilino local...');
+          console.log('🆕 Creando nuevo registro de inquilino local...', sinCuenta ? '(SOLO FICHA)' : '');
           // @ts-ignore
           const { data: response, error: inqError } = await eden.admin.inquilinos.post({
             nombre: data.nuevo_inquilino.nombre,
             dni: data.nuevo_inquilino.dni,
-            email: data.nuevo_inquilino.email,
+            email: sinCuenta ? '' : data.nuevo_inquilino.email,
             celular: data.nuevo_inquilino.celular,
-            country_code: country_code!
+            country_code: country_code!,
+            sin_cuenta: sinCuenta
           });
 
           if (inqError) {
@@ -151,7 +153,9 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
           
           console.log('✅ Inquilino creado:', response);
           finalUidInquilino = response?.data?.id || response?.id;
-          toast.success('Inquilino creado con éxito');
+          toast.success(sinCuenta ? 'Inquilino registrado como Solo Ficha' : 'Inquilino creado con éxito', {
+            description: sinCuenta ? `${data.nuevo_inquilino.nombre} fue registrado sin cuenta Zonatia.` : undefined
+          });
         }
       }
 
@@ -191,7 +195,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 md:p-8 rounded-2xl border border-admin-border shadow-sm max-w-6xl mx-auto">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 md:p-8 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm max-w-6xl mx-auto">
         
         <div className="flex justify-between items-center border-b border-admin-border-subtle pb-5">
           <h2 className="text-xl font-bold font-jakarta text-renta-950 flex items-center gap-2">
@@ -209,7 +213,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
           <div className="space-y-6">
             
             {/* Vinculación Inmobiliaria */}
-            <div className="p-5 rounded-2xl border border-admin-border bg-renta-50/40 space-y-5">
+            <div className="p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-renta-50/40 space-y-5">
                <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 border-b border-admin-border-subtle pb-2">
                   <Building className="h-4 w-4 text-renta-500" /> Vínculos Funcionales
                </h3>
@@ -262,7 +266,35 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                     </div>
                   ) : (
                     <div className="space-y-4 p-4 rounded-xl border border-renta-200 bg-white shadow-inner animate-fade-in">
-                      {/* Lookup Component (Atomic Port) */}
+                      {/* Sin Cuenta Toggle */}
+                      <div className="flex items-center justify-between bg-amber-50/60 p-3 rounded-xl border border-amber-200">
+                        <div className="flex items-center gap-2">
+                          <UserX className={cn("w-4 h-4", sinCuenta ? "text-amber-600" : "text-slate-400")} />
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-renta-700">Sin cuenta (Solo Ficha)</span>
+                            <p className="text-[9px] text-renta-500 leading-tight mt-0.5">Registrar inquilino sin cuenta Zonatia. Se le asignará un ID cuando cree su cuenta.</p>
+                          </div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer" 
+                            checked={sinCuenta}
+                            onChange={(e) => {
+                              setSinCuenta(e.target.checked);
+                              if (e.target.checked) {
+                                setFoundClient(null);
+                                setClientSearch('');
+                                setValue('nuevo_inquilino.email', '');
+                              }
+                            }}
+                          />
+                          <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                        </label>
+                      </div>
+
+                      {/* Lookup Component (Atomic Port) — Hidden when sinCuenta */}
+                      {!sinCuenta && (
                       <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
                         <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
                            <LinkIcon className="w-3 h-3" /> Vincular desde Red Zonatia
@@ -291,24 +323,33 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                           </div>
                         )}
                       </div>
+                      )}
 
                       <div className="grid grid-cols-2 gap-3">
                         <div className="col-span-2 space-y-1">
                           <label className="text-[10px] font-bold text-renta-600 uppercase">Nombre Completo</label>
-                          <input {...register('nuevo_inquilino.nombre')} className="w-full rounded-lg border border-admin-border px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="Nombre y Apellido" />
+                          <input {...register('nuevo_inquilino.nombre')} className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="Nombre y Apellido" />
                           {errors.nuevo_inquilino?.nombre && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.nombre.message}</p>}
                         </div>
 
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-renta-600 uppercase">DNI</label>
-                          <input {...register('nuevo_inquilino.dni')} className="w-full rounded-lg border border-admin-border px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="12345678" />
+                          <input {...register('nuevo_inquilino.dni')} className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="12345678" />
                           {errors.nuevo_inquilino?.dni && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.dni.message}</p>}
                         </div>
                         
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-renta-600 uppercase">Email</label>
-                          <input {...register('nuevo_inquilino.email')} className="w-full rounded-lg border border-admin-border px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" placeholder="inquilino@email.com" />
-                          {errors.nuevo_inquilino?.email && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.email.message}</p>}
+                          <input 
+                            {...register('nuevo_inquilino.email')} 
+                            disabled={sinCuenta}
+                            className={cn(
+                              "w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none",
+                              sinCuenta && "bg-renta-50 text-renta-400 cursor-not-allowed"
+                            )} 
+                            placeholder={sinCuenta ? "No requerido" : "inquilino@email.com"} 
+                          />
+                          {errors.nuevo_inquilino?.email && !sinCuenta && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.email.message}</p>}
                         </div>
 
                         <div className="col-span-2 space-y-1">
@@ -341,7 +382,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
             </div>
 
             {/* Duración y Monto */}
-            <div className="p-5 rounded-2xl border border-admin-border bg-renta-50/40 space-y-5">
+            <div className="p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-renta-50/40 space-y-5">
                <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 border-b border-admin-border-subtle pb-2">
                   <Calendar className="h-4 w-4 text-renta-500" /> Ciclo de Vida Financiero
                </h3>
@@ -630,7 +671,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
           <button 
             type="button" 
             onClick={() => onCancel ? onCancel() : navigate('/contratos')}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl border border-admin-border bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
           >
             <X className="h-4 w-4" /> Cancelar
           </button>

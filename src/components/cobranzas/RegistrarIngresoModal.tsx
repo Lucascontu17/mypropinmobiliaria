@@ -112,7 +112,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-renta-950/40 p-4 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-admin-border overflow-hidden">
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl ring-1 ring-inset ring-admin-border border-transparent overflow-hidden">
         
         <div className="bg-renta-50 px-5 py-3 flex items-center justify-between border-b border-admin-border-subtle">
            <h3 className="font-jakarta text-sm font-bold text-renta-950 flex items-center gap-2">
@@ -126,13 +126,13 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-3 font-inter">
           {/* Inquilino + Desglose juntos */}
-          <div className="bg-admin-surface-hover border border-admin-border-subtle p-3 rounded-xl space-y-2">
+          <div className="bg-admin-surface-hover ring-1 ring-inset ring-admin-border border-transparent-subtle p-3 rounded-xl space-y-2">
              <div className="flex items-center justify-between">
                <div>
                  <p className="text-xs font-bold text-renta-950">{pagoDestino.nombre_inquilino}</p>
                  <p className="text-[10px] text-renta-500">{pagoDestino.detalle_propiedad}</p>
                </div>
-               <span className="text-[9px] font-bold text-renta-400 uppercase tracking-widest bg-white px-2 py-0.5 rounded border border-admin-border">{pagoDestino.periodo}</span>
+               <span className="text-[9px] font-bold text-renta-400 uppercase tracking-widest bg-white px-2 py-0.5 rounded ring-1 ring-inset ring-admin-border border-transparent">{pagoDestino.periodo}</span>
              </div>
 
              <div className="border-t border-admin-border-subtle pt-2 space-y-1 text-xs">
@@ -167,7 +167,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
                         placeholder="0"
                         value={montoAblVariable}
                         onChange={(val) => setMontoAblVariable(val)}
-                        className="w-full text-right pl-4 pr-1.5 py-0.5 bg-white border border-admin-border rounded text-[10px] font-bold focus:outline-none focus:border-renta-400"
+                        className="w-full text-right pl-4 pr-1.5 py-0.5 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded text-[10px] font-bold focus:outline-none focus:border-renta-400"
                       />
                     </div>
                   </div>
@@ -223,7 +223,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
                  <label className="text-[10px] font-semibold text-renta-900">Vía</label>
                  <select 
                    {...register('metodo')}
-                   className="w-full rounded-lg border border-admin-border px-2 py-1.5 text-xs outline-none focus:border-renta-300"
+                   className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent px-2 py-1.5 text-xs outline-none focus:border-renta-300"
                  >
                    <option value="TRANSFERENCIA">Transferencia</option>
                    <option value="EFECTIVO">Efectivo</option>
@@ -263,7 +263,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
              <button
                type="button"
                onClick={onClose}
-               className="px-3 py-1.5 bg-white border border-admin-border rounded-lg text-renta-700 text-xs font-semibold hover:bg-renta-50"
+               className="px-3 py-1.5 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-lg text-renta-700 text-xs font-semibold hover:bg-renta-50"
              >
                Cancelar
              </button>

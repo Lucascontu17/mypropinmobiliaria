@@ -29,10 +29,13 @@ nav_contratos: Contratos
 nav_inquilinos: Inquilinos
 nav_cobranzas: Cobranzas
 nav_marketplace: Marketplace
+nav_equipo: Equipo
+nav_soporte: Soporte
 nav_configuracion: Configuración
 
 # Topbar
 buscar_placeholder: Buscar propiedades, inquilinos...
+notificaciones_titulo: Actividad Reciente
 
 # Marketplace
 marketplace_titulo: Marketplace de Boosters
@@ -176,3 +179,25 @@ equipo_form_cancelar: Cancelar
 equipo_form_guardando: Guardando...
 equipo_form_crear: Crear Miembro
 equipo_form_actualizar: Actualizar Miembro
+
+# Soporte
+support_titulo: Centro de Soporte
+support_subtitulo: Gestioná tus incidencias y consultas técnicas.
+support_nuevo_ticket: Nuevo Ticket
+support_lista_pendientes: Tickets Activos
+support_vacio: Sin tickets aún
+support_chat_level: Nivel Support {{level}}
+support_chat_closed: Ticket cerrado
+support_chat_input: Escribir respuesta...
+support_form_titulo: Nuevo Ticket de Soporte
+support_form_subject: Asunto / Título
+support_form_category: Categoría
+support_form_priority: Prioridad
+support_form_description: Detalle del Problema
+support_form_submit: Enviar Ticket
+support_estado_pendiente: Pendiente
+support_estado_en_curso: En Curso
+support_estado_cerrado: Cerrado
+support_prioridad_baja: Baja
+support_prioridad_media: Media
+support_prioridad_alta: Alta

@@ -4,24 +4,25 @@ import { cierrePeriodoSchema, type CierrePeriodoData } from '@/types/cobranzas';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { AlertCircle, LockKeyhole, FolderSync, ShieldAlert } from 'lucide-react';
 import { useEden } from '@/services/eden';
+import { toast } from 'sonner';
 
 interface CierrePeriodoModalProps {
   periodoActual: string; // Ej. 2026-04
   deudaEstimada: number;
   saldoAFavorEstimado: number;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (nextPeriodo: string) => void;
 }
 
 export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEstimado, onClose, onSuccess }: CierrePeriodoModalProps) {
   const { inmobiliaria_id } = useInmobiliaria();
   const { client: eden } = useEden();
   
-  const { handleSubmit, formState: { isSubmitting } } = useForm<CierrePeriodoData>({
+  const { handleSubmit, formState: { isSubmitting, errors } } = useForm<CierrePeriodoData>({
     resolver: zodResolver(cierrePeriodoSchema),
     defaultValues: {
-      inmobiliaria_id: '',
-      periodo_actual: periodoActual
+      inmobiliaria_id: undefined,
+      periodo_actual: (periodoActual || '').trim()
     }
   });
 
@@ -32,15 +33,18 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
         inmobiliaria_id: inmobiliaria_id || undefined
       };
       
+      toast.info('Procesando Cierre Maestro en Búnker...');
       // @ts-ignore - Triggering Master Rollover (v2.0.1 Integrity Fix)
       const { error } = await eden.admin.pagos['cierre-maestro'].post(payload);
 
       if (error) throw new Error('Error al ejecutar el cierre maestro.');
 
-      if (onSuccess) onSuccess();
+      toast.success('Cierre de periodo y Rollover completados con éxito.');
+      if (onSuccess) onSuccess(nextPeriodo);
       onClose();
     } catch (e: any) {
       console.error(e);
+      toast.error('Error al ejecutar el cierre maestro.');
     }
   };
 
@@ -76,7 +80,7 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
               El motor financiero del Búnker realizará un <em>Rollover Automatizado</em> hacia el periodo <strong className="text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200">{nextPeriodo}</strong>.
             </p>
 
-            <div className="bg-admin-surface border border-admin-border rounded-xl p-4 space-y-3">
+            <div className="bg-admin-surface ring-1 ring-inset ring-admin-border border-transparent rounded-xl p-4 space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-widest text-renta-500 mb-2 border-b border-admin-border-subtle pb-2">Proyección del Rollover</h4>
               
               <div className="flex justify-between items-center text-sm">
@@ -97,11 +101,26 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
             </div>
           </div>
 
+          {/* Debug Global Errors */}
+          {Object.keys(errors).length > 0 && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 space-y-1 animate-fade-in">
+               <div className="font-bold flex items-center gap-1.5">
+                 <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0" />
+                 Errores de validación detectados:
+               </div>
+               <ul className="list-disc list-inside pl-1 space-y-0.5">
+                 {Object.entries(errors).map(([key, value]: [string, any]) => (
+                   <li key={key}>{value.message || `${key} inválido`}</li>
+                 ))}
+               </ul>
+            </div>
+          )}
+
           <div className="pt-4 flex justify-between gap-3 items-center">
              <button
                type="button"
                onClick={onClose}
-               className="px-5 py-2.5 bg-white border border-admin-border hover:border-renta-300 rounded-xl text-renta-700 text-sm font-bold transition-all hover:bg-renta-50"
+               className="px-5 py-2.5 bg-white ring-1 ring-inset ring-admin-border border-transparent hover:border-renta-300 rounded-xl text-renta-700 text-sm font-bold transition-all hover:bg-renta-50"
              >
                Abortar Operación
              </button>

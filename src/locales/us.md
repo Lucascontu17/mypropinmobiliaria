@@ -29,10 +29,13 @@ nav_contratos: Leases
 nav_inquilinos: Tenants
 nav_cobranzas: Collections
 nav_marketplace: Marketplace
+nav_equipo: Team
+nav_soporte: Support
 nav_configuracion: Settings
 
 # Topbar
 buscar_placeholder: Search properties, tenants...
+notificaciones_titulo: Recent Activity
 
 # Marketplace
 marketplace_titulo: Booster Marketplace
@@ -176,3 +179,25 @@ equipo_form_cancelar: Cancel
 equipo_form_guardando: Saving...
 equipo_form_crear: Create Member
 equipo_form_actualizar: Update Member
+
+# Support
+support_titulo: Support Center
+support_subtitulo: Manage your incidents and technical queries.
+support_nuevo_ticket: New Ticket
+support_lista_pendientes: Active Tickets
+support_vacio: No tickets yet
+support_chat_level: Support Level {{level}}
+support_chat_closed: Ticket closed
+support_chat_input: Write a reply...
+support_form_titulo: New Support Ticket
+support_form_subject: Subject / Title
+support_form_category: Category
+support_form_priority: Priority
+support_form_description: Problem Details
+support_form_submit: Send Ticket
+support_estado_pendiente: Pending
+support_estado_en_curso: In Progress
+support_estado_cerrado: Closed
+support_prioridad_baja: Low
+support_prioridad_media: Medium
+support_prioridad_alta: High

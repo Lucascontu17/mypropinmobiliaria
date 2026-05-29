@@ -113,7 +113,7 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
         <div className="p-6 space-y-6 flex-1 overflow-y-auto custom-scrollbar">
           {/* Top Status & Main Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-renta-50/50 p-4 rounded-2xl border border-admin-border-subtle flex flex-col justify-center">
+            <div className="bg-renta-50/50 p-4 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent-subtle flex flex-col justify-center">
               <span className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mb-1">Estado Actual</span>
               <span className={cn(
                 "px-3 py-1 rounded-full text-xs font-bold font-jakarta border w-fit",
@@ -122,7 +122,7 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
                 {contrato.estado}
               </span>
             </div>
-            <div className="bg-renta-50/50 p-4 rounded-2xl border border-admin-border-subtle flex flex-col justify-center">
+            <div className="bg-renta-50/50 p-4 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent-subtle flex flex-col justify-center">
               <span className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mb-1">Valor del Alquiler</span>
               <span className="text-lg font-black text-renta-950 font-jakarta">
                 ${contrato.precio.toLocaleString('es-AR')}
@@ -136,7 +136,7 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
                 <Home className="w-3.5 h-3.5" /> Actores y Propiedad
              </h3>
              <div className="grid grid-cols-1 gap-3">
-                <div className="flex items-center gap-3 p-3 bg-white border border-admin-border rounded-2xl shadow-sm">
+                <div className="flex items-center gap-3 p-3 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-2xl shadow-sm">
                    <div className="h-9 w-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
                       <Home className="w-4 h-4" />
                    </div>
@@ -147,7 +147,7 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                   <div className="flex items-center gap-3 p-3 bg-white border border-admin-border rounded-2xl shadow-sm">
+                   <div className="flex items-center gap-3 p-3 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-2xl shadow-sm">
                       <div className="h-9 w-9 rounded-xl bg-renta-50 flex items-center justify-center text-renta-600 shrink-0">
                          <Key className="w-4 h-4" />
                       </div>
@@ -156,7 +156,7 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
                          <p className="text-sm font-bold text-renta-950 truncate">{contrato.propietario}</p>
                       </div>
                    </div>
-                   <div className="flex items-center gap-3 p-3 bg-white border border-admin-border rounded-2xl shadow-sm">
+                   <div className="flex items-center gap-3 p-3 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-2xl shadow-sm">
                       <div className="h-9 w-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                          <User className="w-4 h-4" />
                       </div>

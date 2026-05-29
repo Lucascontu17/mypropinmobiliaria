@@ -6,6 +6,12 @@ import { useMemo, useState, useEffect } from 'react';
 import type { App } from 'mypropapi';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.zonatia.com';
+
+// Alerta de seguridad para entorno Staging/Prod con API apuntando a Localhost
+if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && API_BASE.includes('localhost')) {
+  console.warn(`[SECURITY-EDEN] High risk detected: Frontend is running on "${window.location.hostname}" but VITE_API_URL is pointing to "${API_BASE}". API calls will fail.`);
+}
+
 export const BASE_URL = API_BASE.replace(/\/v1$/, '').replace(/\/api$/, '').replace(/\/$/, '');
 const FULL_API_URL = `${BASE_URL}/api/v1`;
 
@@ -56,12 +62,12 @@ export function useEden() {
     }
   }, [getToken, isLoaded, isSignedIn]);
 
-  // Recreate the Eden client whenever the token or user changes
-  const client = useMemo(() => {
-    const region = (user?.publicMetadata?.country_code as string) || 
-                   localStorage.getItem('zonatia_audit_region') || 'AR';
-    const inmobiliariaId = (user?.publicMetadata?.inmobiliaria_id as string) || '';
+  // Recreate the Eden client whenever the token or specific metadata changes
+  const region = (user?.publicMetadata?.country_code as string) || 
+                 localStorage.getItem('zonatia_audit_region') || 'AR';
+  const inmobiliariaId = (user?.publicMetadata?.inmobiliaria_id as string) || '';
 
+  const client = useMemo(() => {
     return treaty<App>(FULL_API_URL, {
       headers: {
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
@@ -72,7 +78,7 @@ export function useEden() {
         credentials: 'include'
       }
     });
-  }, [token, user]);
+  }, [token, region, inmobiliariaId]);
 
   return {
     client,
