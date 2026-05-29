@@ -28,7 +28,7 @@ export function CobranzasPage() {
   const [showCierreModal, setShowCierreModal] = useState(false);
   const [boletasPagoId, setBoletasPagoId] = useState<{ id: string, nombre: string } | null>(null);
 
-  const fetchPagos = async (periodoOverride?: string) => {
+  const fetchPagos = async (periodoOverride?: string, forceSyncPeriodo = false) => {
     setIsLoading(true);
     try {
         // Si hay un periodo específico pedido (manual o ya resuelto), enviarlo.
@@ -48,7 +48,7 @@ export function CobranzasPage() {
             setPagos(data?.pagos ?? []);
             // Sincronizar el periodo activo desde el backend
             // @ts-ignore
-            if (data?.periodo_activo && !periodoIniciado) {
+            if (data?.periodo_activo && (!periodoIniciado || forceSyncPeriodo)) {
               // @ts-ignore
               const nuevoPeriodo = data.periodo_activo.trim();
               setPeriodoActual(nuevoPeriodo);
@@ -333,7 +333,7 @@ export function CobranzasPage() {
           onClose={() => setSelectedPago(null)}
           onSuccess={() => {
             setSelectedPago(null);
-            fetchPagos();
+            fetchPagos(periodoActual);
           }}
         />
       )}
@@ -345,9 +345,8 @@ export function CobranzasPage() {
            saldoAFavorEstimado={saldoFavorEstimado}
            onClose={() => setShowCierreModal(false)}
            onSuccess={() => {
-             // Resetear para que la próxima carga resuelva el nuevo periodo activo
-             setPeriodoIniciado(false);
-             fetchPagos();
+             // Forzar resincronización de periodo: el backend devolverá N+1
+             fetchPagos(undefined, true);
              toast.success('El periodo ha sido procesado.');
            }}
          />
