@@ -14,6 +14,7 @@ export interface InmobiliariaMetadata {
   suscripcion?: {
     status: 'activa' | 'gracia' | 'vencida';
     isBlocked: boolean;
+    is_vip?: boolean;
     fecha_vencimiento: string;
     proximo_pago: string;
   };
