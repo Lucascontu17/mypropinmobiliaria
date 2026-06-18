@@ -248,7 +248,7 @@ export function DashboardPage() {
 
       {/* ── Suscripción y Extras AI ── */}
       {!isLoading && (
-        suscripcion?.is_vip ? (
+        metrics?.suscripcion?.is_vip ? (
           <div className="bg-gradient-to-r from-indigo-900 to-indigo-950 p-6 rounded-2xl border border-indigo-800 shadow-xl flex items-center justify-between gap-6 opacity-0 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
             <div className="flex items-center gap-4">
               <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center text-white backdrop-blur-sm border border-white/10 flex-shrink-0">
