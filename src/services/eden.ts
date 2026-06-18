@@ -49,9 +49,11 @@ export function useEden() {
   const { user } = useUser();
   const [token, setToken] = useState<string | null>(null);
 
-  // Pre-fetch the token as soon as Clerk is ready
+  // Pre-fetch the token as soon as Clerk is ready and refresh it before it expires
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
+    let interval: ReturnType<typeof setInterval>;
+
+    const fetchToken = () => {
       getToken({ template: 'zonatia-session' }).then(t => {
         if (t) {
           console.log('[EDEN] Token cached and saved to localStorage');
@@ -59,7 +61,17 @@ export function useEden() {
           setToken(t);
         }
       });
+    };
+
+    if (isLoaded && isSignedIn) {
+      fetchToken(); // Initial fetch
+      // Refresh the token every 50 seconds (Clerk tokens expire in 60s)
+      interval = setInterval(fetchToken, 50000);
     }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [getToken, isLoaded, isSignedIn]);
 
   // Recreate the Eden client whenever the token or specific metadata changes
