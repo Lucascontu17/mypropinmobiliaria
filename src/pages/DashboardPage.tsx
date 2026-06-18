@@ -198,6 +198,16 @@ export function DashboardPage() {
         </p>
       </div>
 
+      {/* ── ALERTA PERIODO DE GRACIA ── */}
+      {!isLoading && !metrics?.suscripcion?.is_vip && metrics?.suscripcion?.status === 'gracia' && (
+        <div className="bg-[#fffbe6] border border-[#ffd666] rounded-xl px-4 py-3 flex items-center gap-3 animate-fade-in-up">
+          <Calendar className="h-5 w-5 text-amber-600 shrink-0" />
+          <p className="text-amber-900 text-sm font-medium font-inter">
+            Periodo de gracia: quedan 7 días antes de que su suscripción expire.
+          </p>
+        </div>
+      )}
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in">
           <AlertCircle className="h-5 w-5 text-red-500" />
@@ -245,7 +255,7 @@ export function DashboardPage() {
                 <Sparkles className="w-8 h-8 text-indigo-400" />
               </div>
               <div>
-                <h3 className="text-white font-bold text-lg leading-tight">Miembro VIP Zonatia</h3>
+                <h3 className="text-white font-bold text-lg leading-tight uppercase">MIEMBRO VIP</h3>
                 <p className="text-indigo-200 text-xs sm:text-sm mt-0.5 font-medium">Disfrutas de acceso ilimitado a todas las funciones premium y AI sin cargo adicional.</p>
               </div>
             </div>
