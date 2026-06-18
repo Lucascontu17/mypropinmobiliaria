@@ -177,7 +177,12 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
       // @ts-ignore
       const { data: result, error: contratoError } = await eden.admin.contratos.post(contratoPayload);
       
-      if (contratoError) throw new Error('Error al generar el contrato.');
+      if (contratoError) {
+        if (contratoError.status === 409) {
+          throw new Error('El DNI ya está registrado para otro inquilino.');
+        }
+        throw new Error(contratoError.value?.error || contratoError.value?.message || 'Error al generar el contrato.');
+      }
 
       toast.success('Contrato Generado Correctamente');
       if (onSubmitSuccess) onSubmitSuccess();

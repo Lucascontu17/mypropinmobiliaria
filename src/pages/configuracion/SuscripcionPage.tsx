@@ -118,8 +118,8 @@ export function SuscripcionPage() {
             <AlertCircle className="h-6 w-6 text-red-600" />
           </div>
           <div>
-            <h2 className="text-red-900 font-bold text-lg font-jakarta">Suscripción Vencida</h2>
-            <p className="text-red-700 text-sm mt-1">Realice el pago de su abono para desbloquear el panel y volver a operar.</p>
+            <h2 className="text-red-900 font-bold text-lg font-jakarta">¡Suscripción vencida!</h2>
+            <p className="text-red-700 text-sm mt-1">Realice el pago para volver a operar.</p>
           </div>
         </div>
       )}
