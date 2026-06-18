@@ -1,7 +1,9 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useInmobiliaria, type UserRole } from '@/hooks/useInmobiliaria';
 import { AccessDenied } from './AccessDenied';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@clerk/clerk-react';
+import { useEffect } from 'react';
 
 interface ProtectedRouteProps {
   allowedRoles?: UserRole[];
@@ -14,12 +16,10 @@ interface ProtectedRouteProps {
  * @param allowedRoles (Opcional) Array de roles autorizados. Si es nulo, permite a cualquier usuario logueado.
  * @param children El contenido a renderizar si el usuario pasa la jerarquía.
  */
-import { useAuth } from '@clerk/clerk-react';
-import { useEffect } from 'react';
-
 export function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) {
-  const { isLoaded, isSignedIn, hasPermission, inmobiliaria_id } = useInmobiliaria();
+  const { isLoaded, isSignedIn, hasPermission, inmobiliaria_id, suscripcion } = useInmobiliaria();
   const { getToken } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
     if (isSignedIn) {
@@ -45,7 +45,12 @@ export function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) 
     return <Navigate to="/login" replace />;
   }
 
-  // 3. Evaluar permisos Roles para Master Filter B2B
+  // 3. Evaluar suscripción bloqueada
+  if (suscripcion?.isBlocked && !location.pathname.includes('/suscripcion')) {
+    return <Navigate to="/suscripcion" replace />;
+  }
+
+  // 4. Evaluar permisos Roles para Master Filter B2B
   if (allowedRoles && allowedRoles.length > 0) {
     if (!hasPermission(allowedRoles)) {
       return <AccessDenied />;
