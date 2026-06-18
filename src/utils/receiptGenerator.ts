@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -89,7 +89,7 @@ export const generateReceiptPDF = async (data: ReceiptData) => {
     ["Impuesto ABL / Municipal", `$ ${data.desglose.abl.toLocaleString('es-AR')}`],
   ];
 
-  (doc as any).autoTable({
+  const tableResult = autoTable(doc, {
     startY: y,
     head: [tableData[0]],
     body: tableData.slice(1),
