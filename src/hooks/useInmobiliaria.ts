@@ -11,6 +11,12 @@ export interface InmobiliariaMetadata {
   logo_url: string;
   role: UserRole;
   country_code: CountryCode;
+  suscripcion?: {
+    status: 'activa' | 'gracia' | 'vencida';
+    isBlocked: boolean;
+    fecha_vencimiento: string;
+    proximo_pago: string;
+  };
 }
 
 /**
@@ -70,6 +76,7 @@ export function useInmobiliaria() {
     isLoaded,
     isSignedIn: isSignedIn ?? false,
     hasPermission,
+    suscripcion: dbData?.suscripcion
     // Note: User property omitida intencionalmente fuera de "hasPermission" check para evitar Zero Leaks accidentales del tenant
   };
 }
