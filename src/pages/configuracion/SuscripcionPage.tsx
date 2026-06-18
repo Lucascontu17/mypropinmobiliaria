@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRegion } from '@/hooks/useRegion';
+import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { 
   CreditCard, 
   History, 
@@ -24,6 +25,7 @@ import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShe
 
 export function SuscripcionPage() {
   const { t, formatCurrency, currency_code } = useRegion();
+  const { suscripcion } = useInmobiliaria();
   const { client: eden, isReady } = useEden();
   
   const [summary, setSummary] = useState<any>(null);
@@ -109,6 +111,19 @@ export function SuscripcionPage() {
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in-up">
       <LocalShepherd steps={shepherdSteps} storageKey="enjoy_local_suscripcion" />
       
+      {/* ── ALERTA DE BLOQUEO ── */}
+      {suscripcion?.isBlocked && !summary?.is_vip && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
+          <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+            <AlertCircle className="h-6 w-6 text-red-600" />
+          </div>
+          <div>
+            <h2 className="text-red-900 font-bold text-lg font-jakarta">Suscripción Vencida</h2>
+            <p className="text-red-700 text-sm mt-1">Realice el pago de su abono para desbloquear el panel y volver a operar.</p>
+          </div>
+        </div>
+      )}
+
       {/* ── Header ── */}
       <div className="border-b border-admin-border-subtle pb-6">
         <h1 className="text-3xl font-bold text-renta-950 font-jakarta">Mi Suscripción</h1>
@@ -129,9 +144,12 @@ export function SuscripcionPage() {
               </div>
               <div className={cn(
                 "px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full border",
-                summary?.is_vip ? "bg-indigo-100 text-indigo-700 border-indigo-200" : "bg-emerald-100 text-emerald-700 border-emerald-200"
+                summary?.is_vip ? "bg-indigo-100 text-indigo-700 border-indigo-200" : 
+                suscripcion?.isBlocked ? "bg-red-100 text-red-700 border-red-200" :
+                suscripcion?.status === 'gracia' ? "bg-amber-100 text-amber-700 border-amber-200" :
+                "bg-emerald-100 text-emerald-700 border-emerald-200"
               )}>
-                Estado: {summary?.is_vip ? 'VIP ACTIVO' : 'ACTIVO'}
+                Estado: {summary?.is_vip ? 'VIP ACTIVO' : suscripcion?.isBlocked ? 'VENCIDA' : suscripcion?.status === 'gracia' ? 'EN GRACIA' : 'ACTIVO'}
               </div>
             </div>
 
