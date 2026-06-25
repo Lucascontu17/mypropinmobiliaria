@@ -36,24 +36,23 @@ interface Visita {
 
 
 
-export default function VisitasPage() {
+export function VisitasView({ 
+  getVisitasFn, 
+  onUpdateVisita 
+}: { 
+  getVisitasFn: () => Promise<Visita[]>,
+  onUpdateVisita: (id: string, status: string, date?: string) => Promise<void>
+}) {
   const [visitas, setVisitas] = useState<Visita[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'SOLICITUDES' | 'AGENDADAS' | 'HISTORIAL'>('SOLICITUDES');
-  const { client: eden, isReady } = useEden();
 
   const fetchVisitas = async () => {
-    if (!isReady) return;
     setLoading(true);
     try {
-      const { data, error } = await eden.admin.visitas.get();
-      if (error) {
-        console.error('[VISITAS] Error fetching:', error);
-      } else {
-        // @ts-ignore
-        setVisitas(data?.visitas ?? []);
-      }
+      const data = await getVisitasFn();
+      setVisitas(data);
     } catch (err) {
       console.error('[VISITAS] Connection error:', err);
     } finally {
@@ -63,13 +62,15 @@ export default function VisitasPage() {
 
   useEffect(() => {
     fetchVisitas();
-  }, [eden, isReady]);
+  }, [getVisitasFn]);
 
   const handleUpdateStatus = async (id: string, newStatus: string, newDate?: string) => {
     setUpdatingId(id);
-    // TODO: Implementar patch real en el backend si existe
-    toast.info('Actualización enviada (Backend sync pendiente)');
-    setUpdatingId(null);
+    try {
+      await onUpdateVisita(id, newStatus, newDate);
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   if (loading) {
@@ -411,3 +412,24 @@ function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate
   );
 }
 
+export default function VisitasPage() {
+  const { client, isReady } = useEden();
+
+  const getVisitasFn = async () => {
+    if (!isReady) return [];
+    const { data, error } = await client.admin.visitas.get();
+    if (error) {
+      console.error('[VISITAS] Error fetching:', error);
+      return [];
+    }
+    // @ts-ignore
+    return data?.visitas ?? [];
+  };
+
+  const onUpdateVisita = async (id: string, newStatus: string, newDate?: string) => {
+    // TODO: Implementar patch real en el backend si existe
+    toast.info('Actualización enviada (Backend sync pendiente)');
+  };
+
+  return <VisitasView getVisitasFn={getVisitasFn} onUpdateVisita={onUpdateVisita} />;
+}
