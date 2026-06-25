@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PropertyForm } from '@/components/propiedades/PropertyForm';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertTriangle } from 'lucide-react';
 import { useEden } from '@/services/eden';
+import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { toast } from 'sonner';
 
 export function PropiedadFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { client, isReady } = useEden();
+  const { inmobiliaria_id } = useInmobiliaria();
   
   const [owners, setOwners] = useState<any[]>([]);
   const [property, setProperty] = useState<any>(null);
@@ -43,15 +46,42 @@ export function PropiedadFormPage() {
         if (!propErr && propRes) {
           setProperty(propRes);
         } else {
-          console.error("[PropiedadFormPage] Error fetching property:", propErr);
+          // BUG #M-8 fix: si la propiedad no existe, informar y redirigir
+          console.error('[PropiedadFormPage] Property not found:', propErr);
+          toast.error('Propiedad no encontrada o sin acceso.', {
+            description: 'Serás redirigido al inventario.'
+          });
+          navigate('/propiedades');
+          return;
         }
       }
     } catch (err) {
-      console.error("[PropiedadFormPage] Fetch failed:", err);
+      console.error('[PropiedadFormPage] Fetch failed:', err);
+      toast.error('Error de conectividad al cargar los datos.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // BUG #A-4 fix: inmobiliaria_id puede no estar disponible si el usuario
+  // no completó el onboarding o si hubo un error de sync con Clerk.
+  if (!inmobiliaria_id) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <AlertTriangle className="h-10 w-10 text-amber-400" />
+        <h2 className="text-lg font-bold text-renta-950 font-jakarta">Configuración Incompleta</h2>
+        <p className="text-sm text-renta-600 text-center max-w-sm">
+          Tu cuenta no tiene una inmobiliaria asociada. Completá el proceso de onboarding para continuar.
+        </p>
+        <button
+          onClick={() => navigate('/')}
+          className="mt-2 px-5 py-2 bg-renta-900 text-white rounded-xl text-sm font-semibold hover:bg-renta-800 transition-colors"
+        >
+          Ir al inicio
+        </button>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -85,6 +115,7 @@ export function PropiedadFormPage() {
       <PropertyForm 
         initialData={property}
         owners={owners}
+        tenantId={inmobiliaria_id}  // garantizado no-undefined por el guard de arriba
         onCancel={() => navigate('/propiedades')}
         onSubmitSuccess={() => navigate('/propiedades')}
       />

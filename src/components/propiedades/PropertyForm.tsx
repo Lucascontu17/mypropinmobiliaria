@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FormProvider, useForm, Controller } from 'react-hook-form';
-import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { propertySchema, type PropertyFormData } from '@/types/property';
 import { Save, X, Home, Map, Zap, DollarSign, Loader2, CheckCircle2, Tag, RefreshCw, UserPlus, Sparkles } from 'lucide-react';
@@ -21,12 +20,12 @@ interface ProveedorOpcion {
 interface PropertyFormProps {
   initialData?: Partial<PropertyFormData>;
   owners: ProveedorOpcion[];
+  tenantId: string;
   onSubmitSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }: PropertyFormProps) {
-  const { inmobiliaria_id } = useInmobiliaria();
+export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, onCancel }: PropertyFormProps) {
   const { currency_code } = useRegion();
   const { hasAddon, getAddonPrice } = useActiveAddons();
   const { apiFetch } = useApi();
@@ -82,7 +81,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
       
       const payload = {
         ...data,
-        inmobiliaria_id,
+        inmobiliaria_id: tenantId,
         ...(isTransition ? {
           operacion: 'alquiler',
           status: 'DISPONIBLE',
@@ -510,7 +509,7 @@ export function PropertyForm({ initialData, owners, onSubmitSuccess, onCancel }:
                            </div>
                         </div>
                         <div className="bg-emerald-50 p-2.5 rounded-lg border border-emerald-100 flex items-center gap-2">
-                           <CheckCircle2 className="h-3.3 w-3.3 text-emerald-600" />
+                           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
                            <p className="text-[9px] text-emerald-800 leading-tight">
                               Al guardar, la propiedad será cargada como <strong>DISPONIBLE</strong> en modo <strong>ALQUILER</strong> 
                               bajo la titularidad del nuevo propietario seleccionado.
