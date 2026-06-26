@@ -29,8 +29,8 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
   const { currency_code } = useRegion();
   const { hasAddon, getAddonPrice } = useActiveAddons();
   const { apiFetch } = useApi();
-  const hasAiCopilot = hasAddon('Asistente de IA (Smart-Copy)');
-  const aiPrice = getAddonPrice('Asistente de IA (Smart-Copy)');
+  const hasAiCopilot = hasAddon('Zonatia AI Copilot') || hasAddon('Asistente de IA (Smart-Copy)');
+  const aiPrice = getAddonPrice('Zonatia AI Copilot') || getAddonPrice('Asistente de IA (Smart-Copy)');
 
   const methods = useForm<PropertyFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
