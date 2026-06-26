@@ -26,6 +26,12 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
     }
   });
 
+  // Calcular periodo N+1 simulado para UI
+  const [year, month] = periodoActual.split('-');
+  const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+  date.setMonth(date.getMonth() + 1);
+  const nextPeriodo = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
   const onSubmit = async (data: CierrePeriodoData) => {
     try {
       const payload: CierrePeriodoData = {
@@ -47,12 +53,6 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
       toast.error('Error al ejecutar el cierre maestro.');
     }
   };
-
-  // Calcular periodo N+1 simulado para UI
-  const [year, month] = periodoActual.split('-');
-  const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-  date.setMonth(date.getMonth() + 1);
-  const nextPeriodo = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-renta-950/60 p-4 backdrop-blur-md animate-fade-in">
