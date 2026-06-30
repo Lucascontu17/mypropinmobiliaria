@@ -24,6 +24,8 @@ interface Contrato {
     porcentaje?: number;
     dias_gracia?: number;
   };
+  contrato_url?: string;
+  dni_url?: string;
 }
 
 interface ContratoDetailsModalProps {
@@ -185,6 +187,49 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
                 </div>
              </div>
           </div>
+
+          {/* Documentación Respaldatoria */}
+          {(contrato.contrato_url || contrato.dni_url) && (
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-renta-900 uppercase tracking-widest flex items-center gap-2 border-b border-admin-border-subtle pb-2">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Documentación Respaldatoria
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {contrato.contrato_url && (
+                  <a 
+                    href={contrato.contrato_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 bg-renta-50/50 hover:bg-renta-50 ring-1 ring-inset ring-renta-200 border-transparent rounded-2xl shadow-sm transition-colors group"
+                  >
+                    <div className="h-9 w-9 rounded-xl bg-renta-100 flex items-center justify-center text-renta-600 shrink-0 group-hover:bg-renta-200 transition-colors">
+                        <MessageSquare className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                        <p className="text-[10px] font-bold text-renta-500 uppercase tracking-tighter">PDF Oficial</p>
+                        <p className="text-sm font-bold text-renta-950 truncate">Ver Contrato Firmado</p>
+                    </div>
+                  </a>
+                )}
+                {contrato.dni_url && (
+                  <a 
+                    href={contrato.dni_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 bg-emerald-50/50 hover:bg-emerald-50 ring-1 ring-inset ring-emerald-200 border-transparent rounded-2xl shadow-sm transition-colors group"
+                  >
+                    <div className="h-9 w-9 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 group-hover:bg-emerald-200 transition-colors">
+                        <User className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                        <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">Identidad</p>
+                        <p className="text-sm font-bold text-emerald-950 truncate">Ver DNI Locatario</p>
+                    </div>
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Reglas Financieras */}
           <div className="space-y-4">
