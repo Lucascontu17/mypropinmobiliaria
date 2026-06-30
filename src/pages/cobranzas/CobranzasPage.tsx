@@ -105,6 +105,7 @@ export function CobranzasPage() {
      const dif = p.monto_a_abonar - p.monto_abonado;
      return acc + (dif < 0 ? Math.abs(dif) : 0); // Excedente Absoluto
   }, 0);
+  const totalComisiones = pagos.reduce((acc, p) => acc + (p.comision_administracion || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -142,7 +143,7 @@ export function CobranzasPage() {
       </div>
 
       {/* ── KPI Widgets ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '50ms' }}>
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 animate-fade-in-up" style={{ animationDelay: '50ms' }}>
          <div className="bg-white ring-1 ring-inset ring-admin-border border-transparent p-5 rounded-2xl shadow-sm">
             <p className="text-xs font-semibold text-renta-500 uppercase flex items-center gap-1.5">
               <CheckCircle2 className="h-3 w-3" /> {t('cobranza_recaudacion', 'Recaudación Real')}
@@ -185,6 +186,16 @@ export function CobranzasPage() {
               <p className="text-2xl font-bold text-blue-600 font-jakarta mt-1">{formatCurrency(saldoFavorEstimado)}</p>
             )}
          </div>
+          <div className="bg-emerald-50 ring-1 ring-inset ring-emerald-200 p-5 rounded-2xl shadow-sm">
+            <p className="text-xs font-semibold text-emerald-700 uppercase flex items-center gap-1.5">
+              <TrendingUp className="h-3 w-3" /> Comisiones (Mes)
+            </p>
+            {isLoading ? (
+              <div className="h-8 w-24 bg-emerald-100 animate-pulse rounded mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-emerald-800 font-jakarta mt-1">{formatCurrency(totalComisiones)}</p>
+            )}
+          </div>
       </div>
 
       {/* ── Toolbar & Filtros ── */}
@@ -227,6 +238,7 @@ export function CobranzasPage() {
                 <th className="px-6 py-4 font-semibold shrink-0">{t('cobranza_inquilino', 'Inquilino / Contrato')}</th>
                 <th className="px-6 py-4 font-semibold text-right">{t('cobranza_a_abonar', 'A Abonar (N)')}</th>
                 <th className="px-6 py-4 font-semibold text-right">{t('cobranza_abonado', 'Abonado Real')}</th>
+                <th className="px-6 py-4 font-semibold text-right">Comisión Inmo</th>
                 <th className="px-6 py-4 font-semibold text-right">{t('cobranza_saldo_restante', 'Saldo Restante')}</th>
                 <th className="px-6 py-4 font-semibold text-center">{t('cobranza_estado', 'Estado')}</th>
                 <th className="px-6 py-4 font-semibold text-right">{t('cobranza_acciones', 'Acciones')}</th>
@@ -245,13 +257,14 @@ export function CobranzasPage() {
                     <td className="px-6 py-4 text-right"><div className="h-4 w-20 bg-renta-50 rounded ml-auto" /></td>
                     <td className="px-6 py-4 text-right"><div className="h-4 w-20 bg-renta-50 rounded ml-auto" /></td>
                     <td className="px-6 py-4 text-right"><div className="h-4 w-20 bg-renta-50 rounded ml-auto" /></td>
+                    <td className="px-6 py-4 text-right"><div className="h-4 w-20 bg-renta-50 rounded ml-auto" /></td>
                     <td className="px-6 py-4 text-center"><div className="h-6 w-16 bg-renta-50 rounded-full mx-auto" /></td>
                     <td className="px-6 py-4 text-right"><div className="h-8 w-24 bg-renta-50 rounded-lg ml-auto" /></td>
                   </tr>
                 ))
               ) : (pagosVisibles?.length === 0) ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-renta-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-renta-500">
                     <Wallet className="mx-auto h-8 w-8 text-renta-200 mb-3" />
                     {t('cobranza_vacio', 'No hay contratos que coincidan con los filtros aplicados en este periodo.')}
                   </td>
@@ -275,6 +288,9 @@ export function CobranzasPage() {
                       </td>
                       <td className="px-6 py-4 text-right font-bold text-emerald-600">
                          {formatCurrency(p?.monto_abonado || 0)}
+                      </td>
+                      <td className="px-6 py-4 text-right font-bold text-renta-800 bg-renta-50/30">
+                         {formatCurrency(p?.comision_administracion || 0)}
                       </td>
                       <td className="px-6 py-4 text-right">
                          <span className={cn(
