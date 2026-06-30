@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
-import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info, Search, Link as LinkIcon, UserCheck, UserX } from 'lucide-react';
+import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info, Search, Link as LinkIcon, UserCheck, UserX, UploadCloud, CheckCircle2, Loader2 } from 'lucide-react';
 import { useForm, FormProvider, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { contratoSchema, type ContratoFormData } from '@/types/contrato';
@@ -18,6 +18,31 @@ interface ContratoFormProps {
   onCancel?: () => void;
   onSubmitSuccess?: () => void;
 }
+
+const FileUploadField = ({ label, registerProps, watchValue, accept, hint }: { label: string, registerProps: any, watchValue: any, accept?: string, hint?: string }) => {
+  const file = watchValue && watchValue.length > 0 ? watchValue[0] : null;
+  return (
+    <div className="space-y-1.5 w-full">
+      <label className="text-[10px] font-bold text-renta-600 uppercase tracking-widest">{label}</label>
+      <div className="relative group">
+        <input type="file" accept={accept} {...registerProps} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+        <div className={cn(
+          "flex items-center justify-between px-4 py-2.5 rounded-xl border border-dashed transition-all duration-200",
+          file ? "border-emerald-400 bg-emerald-50/50 shadow-sm" : "border-slate-300 bg-slate-50 group-hover:bg-slate-100 group-hover:border-slate-400"
+        )}>
+           <div className="flex items-center gap-2 overflow-hidden">
+             <UploadCloud className={cn("w-4 h-4 shrink-0 transition-colors", file ? "text-emerald-500" : "text-slate-400 group-hover:text-renta-500")} />
+             <span className={cn("text-xs font-semibold truncate transition-colors", file ? "text-emerald-700" : "text-slate-500 group-hover:text-renta-700")}>
+               {file ? file.name : (hint || "Subir archivo (Opcional)")}
+             </span>
+           </div>
+           {file && <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 ml-2" />}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables, onCancel, onSubmitSuccess }: ContratoFormProps) {
   const { inmobiliaria_id, country_code } = useInmobiliaria();
@@ -60,8 +85,12 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, control, setValue, watch } = methods;
 
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+
   const isNuevoInquilino = useWatch({ control, name: 'is_nuevo_inquilino' });
   const selectedUidPropiedad = watch('uid_propiedad');
+  const watchedDniFile = watch('nuevo_inquilino.dni_url');
+  const watchedContratoFile = watch('contrato_url');
 
   // Auto-completar el valor del alquiler cuando se selecciona una propiedad
   useEffect(() => {
@@ -108,7 +137,33 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
     console.log('🏢 Inmobiliaria ID:', inmobiliaria_id);
     
     try {
+      setIsUploadingFiles(true);
       let finalUidInquilino = data.uid_inquilino;
+      let finalDniUrl = null;
+      let finalContratoUrl = null;
+
+      // Helper for file upload
+      const uploadFile = async (fileList: any, folder: string) => {
+        if (!fileList || fileList.length === 0) return null;
+        const file = fileList[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', folder);
+        // @ts-ignore
+        const { data: res, error } = await eden.admin['upload-file'].post(formData);
+        if (error) throw new Error(error.value?.error || 'Error subiendo archivo');
+        return res?.url;
+      };
+
+      // Upload files first
+      if (data.is_nuevo_inquilino && data.nuevo_inquilino?.dni_url) {
+         finalDniUrl = await uploadFile(data.nuevo_inquilino.dni_url, 'dnis');
+      }
+      if (data.contrato_url) {
+         finalContratoUrl = await uploadFile(data.contrato_url, 'contratos');
+      }
+
+      setIsUploadingFiles(false);
 
       if (data.is_nuevo_inquilino && data.nuevo_inquilino) {
         console.log('👤 Procesando Inquilino Nuevo/Global...');
@@ -142,6 +197,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
             dni: data.nuevo_inquilino.dni,
             email: sinCuenta ? '' : data.nuevo_inquilino.email,
             celular: data.nuevo_inquilino.celular,
+            dni_url: finalDniUrl,
             country_code: country_code!,
             sin_cuenta: sinCuenta
           });
@@ -165,6 +221,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
         propiedad_uid: (data as any).uid_propiedad,
         inquilino_id: finalUidInquilino,
         monto_actual: data.monto_inicial, // Usamos el monto inicial como actual
+        contrato_url: finalContratoUrl,
         inmobiliaria_id: inmobiliaria_id!
       };
       
@@ -189,6 +246,8 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
     } catch (error: any) {
        toast.error('Error en la Transacción', { description: error.message });
        console.error('Error: ', error);
+    } finally {
+       setIsUploadingFiles(false);
     }
   };
 
@@ -371,18 +430,29 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                           />
                         </div>
 
-                        <div className="space-y-1">
-                           <label className="text-[10px] font-bold text-renta-600 uppercase">DNI Adjunto</label>
-                           <input type="file" {...register('nuevo_inquilino.dni_url')} className="w-full text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-renta-50 file:text-renta-700 hover:file:bg-renta-100" />
-                        </div>
-
-                        <div className="space-y-1">
-                           <label className="text-[10px] font-bold text-renta-600 uppercase">Contrato Base</label>
-                           <input type="file" {...register('nuevo_inquilino.contrato_url')} className="w-full text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-renta-50 file:text-renta-700 hover:file:bg-renta-100" />
+                        <div className="space-y-1 pt-2 col-span-2">
+                           <FileUploadField 
+                             label="DNI Adjunto (Opcional)" 
+                             registerProps={register('nuevo_inquilino.dni_url')} 
+                             watchValue={watchedDniFile} 
+                             accept="image/png, image/jpeg, image/jpg"
+                             hint="Subir archivo (JPG, PNG)"
+                           />
                         </div>
                       </div>
                     </div>
                   )}
+               </div>
+               
+               <div className="pt-2 border-t border-admin-border-subtle mt-4">
+                  <FileUploadField 
+                    label="Contrato Firmado / Escaneado (Opcional)" 
+                    registerProps={register('contrato_url')} 
+                    watchValue={watchedContratoFile} 
+                    accept="application/pdf"
+                    hint="Subir contrato (Solo PDF)"
+                  />
+                  <p className="text-[10px] text-renta-500 mt-1">El documento quedará resguardado de forma segura y vinculado a este contrato.</p>
                </div>
             </div>
 
@@ -683,10 +753,16 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
           
           <button 
             type="submit" 
-            disabled={isSubmitting}
+            disabled={isSubmitting || isUploadingFiles}
             className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-renta-950 text-white text-sm font-semibold hover:bg-renta-800 disabled:opacity-50 transition-colors shadow-lg shadow-renta-950/20"
           >
-            <Save className="h-4 w-4" /> Guardar y Generar Cuotas Atómicas
+            {isUploadingFiles ? (
+              <><Loader2 className="h-4 w-4 animate-spin" /> Subiendo Archivos...</>
+            ) : isSubmitting ? (
+              <><Loader2 className="h-4 w-4 animate-spin" /> Generando...</>
+            ) : (
+              <><Save className="h-4 w-4" /> Guardar y Generar Cuotas Atómicas</>
+            )}
           </button>
         </div>
       </form>
