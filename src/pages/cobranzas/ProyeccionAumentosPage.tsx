@@ -272,21 +272,37 @@ export function ProyeccionAumentosPage() {
 
                       {/* Porcentaje Aplicado */}
                       <td className="px-6 py-4 text-right">
-                        <span className="font-bold text-renta-900">
-                          +{p.porcentaje_aplicado.toFixed(2)}%
-                        </span>
+                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' ? (
+                          <div className="flex flex-col items-end gap-0.5" title="El índice oficial para este periodo aún no ha sido publicado.">
+                            <span className="font-bold text-orange-600 text-xs flex items-center gap-1">
+                              <AlertCircle className="w-3.5 h-3.5" /> Pendiente
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="font-bold text-renta-900">
+                            +{p.porcentaje_aplicado.toFixed(2)}%
+                          </span>
+                        )}
                       </td>
 
                       {/* Monto Proyectado */}
                       <td className="px-6 py-4 text-right font-bold text-renta-950">
-                        {formatCurrency(p.monto_proyectado)}
+                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' ? (
+                          <span className="text-renta-400 italic font-medium text-sm" title="Se calculará cuando el índice sea publicado">A confirmar</span>
+                        ) : (
+                          formatCurrency(p.monto_proyectado)
+                        )}
                       </td>
 
                       {/* Diferencia */}
                       <td className="px-6 py-4 text-right">
-                        <span className="font-bold text-emerald-600">
-                          +{formatCurrency(p.diferencia)}
-                        </span>
+                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' ? (
+                          <span className="text-renta-400 font-medium text-sm">—</span>
+                        ) : (
+                          <span className="font-bold text-emerald-600">
+                            +{formatCurrency(p.diferencia)}
+                          </span>
+                        )}
                       </td>
 
                       {/* Periodicidad */}
@@ -305,12 +321,19 @@ export function ProyeccionAumentosPage() {
 
         {/* Footer con totales */}
         {!isLoading && proyecciones.length > 0 && (
-          <div className="border-t border-admin-border bg-renta-50/40 px-6 py-3 flex justify-between items-center">
-            <p className="text-xs text-renta-500 font-medium">
-              {proyecciones.length} contrato{proyecciones.length !== 1 ? 's' : ''} con aumento en {formatPeriodo(periodo)}
-            </p>
+          <div className="border-t border-admin-border bg-renta-50/40 px-6 py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+            <div className="flex flex-col">
+              <p className="text-xs text-renta-500 font-medium">
+                {proyecciones.length} contrato{proyecciones.length !== 1 ? 's' : ''} con aumento en {formatPeriodo(periodo)}
+              </p>
+              {proyecciones.some(p => p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL') && (
+                <p className="text-[11px] text-orange-600 font-medium flex items-center gap-1 mt-1">
+                  <AlertCircle className="w-3 h-3" /> Hay proyecciones pendientes de publicación del índice oficial.
+                </p>
+              )}
+            </div>
             <p className="text-sm font-bold text-emerald-600">
-              +{formatCurrency(data?.total_incremento_recaudacion ?? 0)} / mes
+              +{formatCurrency(data?.total_incremento_recaudacion ?? 0)} / mes proyectado
             </p>
           </div>
         )}
