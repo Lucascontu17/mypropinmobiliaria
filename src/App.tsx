@@ -15,6 +15,7 @@ import { PropiedadFormPage } from '@/pages/propiedades/PropiedadFormPage';
 import { ContratosPage } from '@/pages/contratos/ContratosPage';
 import { ContratoFormPage } from '@/pages/contratos/ContratoFormPage';
 import { CobranzasPage } from '@/pages/cobranzas/CobranzasPage';
+import { ProyeccionAumentosPage } from '@/pages/cobranzas/ProyeccionAumentosPage';
 import { MarketplacePage } from '@/pages/marketplace/MarketplacePage';
 import { ConfiguracionPage } from '@/pages/configuracion/ConfiguracionPage';
 import { EquipoPage } from '@/pages/equipo/EquipoPage';
@@ -103,6 +104,15 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
                       <CobranzasPage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/cobranzas/aumentos" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
+                      <ProyeccionAumentosPage />
                     </ProtectedRoute>
                   } 
                 />
