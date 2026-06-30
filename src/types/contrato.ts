@@ -35,9 +35,11 @@ export const contratoSchema = z.object({
     email: z.string().email('Email inválido').optional().or(z.literal('')),
     celular: z.string().optional().or(z.literal('')),
     dni_url: z.any().optional(),
-    contrato_url: z.any().optional(),
     client_number: z.string().optional().or(z.literal('')), // Para vinculación global
   }).optional(),
+  
+  // Archivos
+  contrato_url: z.any().optional(),
   
   // Ciclo de Vida del Contrato
   fecha_inicio: z.string({ required_error: "La fecha de inicio es requerida", invalid_type_error: "Formato de fecha de inicio inválido" })
