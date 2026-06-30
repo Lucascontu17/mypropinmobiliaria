@@ -5,7 +5,8 @@ import { type PagoEnCuenta } from '@/types/cobranzas';
 import { RegistrarIngresoModal } from '@/components/cobranzas/RegistrarIngresoModal';
 import { CierrePeriodoModal } from '@/components/cobranzas/CierrePeriodoModal';
 import { VerBoletasModal } from '@/components/cobranzas/VerBoletasModal';
-import { Search, FolderSync, Plus, FileText, CheckCircle2, AlertCircle, Clock, Check, Wallet, FileUp, Loader2 } from 'lucide-react';
+import { Search, FolderSync, Plus, FileText, CheckCircle2, AlertCircle, Clock, Check, Wallet, FileUp, Loader2, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
@@ -120,14 +121,23 @@ export function CobranzasPage() {
         </div>
         
         {hasPermission(['superadmin', 'admin']) && (
-          <button 
-            data-shepherd="btn-cierre-periodo"
-            onClick={() => setShowCierreModal(true)}
-            className="flex items-center gap-2 rounded-xl bg-renta-950 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-renta-950/20 transition-all hover:bg-renta-800 hover:scale-[1.02]"
-          >
-            <FolderSync className="h-4 w-4" />
-            {t('cobranza_cierre', 'Cerrar Periodo & Arrastrar Deuda')}
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/cobranzas/aumentos"
+              className="flex items-center gap-2 rounded-xl bg-white ring-1 ring-inset ring-admin-border border-transparent px-4 py-2.5 text-sm font-semibold text-renta-700 shadow-sm transition-all hover:bg-renta-50 hover:text-renta-950 hover:scale-[1.02]"
+            >
+              <TrendingUp className="h-4 w-4 text-emerald-500" />
+              Proyección de Aumentos
+            </Link>
+            <button 
+              data-shepherd="btn-cierre-periodo"
+              onClick={() => setShowCierreModal(true)}
+              className="flex items-center gap-2 rounded-xl bg-renta-950 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-renta-950/20 transition-all hover:bg-renta-800 hover:scale-[1.02]"
+            >
+              <FolderSync className="h-4 w-4" />
+              {t('cobranza_cierre', 'Cerrar Periodo & Arrastrar Deuda')}
+            </button>
+          </div>
         )}
       </div>
 

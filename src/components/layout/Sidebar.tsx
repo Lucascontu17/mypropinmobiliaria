@@ -17,6 +17,7 @@ import {
   LogOut,
   Calendar,
   LifeBuoy,
+  TrendingUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInmobiliaria, type UserRole } from '@/hooks/useInmobiliaria';
@@ -50,6 +51,7 @@ const NAV_ITEMS: NavItem[] = [
   { dialectKey: 'nav_contratos', fallbackLabel: 'Contratos', href: '/contratos', icon: Handshake, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
   { dialectKey: 'nav_inquilinos', fallbackLabel: 'Inquilinos', href: '/inquilinos', icon: Users, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_cobranzas', fallbackLabel: 'Cobranzas', href: '/cobranzas', icon: Wallet, allowedRoles: ['superadmin', 'admin'] },
+  { dialectKey: 'nav_proyeccion_aumentos', fallbackLabel: 'Proyección de Aumentos', href: '/cobranzas/aumentos', icon: TrendingUp, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_marketplace', fallbackLabel: 'Marketplace', href: '/marketplace', icon: Store, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_suscripcion', fallbackLabel: 'Mi Suscripción', href: '/suscripcion', icon: CreditCard, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_equipo', fallbackLabel: 'Equipo', href: '/equipo', icon: UsersRound, allowedRoles: ['superadmin', 'admin'] },
