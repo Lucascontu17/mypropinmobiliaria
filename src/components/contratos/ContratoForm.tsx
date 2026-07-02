@@ -620,6 +620,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                           <option value="INDICE_ICL_IPC">Actualización por Índices Oficiales (ICL/IPC)</option>
                         )}
                         <option value="PORCENTAJE_MANUAL">Porcentaje Personalizado</option>
+                        <option value="MONTO_FIJO">Monto Fijo ($)</option>
                       </select>
                       {errors.reglas_aumento?.tipo_aumento && <p className="text-[10px] text-red-500 font-medium">{errors.reglas_aumento.tipo_aumento.message}</p>}
                       
@@ -628,7 +629,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                         <div className="pt-2 animate-fade-in">
                           <label className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Valor del Porcentaje Fijo</label>
                           <div className="relative mt-1">
-                            <input 
+                            <input
                               type="number" step="0.1"
                               {...register('reglas_aumento.porcentaje')}
                               className="w-full rounded-xl border border-emerald-200 bg-white pr-8 pl-3 py-2 text-sm outline-none focus:border-emerald-400 text-renta-950"
@@ -637,6 +638,26 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                             <span className="absolute right-3 top-2 text-emerald-500 font-bold">%</span>
                           </div>
                           {errors.reglas_aumento?.porcentaje && <p className="text-[10px] text-red-500 font-medium">{errors.reglas_aumento.porcentaje.message}</p>}
+                        </div>
+                      )}
+
+                      {/* Monto Fijo Input */}
+                      {tipoAumento === 'MONTO_FIJO' && (
+                        <div className="pt-2 animate-fade-in">
+                          <label className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Valor del Aumento Fijo</label>
+                          <div className="relative mt-1">
+                            <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase">{config.currency_code}</span>
+                            <input
+                              type="number" step="0.01"
+                              {...register('reglas_aumento.monto_fijo')}
+                              className="w-full rounded-xl border border-emerald-200 bg-white pl-10 pr-3 py-2 text-sm outline-none focus:border-emerald-400 text-renta-950"
+                              placeholder="Ej: 5000"
+                            />
+                          </div>
+                          {errors.reglas_aumento?.monto_fijo && <p className="text-[10px] text-red-500 font-medium">{errors.reglas_aumento.monto_fijo.message}</p>}
+                          <p className="text-[10px] text-emerald-700 bg-emerald-100 p-2 rounded-lg mt-2 font-semibold">
+                            El alquiler se incrementará en este monto fijo cada período seleccionado, independientemente de índices.
+                          </p>
                         </div>
                       )}
 

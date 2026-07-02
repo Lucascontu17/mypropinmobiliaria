@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { TrendingUp, ArrowUpRight, Percent, BarChart3, AlertCircle, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type TipoAumento = 'PORCENTAJE_MANUAL' | 'INDICE_IPC' | 'INDICE_ICL' | 'INDICE_ICL_IPC';
+type TipoAumento = 'PORCENTAJE_MANUAL' | 'MONTO_FIJO' | 'INDICE_IPC' | 'INDICE_ICL' | 'INDICE_ICL_IPC';
 
 interface ProyeccionItem {
   contrato_id: string;
@@ -33,10 +33,11 @@ interface ProyeccionData {
 }
 
 const TIPO_AUMENTO_CONFIG: Record<TipoAumento, { label: string; color: string; bg: string; border: string }> = {
-  PORCENTAJE_MANUAL: { label: 'Manual', color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200' },
-  INDICE_IPC:        { label: 'IPC',    color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200' },
-  INDICE_ICL:        { label: 'ICL',    color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-  INDICE_ICL_IPC:    { label: 'ICL+IPC', color: 'text-purple-700', bg: 'bg-purple-50', border: 'border-purple-200' },
+  PORCENTAJE_MANUAL: { label: 'Manual',  color: 'text-blue-700',     bg: 'bg-blue-50',     border: 'border-blue-200' },
+  MONTO_FIJO:        { label: 'Fijo $',  color: 'text-rose-700',     bg: 'bg-rose-50',     border: 'border-rose-200' },
+  INDICE_IPC:        { label: 'IPC',     color: 'text-orange-700',   bg: 'bg-orange-50',   border: 'border-orange-200' },
+  INDICE_ICL:        { label: 'ICL',     color: 'text-emerald-700',  bg: 'bg-emerald-50',  border: 'border-emerald-200' },
+  INDICE_ICL_IPC:    { label: 'ICL+IPC', color: 'text-purple-700',   bg: 'bg-purple-50',   border: 'border-purple-200' },
 };
 
 // Helper: YYYY-MM → YYYY-MM offset by N months
@@ -271,7 +272,7 @@ export function ProyeccionAumentosPage() {
 
                       {/* Porcentaje Aplicado */}
                       <td className="px-6 py-4 text-right">
-                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' ? (
+                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' && p.tipo_aumento !== 'MONTO_FIJO' ? (
                           <div className="flex flex-col items-end gap-0.5" title="El índice oficial para este periodo aún no ha sido publicado.">
                             <span className="font-bold text-orange-600 text-xs flex items-center gap-1">
                               <AlertCircle className="w-3.5 h-3.5" /> Pendiente
@@ -286,7 +287,7 @@ export function ProyeccionAumentosPage() {
 
                       {/* Monto Proyectado */}
                       <td className="px-6 py-4 text-right font-bold text-renta-950">
-                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' ? (
+                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' && p.tipo_aumento !== 'MONTO_FIJO' ? (
                           <span className="text-renta-400 italic font-medium text-sm" title="Se calculará cuando el índice sea publicado">A confirmar</span>
                         ) : (
                           formatCurrency(p.monto_proyectado)
@@ -295,7 +296,7 @@ export function ProyeccionAumentosPage() {
 
                       {/* Diferencia */}
                       <td className="px-6 py-4 text-right">
-                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' ? (
+                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' && p.tipo_aumento !== 'MONTO_FIJO' ? (
                           <span className="text-renta-400 font-medium text-sm">—</span>
                         ) : (
                           <span className="font-bold text-emerald-600">
@@ -325,7 +326,7 @@ export function ProyeccionAumentosPage() {
               <p className="text-xs text-renta-500 font-medium">
                 {proyecciones.length} contrato{proyecciones.length !== 1 ? 's' : ''} con aumento en {formatPeriodo(periodo)}
               </p>
-              {proyecciones.some(p => p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL') && (
+              {proyecciones.some(p => p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' && p.tipo_aumento !== 'MONTO_FIJO') && (
                 <p className="text-[11px] text-orange-600 font-medium flex items-center gap-1 mt-1">
                   <AlertCircle className="w-3 h-3" /> Hay proyecciones pendientes de publicación del índice oficial.
                 </p>
