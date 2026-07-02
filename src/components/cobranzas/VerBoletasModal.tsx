@@ -45,7 +45,7 @@ export function VerBoletasModal({ pagoId, inquilinoNombre, onClose }: Props) {
   const fetchBoletas = async () => {
     try {
       setLoading(true);
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { data, error } = await eden.admin.boletas[pagoId].get();
       if (!error && data?.data) {
         setBoletas(data.data);
@@ -59,7 +59,18 @@ export function VerBoletasModal({ pagoId, inquilinoNombre, onClose }: Props) {
 
   const handlePreview = (url: string) => {
     const API_URL = import.meta.env.VITE_API_URL || 'https://api.zonatia.com/api/v1';
-    const fullUrl = url.startsWith('http') ? url : `${API_URL.replace('/v1', '').replace('/api', '')}${url}`;
+    const fullUrl = url.startsWith('http')
+      ? url
+      : (() => {
+          try {
+            const parsed = new URL(API_URL);
+            const base = `${parsed.protocol}//${parsed.host}`;
+            return `${base}${url}`;
+          } catch {
+            console.error('[VerBoletas] Invalid API_URL:', API_URL);
+            return url;
+          }
+        })();
     window.open(fullUrl, '_blank');
   };
 

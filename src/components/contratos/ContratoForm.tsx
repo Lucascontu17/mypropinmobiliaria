@@ -106,7 +106,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
     if (!clientSearch) return;
     setIsLinking(true);
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { data, error } = await eden.admin.clients.search[clientSearch].get();
       
       if (error || !data?.success) {
@@ -149,7 +149,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
         const formData = new FormData();
         formData.append('file', file);
         formData.append('folder', folder);
-        // @ts-ignore
+        // @ts-expect-error - Eden Treaty dynamic path
         const { data: res, error } = await eden.admin['upload-file'].post(formData);
         if (error) throw new Error(error.value?.error || 'Error subiendo archivo');
         return res?.url;
@@ -170,7 +170,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
         
         if (foundClient) {
           console.log('🔗 Vinculando Cliente Global Existente:', foundClient.id);
-          // @ts-ignore
+          // @ts-expect-error - Eden Treaty dynamic path
           const { data: linkData, error: linkError } = await eden.admin.clients.activate[foundClient.id].patch({
             inmobiliaria_id: inmobiliaria_id!,
             dni: data.nuevo_inquilino.dni
@@ -191,7 +191,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
           toast.success('Cliente vinculado con éxito');
         } else {
           console.log('🆕 Creando nuevo registro de inquilino local...', sinCuenta ? '(SOLO FICHA)' : '');
-          // @ts-ignore
+          // @ts-expect-error - Eden Treaty dynamic path
           const { data: response, error: inqError } = await eden.admin.inquilinos.post({
             nombre: data.nuevo_inquilino.nombre,
             dni: data.nuevo_inquilino.dni,
@@ -231,7 +231,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
 
       console.table(contratoPayload);
 
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { data: result, error: contratoError } = await eden.admin.contratos.post(contratoPayload);
       
       if (contratoError) {
@@ -242,6 +242,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
       }
 
       toast.success('Contrato Generado Correctamente');
+      setFoundClient(null);
       if (onSubmitSuccess) onSubmitSuccess();
     } catch (error: any) {
        toast.error('Error en la Transacción', { description: error.message });

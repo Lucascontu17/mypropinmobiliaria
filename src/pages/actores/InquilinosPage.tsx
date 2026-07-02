@@ -5,6 +5,7 @@ import { Plus, Search, Users, Edit2, Trash2, FileText, X, Loader2 } from 'lucide
 import { cn } from '@/lib/utils';
 import { InquilinoForm } from '@/components/actores/InquilinoForm';
 import { useEden } from '@/services/eden';
+import { toast } from 'sonner';
 
 export function InquilinosPage() {
   const { hasPermission, inmobiliaria_id } = useInmobiliaria();
@@ -137,7 +138,14 @@ export function InquilinosPage() {
                           <Edit2 className="h-4 w-4" />
                         </button>
                         {hasPermission(['superadmin']) && (
-                          <button className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
+                          <button
+                            onClick={() => {
+                              toast.error('Función no disponible', {
+                                description: 'La eliminación de inquilinos se gestiona desde el backend.'
+                              });
+                            }}
+                            className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         )}

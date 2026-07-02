@@ -78,7 +78,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
         },
         metodo_pago: data.metodo,
         fecha_pago: data.fecha
-      });
+      }, config.currency_locale);
 
       // 3. Subir el PDF al Búnker
       const pdfBlob = doc.output('blob');

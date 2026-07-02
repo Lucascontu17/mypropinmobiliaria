@@ -52,7 +52,7 @@ export function MarketplacePage() {
     setIsLoading(true);
     setError(null);
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { data, error } = await eden.marketplace.catalog.get();
       if (error) throw new Error("Error al obtener catálogo");
       
@@ -76,7 +76,7 @@ export function MarketplacePage() {
     
     setIsProcessing(addonId);
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { error } = await eden.marketplace['acquire-addon'].post({ addon_id: addonId });
       if (error) throw new Error("Error al adquirir add-on");
       
@@ -94,7 +94,7 @@ export function MarketplacePage() {
     
     setIsProcessing(addonId);
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { error } = await eden.marketplace['cancel-addon'].post({ addon_id: addonId });
       if (error) throw new Error("Error al dar de baja");
       
@@ -113,7 +113,9 @@ export function MarketplacePage() {
     expirationDate: '',
     cvv: '',
     cardholderName: '',
-    email: ''
+    email: '',
+    identificationType: 'DNI',
+    identificationNumber: ''
   });
 
   const handleProcessPayment = async (puntos: number, monto: number) => {
@@ -125,11 +127,20 @@ export function MarketplacePage() {
     setIsProcessing('points_purchase');
     
     try {
+      const mpPublicKey = import.meta.env.VITE_MP_PUBLIC_KEY;
+      if (!mpPublicKey) {
+        throw new Error('VITE_MP_PUBLIC_KEY no está configurada. Verifique el archivo .env');
+      }
+
       // 1. Initialize Mercado Pago
-      // @ts-ignore
-      const mp = new window.MercadoPago('APP_USR-d74eb23f-78f0-42e0-88d0-78f682072e4c', {
+      // @ts-expect-error - Eden Treaty dynamic path
+      const mp = new window.MercadoPago(mpPublicKey, {
         locale: 'es-AR'
       });
+
+      if (!cardData.identificationNumber.trim()) {
+        throw new Error('Debe completar el número de identificación');
+      }
 
       // 2. Tokenize Card
       const [month, year] = cardData.expirationDate.split('/');
@@ -139,8 +150,8 @@ export function MarketplacePage() {
         cardExpirationMonth: month,
         cardExpirationYear: "20" + year,
         securityCode: cardData.cvv,
-        identificationType: "DNI", // Default for AR demo, should be a selector in prod
-        identificationNumber: "12345678" // Default for AR demo
+        identificationType: cardData.identificationType,
+        identificationNumber: cardData.identificationNumber
       });
 
       if (!tokenResponse.id) {
@@ -148,7 +159,7 @@ export function MarketplacePage() {
       }
 
       // 3. Send to API
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { data, error } = await eden.marketplace['buy-points'].post({ 
         puntos, 
         monto: monto.toString(),
@@ -532,13 +543,41 @@ export function MarketplacePage() {
 
                     <div className="space-y-1">
                        <label className="text-[9px] font-bold text-renta-500 uppercase tracking-[0.1em] ml-1">Nombre en la Tarjeta</label>
-                       <input 
-                         type="text" 
+                       <input
+                         type="text"
                          placeholder="EJ. JUAN PEREZ"
                          value={cardData.cardholderName}
                          onChange={(e) => setCardData({...cardData, cardholderName: e.target.value})}
                          className="w-full h-11 bg-renta-50/30 border border-renta-100 rounded-xl px-4 text-sm font-bold text-renta-900 outline-none focus:ring-4 focus:ring-renta-500/10 focus:border-renta-300 transition-all placeholder:text-renta-300 uppercase"
                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                       <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-renta-500 uppercase tracking-[0.1em] ml-1">Tipo de Identificación</label>
+                          <select
+                            value={cardData.identificationType}
+                            onChange={(e) => setCardData({...cardData, identificationType: e.target.value})}
+                            className="w-full h-11 bg-renta-50/30 border border-renta-100 rounded-xl px-4 text-sm font-bold text-renta-900 outline-none focus:ring-4 focus:ring-renta-500/10 focus:border-renta-300 transition-all"
+                          >
+                            <option value="DNI">DNI</option>
+                            <option value="CI">Cédula de Identidad</option>
+                            <option value="RUT">RUT</option>
+                            <option value="PASSPORT">Pasaporte</option>
+                            <option value="CPF">CPF (Brasil)</option>
+                            <option value="RFC">RFC (México)</option>
+                          </select>
+                       </div>
+                       <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-renta-500 uppercase tracking-[0.1em] ml-1">N° de Identificación</label>
+                          <input
+                            type="text"
+                            placeholder="Ingrese su documento"
+                            value={cardData.identificationNumber}
+                            onChange={(e) => setCardData({...cardData, identificationNumber: e.target.value})}
+                            className="w-full h-11 bg-renta-50/30 border border-renta-100 rounded-xl px-4 text-sm font-bold text-renta-900 outline-none focus:ring-4 focus:ring-renta-500/10 focus:border-renta-300 transition-all placeholder:text-renta-300"
+                          />
+                       </div>
                     </div>
                  </div>
 

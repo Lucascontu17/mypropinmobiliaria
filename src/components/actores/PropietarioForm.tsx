@@ -35,7 +35,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
     watch,
     setValue
   } = useForm<OwnerFormValues>({
-    // @ts-ignore - Ignore type mismatch for coerced number in resolver
+    // @ts-expect-error - Eden Treaty dynamic path - Ignore type mismatch for coerced number in resolver
     resolver: zodResolver(ownerSchema),
     defaultValues: initialData ? {
       ...initialData,
@@ -65,7 +65,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
 
     setIsSearching(true);
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { data, error } = await eden.admin.clients.search[searchCode].get();
       
       if (error || !data.success) {
@@ -118,13 +118,13 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
 
       if (ownerId) {
         // Editar propietario existente
-        // @ts-ignore
+        // @ts-expect-error - Eden Treaty dynamic path
         const result = await eden.admin.owners[ownerId].put(payload);
         response = result.data;
         error = result.error;
       } else {
         // Enviar al endpoint de creación de owners (auto-genera cuenta global)
-        // @ts-ignore
+        // @ts-expect-error - Eden Treaty dynamic path
         const result = await eden.admin.owners.post(payload);
         response = result.data;
         error = result.error;

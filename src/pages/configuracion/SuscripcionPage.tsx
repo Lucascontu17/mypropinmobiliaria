@@ -44,9 +44,10 @@ export function SuscripcionPage() {
   const fetchBillingData = async () => {
     setIsLoading(true);
     try {
-      // @ts-ignore
       const [summaryRes, historyRes] = await Promise.all([
+        // @ts-expect-error - Eden Treaty dynamic path
         eden.billing.summary.get(),
+        // @ts-expect-error - Eden Treaty dynamic path
         eden.billing.history.get()
       ]);
 
@@ -64,7 +65,7 @@ export function SuscripcionPage() {
   const handlePayClick = async () => {
     setIsGeneratingPayment(true);
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const res = await eden.billing['create-preference'].post({
         monto: summary?.total_amount || 0,
         moneda: 'ARS'

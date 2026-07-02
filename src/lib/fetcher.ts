@@ -1,4 +1,4 @@
-import { eden } from '@/services/eden';
+import { api as eden } from '@/services/eden';
 
 /**
  * Función fetcher principal para SWR.
@@ -8,7 +8,7 @@ import { eden } from '@/services/eden';
  * const { data, error } = useSWR(['/owner', inmobiliaria_id], fetcher);
  */
 export const edenFetcher = async (url: string, params: Record<string, string> = {}) => {
-  // @ts-ignore - Eden dynamic path resolving
+  // @ts-expect-error - Eden Treaty dynamic path
   const response = await eden[url.replace(/^\//, '')].get({
     query: {
       ...params

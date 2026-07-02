@@ -14,7 +14,8 @@ export const ownerSchema = z.object({
   dni: z.string()
     .min(7, 'El DNI/CUIT debe tener al menos 7 dígitos')
     .max(20, 'El DNI/CUIT es demasiado largo')
-    .regex(/^\d+$/, 'El DNI/CUIT debe contener solo números'),
+    .regex(/^[\d-]+$/, 'El DNI/CUIT debe contener solo números y guiones')
+    .transform(val => val.replace(/-/g, '')),
   email: z.string().email('Formato de email inválido').optional().or(z.literal('')),
   celular: z.string()
     .regex(e164Regex, 'El celular debe tener formato internacional (Ej: +549...)'),
@@ -41,14 +42,15 @@ export const tenantSchema = z.object({
   dni: z.string()
     .min(7, 'El DNI debe tener al menos 7 dígitos')
     .max(20, 'El DNI es demasiado largo')
-    .regex(/^\d+$/, 'El DNI debe contener solo números')
+    .regex(/^[\d-]+$/, 'El DNI debe contener solo números y guiones')
+    .transform(val => val.replace(/-/g, ''))
     .optional()
     .or(z.literal('')), // Support empty initial state for Clients
   email: z.string().email('Formato de email inválido'),
   celular: z.string()
     .regex(e164Regex, 'El celular debe tener formato internacional (Ej: +549...)'),
-  dni_url: z.any().optional(),
-  contrato_url: z.any().optional(),
+  dni_url: z.instanceof(FileList).optional(),
+  contrato_url: z.instanceof(FileList).optional(),
 });
 
 export type TenantFormValues = z.infer<typeof tenantSchema>;

@@ -29,7 +29,7 @@ export function PropiedadFormPage() {
     setIsLoading(true);
     try {
       // 1. Fetch Owners
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { data: ownersRes, error: ownersErr } = await client.admin.owners.get();
       if (!ownersErr && ownersRes) {
         if (Array.isArray(ownersRes.owners)) {
@@ -41,7 +41,7 @@ export function PropiedadFormPage() {
 
       // 2. Fetch Property if editing
       if (isEditing) {
-        // @ts-ignore
+        // @ts-expect-error - Eden Treaty dynamic path
         const { data: propRes, error: propErr } = await client.admin.propiedades[id].get();
         if (!propErr && propRes) {
           setProperty(propRes);

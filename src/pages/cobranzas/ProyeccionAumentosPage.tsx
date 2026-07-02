@@ -71,14 +71,13 @@ export function ProyeccionAumentosPage() {
   const fetchData = async (p: string) => {
     setIsLoading(true);
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { data: res, error } = await eden.admin['cobranzas']['proyeccion-aumentos'].get({
         query: { periodo: p },
       });
       if (error) {
         toast.error('No se pudo cargar la proyección de aumentos');
       } else {
-        // @ts-ignore
         setData(res?.data ?? null);
       }
     } catch {

@@ -33,11 +33,11 @@ function parseFrontmatter(raw: string): { config: Record<string, string>; body: 
   const config: Record<string, string> = {};
 
   frontmatterBlock.split('\n').forEach((line) => {
-    const colonIdx = line.indexOf(':');
-    if (colonIdx === -1) return;
+    const match = line.trim().match(/^([^:]+):\s*(.*)$/s);
+    if (!match) return;
 
-    const key = line.slice(0, colonIdx).trim();
-    let value = line.slice(colonIdx + 1).trim();
+    const key = match[1].trim();
+    let value = match[2].trim();
 
     // Strip surrounding quotes if present
     if ((value.startsWith('"') && value.endsWith('"')) ||
@@ -65,11 +65,11 @@ function parseBody(body: string): Record<string, string> {
     // Skip empty lines and section headers
     if (!trimmed || trimmed.startsWith('#')) return;
 
-    const colonIdx = trimmed.indexOf(':');
-    if (colonIdx === -1) return;
+    const match = trimmed.match(/^([^:]+):\s*(.*)$/s);
+    if (!match) return;
 
-    const key = trimmed.slice(0, colonIdx).trim();
-    const value = trimmed.slice(colonIdx + 1).trim();
+    const key = match[1].trim();
+    const value = match[2].trim();
 
     if (key) texts[key] = value;
   });

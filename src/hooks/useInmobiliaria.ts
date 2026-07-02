@@ -38,13 +38,13 @@ export function useInmobiliaria() {
   const { data: dbData } = useSWR(
     isSignedIn && isReady ? '/admin/me' : null,
     async () => {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { data, error } = await client.admin.me.get();
       if (error) {
         console.warn('[useInmobiliaria] DB branding fetch failed, using metadata.');
         return null;
       }
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       return data?.data;
     },
     { revalidateOnFocus: false, dedupingInterval: 60000 }

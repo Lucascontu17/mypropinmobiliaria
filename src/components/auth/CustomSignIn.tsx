@@ -123,7 +123,7 @@ export const CustomSignIn = () => {
 
   return (
     <div className="w-full animate-fade-in-up">
-      <form onSubmit={handleSignIn} className="space-y-5">
+      <form onSubmit={mode === 'signIn' ? handleSignIn : handle2FA} className="space-y-5">
         {errorMsg && (
           <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-xs font-inter rounded-xl animate-shake text-center">
             {errorMsg}
@@ -175,9 +175,8 @@ export const CustomSignIn = () => {
           </div>
         )}
 
-        <button 
+        <button
           type="submit"
-          onClick={mode === 'signIn' ? handleSignIn : handle2FA}
           disabled={loading}
           className="w-full bg-renta-950 text-white py-3.5 rounded-2xl font-inter text-sm font-bold hover:bg-renta-900 transition-all shadow-lg shadow-renta-950/20 active:scale-[0.98] flex items-center justify-center gap-2"
         >

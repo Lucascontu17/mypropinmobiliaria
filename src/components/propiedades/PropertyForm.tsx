@@ -169,7 +169,7 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
     if (!window.google || autocompleteRef.current) return;
 
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { PlaceAutocompleteElement } = await google.maps.importLibrary('places');
       
       const pac = new PlaceAutocompleteElement({

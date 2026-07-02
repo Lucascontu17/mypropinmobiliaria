@@ -8,8 +8,8 @@ import { useRegion } from '@/hooks/useRegion';
  */
 export interface ShepherdStep {
   target: string;
-  title?: React.ReactNode | string;
-  content: React.ReactNode | string;
+  title?: string;
+  content: string;
   placement?: 'top' | 'bottom' | 'left' | 'right' | 'auto';
 }
 
@@ -79,8 +79,8 @@ export function LocalShepherd({ steps, storageKey }: LocalShepherdProps) {
 
         tour.addStep({
           id: `step-${index}`,
-          title: typeof step.title === 'string' ? step.title : '', // Shepherd titles are strings or elements
-          text: typeof step.content === 'string' ? step.content : '',
+          title: step.title ? String(step.title) : '',
+          text: String(step.content),
           attachTo: {
             element: step.target,
             on: step.placement || 'bottom',

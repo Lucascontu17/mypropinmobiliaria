@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
+import { toast } from 'sonner';
 import { Settings, BellRing, Mail, MessageSquare, Save, ShieldAlert, Globe, RotateCcw, Building2, Lock, Image as ImageIcon, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
@@ -68,7 +69,7 @@ export function ConfiguracionPage() {
           ...(hasLogoAddon ? { logo_url: logoUrl } : {})
         });
         if (error) {
-          alert("Error al actualizar los datos de la agencia: " + error.value);
+          toast.error("Error al actualizar los datos de la agencia: " + error.value);
           setIsSaving(false);
           return;
         }
@@ -78,7 +79,7 @@ export function ConfiguracionPage() {
 
       setTimeout(() => {
         setIsSaving(false);
-        alert(t('config_guardar', 'Configuración guardada correctamente.'));
+        toast.success(t('config_guardar', 'Configuración guardada correctamente.'));
       }, 500);
     } catch (e) {
        if (e instanceof z.ZodError) {

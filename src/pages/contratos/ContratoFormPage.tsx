@@ -20,16 +20,17 @@ export function ContratoFormPage() {
 
   const fetchData = async () => {
     try {
-      // @ts-ignore
       const [resProps, resInqs] = await Promise.all([
+        // @ts-expect-error - Eden Treaty dynamic path
         client.admin.propiedades.get(),
+        // @ts-expect-error - Eden Treaty dynamic path
         client.admin.inquilinos.get()
       ]);
 
       if (!resProps.error && resProps.data) {
         const propsArray = Array.isArray(resProps.data) ? resProps.data : (resProps.data as any).propiedades || [];
         // Filtrar solo las disponibles para nuevos contratos
-        const disponibles = propsArray.filter((p: any) => p.status === 'DISPONIBLE' || p.status === 'Venta');
+        const disponibles = propsArray.filter((p: any) => p.status === 'DISPONIBLE' || p.status === 'VENTA');
         setPropiedades(disponibles);
       }
 

@@ -108,7 +108,7 @@ export function DashboardPage() {
         if (error || !data) {
           setError(t('error_dashboard', 'Servicio momentáneamente no disponible.'));
         } else {
-          // @ts-ignore
+          // @ts-expect-error - Eden Treaty dynamic path
           setMetrics(data?.metrics);
         }
       } catch (err) {
@@ -199,14 +199,21 @@ export function DashboardPage() {
       </div>
 
       {/* ── ALERTA PERIODO DE GRACIA ── */}
-      {!isLoading && !metrics?.suscripcion?.is_vip && metrics?.suscripcion?.status === 'gracia' && (
-        <div className="bg-[#fffbe6] border border-[#ffd666] rounded-xl px-4 py-3 flex items-center gap-3 animate-fade-in-up">
-          <Calendar className="h-5 w-5 text-amber-600 shrink-0" />
-          <p className="text-amber-900 text-sm font-medium font-inter">
-            Periodo de gracia: quedan 7 días antes de que su suscripción expire.
-          </p>
-        </div>
-      )}
+      {!isLoading && !metrics?.suscripcion?.is_vip && metrics?.suscripcion?.status === 'gracia' && (() => {
+        const graceEnd = new Date(metrics.suscripcion.fecha_vencimiento);
+        graceEnd.setDate(graceEnd.getDate() + 7);
+        const daysLeft = Math.ceil((graceEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        return (
+          <div className="bg-[#fffbe6] border border-[#ffd666] rounded-xl px-4 py-3 flex items-center gap-3 animate-fade-in-up">
+            <Calendar className="h-5 w-5 text-amber-600 shrink-0" />
+            <p className="text-amber-900 text-sm font-medium font-inter">
+              Periodo de gracia: {daysLeft > 0
+                ? `quedan ${daysLeft} ${daysLeft === 1 ? 'día' : 'días'} antes de que su suscripción expire.`
+                : 'su suscripción ha expirado.'}
+            </p>
+          </div>
+        );
+      })()}
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in">
