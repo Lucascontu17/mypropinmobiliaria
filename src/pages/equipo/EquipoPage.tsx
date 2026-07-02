@@ -355,6 +355,11 @@ export function EquipoPage() {
 
                           {hasPermission(['superadmin']) && (
                             <button
+                              onClick={() => {
+                                toast.error('Función no disponible', {
+                                  description: 'La eliminación de miembros se gestiona desde Clerk Console.'
+                                });
+                              }}
                               className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                               title={t('equipo_accion_eliminar', 'Eliminar')}
                             >
@@ -373,7 +378,14 @@ export function EquipoPage() {
                           {contextMenu === m?.id && (
                             <div className="absolute right-0 top-full mt-1 z-10 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-xl shadow-lg py-1 min-w-[180px] animate-fade-in">
                               <button
-                                onClick={() => setContextMenu(null)}
+                                onClick={() => {
+                                  setContextMenu(null);
+                                  toast.error('Función no disponible', {
+                                    description: m?.estado === 'activo'
+                                      ? 'La desactivación de cuentas se gestiona desde Clerk Console.'
+                                      : 'La reactivación de cuentas se gestiona desde Clerk Console.'
+                                  });
+                                }}
                                 className="w-full flex items-center gap-2 px-4 py-2 text-xs text-renta-700 hover:bg-renta-50 transition-colors"
                               >
                                 {m?.estado === 'activo' ? (
@@ -389,7 +401,12 @@ export function EquipoPage() {
                                 )}
                               </button>
                               <button
-                                onClick={() => setContextMenu(null)}
+                                onClick={() => {
+                                  setContextMenu(null);
+                                  toast.error('Función no disponible', {
+                                    description: 'El reenvío de invitaciones se gestiona desde Clerk Console.'
+                                  });
+                                }}
                                 className="w-full flex items-center gap-2 px-4 py-2 text-xs text-renta-700 hover:bg-renta-50 transition-colors"
                               >
                                 <Mail className="h-3.5 w-3.5" />

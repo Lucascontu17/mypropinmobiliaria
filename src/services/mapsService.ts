@@ -21,7 +21,7 @@ export const geocodeAddress = async (
 ): Promise<GeocoderResult | null> => {
   try {
     // El backend usa la API Key regional basada en el country_code
-    // @ts-ignore
+    // @ts-expect-error - Eden Treaty dynamic path
     const { data, error } = await api.maps.geocode.post({
       direccion,
       inmobiliaria_id: inmobiliariaId,

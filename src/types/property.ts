@@ -20,8 +20,8 @@ export const propertySchema = z.object({
   provincia: z.string().optional().nullable(),
   ciudad: z.string().optional().nullable(),
   barrio: z.string().optional().nullable(),
-  tipo_inmueble: z.enum(["departamento", "casa", "ph", "terreno", "habitacion", "local", "otro"], {
-    errorMap: () => ({ message: "Debe seleccionar un tipo de inmueble." })
+  tipo_inmueble: z.enum(["departamento", "casa", "ph", "terreno", "habitacion", "local", "galpon", "oficina", "otro"] as const, {
+    message: "Debe seleccionar un tipo de inmueble."
   }),
   piso: z.string().optional(),
   departamento_unidad: z.string().optional(),
@@ -114,7 +114,7 @@ export interface PropertyResponse {
   banos: number;
   antiguedad: number;
   cocheras: number;
-  tipo_inmueble: "departamento" | "casa" | "ph" | "terreno" | "habitacion" | "local" | "otro";
+  tipo_inmueble: "departamento" | "casa" | "ph" | "terreno" | "habitacion" | "local" | "galpon" | "oficina" | "otro";
   piso?: string | null;
   departamento_unidad?: string | null;
   interno?: string | null;

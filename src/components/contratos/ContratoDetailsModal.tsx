@@ -17,6 +17,7 @@ interface Contrato {
     tipo_aumento?: string;
     periodicidad?: string;
     porcentaje?: number;
+    monto_fijo?: number;
   };
   reglas_mora?: {
     aplicar_mora: boolean;
@@ -251,7 +252,11 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
                         <p className="text-[11px] text-emerald-800 font-medium">
                            Cada: <span className="font-bold">{contrato.reglas_aumento.periodicidad}</span>
                         </p>
-                        {contrato.reglas_aumento.porcentaje && (
+                        {contrato.reglas_aumento.tipo_aumento === 'MONTO_FIJO' && contrato.reglas_aumento.monto_fijo ? (
+                           <p className="text-[11px] text-emerald-800 font-medium">
+                              Monto Fijo: <span className="font-bold">${contrato.reglas_aumento.monto_fijo.toLocaleString('es-AR')}</span>
+                           </p>
+                        ) : contrato.reglas_aumento.porcentaje && (
                            <p className="text-[11px] text-emerald-800 font-medium">
                               Tasa: <span className="font-bold">{contrato.reglas_aumento.porcentaje}%</span>
                            </p>

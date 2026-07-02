@@ -84,7 +84,7 @@ export function RegionProvider({ children }: RegionProviderProps) {
         return new Intl.NumberFormat(config.currency_locale, {
           style: 'currency',
           currency: currency || config.currency_code,
-          currencyDisplay: 'code',
+          currencyDisplay: 'narrowSymbol',
           minimumFractionDigits: 0,
           maximumFractionDigits: 0,
         }).format(amount);

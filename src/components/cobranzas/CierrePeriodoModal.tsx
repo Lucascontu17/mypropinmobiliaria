@@ -40,7 +40,7 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
       };
       
       toast.info('Procesando Cierre Maestro en Búnker...');
-      // @ts-ignore - Triggering Master Rollover (v2.0.1 Integrity Fix)
+      // @ts-expect-error - Eden Treaty dynamic path - Triggering Master Rollover (v2.0.1 Integrity Fix)
       const { error } = await eden.admin.pagos['cierre-maestro'].post(payload);
 
       if (error) throw new Error('Error al ejecutar el cierre maestro.');

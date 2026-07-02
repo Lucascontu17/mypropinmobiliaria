@@ -34,7 +34,7 @@ export function PropiedadesPage() {
         if (error) {
           console.error('[PROPIEDADES] Error fetching:', error);
         } else {
-          // @ts-ignore
+          // @ts-expect-error - Eden Treaty dynamic path
           setProperties(data?.propiedades ?? []);
         }
       } catch (err) {
@@ -56,7 +56,7 @@ export function PropiedadesPage() {
     if (!boosterModal || boosterPuntos <= 0) return;
     setIsAssigning(true);
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { data, error } = await eden.admin.propiedades[boosterModal.uid].booster.post({ puntos: boosterPuntos });
       
       if (error) throw new Error((error as any).value?.error || 'Error al aplicar booster');

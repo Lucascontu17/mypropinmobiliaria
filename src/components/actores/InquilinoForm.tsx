@@ -44,8 +44,8 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
       dni: '',
       celular: '',
       email: '',
-      dni_url: '',
-      contrato_url: ''
+      dni_url: undefined,
+      contrato_url: undefined
     }
   });
 
@@ -53,7 +53,7 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
     if (!clientSearch) return;
     setIsLinking(true);
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { data, error } = await eden.admin.clients.search[clientSearch].get();
       
       if (error || !data?.success) {
@@ -88,7 +88,7 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
     try {
       if (foundClient) {
         // 🚀 LINKING FLOW: Promocionar Cliente Global a Inquilino Activo
-        // @ts-ignore
+        // @ts-expect-error - Eden Treaty dynamic path
         const { error } = await eden.admin.clients.activate[foundClient.id].patch({
           inmobiliaria_id: inmobiliaria_id!,
           dni: data.dni
@@ -101,7 +101,7 @@ export function InquilinoForm({ initialData, onSuccess, onCancel }: InquilinoFor
         });
       } else {
         // 🚨 STANDARD FLOW: Crear inquilino desde cero (auto-genera cuenta global)
-        // @ts-ignore
+        // @ts-expect-error - Eden Treaty dynamic path
         const { data: response, error } = await eden.admin.inquilinos.post({
           nombre: data.nombre,
           email: data.email || undefined,

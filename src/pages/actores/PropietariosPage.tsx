@@ -25,7 +25,7 @@ export function PropietariosPage() {
         if (error) {
            console.error("Error fetching propietarios:", error);
         } else {
-           // @ts-ignore
+           // @ts-expect-error - Eden Treaty dynamic path
            setPropietarios(data?.owners ?? []);
         }
       } catch (err) {
@@ -162,7 +162,14 @@ export function PropietariosPage() {
                           <Edit2 className="h-4 w-4" />
                         </button>
                         {hasPermission(['superadmin']) && (
-                          <button className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
+                          <button
+                            onClick={() => {
+                              toast.error('Función no disponible', {
+                                description: 'La eliminación de propietarios se gestiona desde el backend.'
+                              });
+                            }}
+                            className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         )}

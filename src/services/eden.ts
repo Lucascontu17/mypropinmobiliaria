@@ -2,7 +2,7 @@ import { treaty } from '@elysiajs/eden';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { useMemo, useState, useEffect } from 'react';
 
-// @ts-ignore
+// @ts-expect-error - mypropapi types not published to npm
 import type { App } from 'mypropapi';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.zonatia.com';

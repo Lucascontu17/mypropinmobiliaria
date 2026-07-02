@@ -50,8 +50,9 @@ export interface PagoEnCuenta {
   monto_expensas?: number;      // Desglose: Expensas Comunes
   tipo_abl?: 'fijo' | 'variable' | null;
   monto_abl?: number;           // Desglose: ABL (Fijo si tipo='fijo')
+  comision_administracion?: number; // Comisión de administración por período
   
-  // Estado Dinámico: 
+  // Estado Dinámico:
   // 'PAGADO' (a_abonar <= abonado), 
   // 'PARCIAL' (abonado > 0 y < a_abonar), 
   // 'PENDIENTE' (abonado == 0 y periodo == actual)

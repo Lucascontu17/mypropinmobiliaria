@@ -40,17 +40,23 @@ export function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) 
     );
   }
 
-  // 2. Si no esta firmado o no tiene vinculacion a inmobiliaria, al login
-  if (!isSignedIn || !inmobiliaria_id) {
+  // 2. Si no esta firmado, redirigir al login
+  if (!isSignedIn) {
     return <Navigate to="/login" replace />;
   }
 
-  // 3. Evaluar suscripción bloqueada
+  // 3. Si esta firmado pero no tiene vinculacion a inmobiliaria,
+  //    redirigir a onboarding/configuracion (evita redirect loop)
+  if (!inmobiliaria_id) {
+    return <Navigate to="/configuracion" replace />;
+  }
+
+  // 4. Evaluar suscripción bloqueada
   if (suscripcion?.isBlocked && !location.pathname.includes('/suscripcion')) {
     return <Navigate to="/suscripcion" replace />;
   }
 
-  // 4. Evaluar permisos Roles para Master Filter B2B
+  // 5. Evaluar permisos Roles para Master Filter B2B
   if (allowedRoles && allowedRoles.length > 0) {
     if (!hasPermission(allowedRoles)) {
       return <AccessDenied />;

@@ -22,7 +22,7 @@ interface ReceiptData {
   fecha_pago: string;
 }
 
-export const generateReceiptPDF = async (data: ReceiptData) => {
+export const generateReceiptPDF = async (data: ReceiptData, locale: string = 'es-AR') => {
   const doc = new jsPDF();
   const margin = 20;
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -84,9 +84,9 @@ export const generateReceiptPDF = async (data: ReceiptData) => {
   // Table
   const tableData = [
     ["Concepto del Periodo", "Monto Total"],
-    ["Alquiler Base", `$ ${data.desglose.alquiler.toLocaleString('es-AR')}`],
-    ["Expensas Comunes", `$ ${data.desglose.expensas.toLocaleString('es-AR')}`],
-    ["Impuesto ABL / Municipal", `$ ${data.desglose.abl.toLocaleString('es-AR')}`],
+    ["Alquiler Base", `$ ${data.desglose.alquiler.toLocaleString(locale)}`],
+    ["Expensas Comunes", `$ ${data.desglose.expensas.toLocaleString(locale)}`],
+    ["Impuesto ABL / Municipal", `$ ${data.desglose.abl.toLocaleString(locale)}`],
   ];
 
   const tableResult = autoTable(doc, {
@@ -113,7 +113,7 @@ export const generateReceiptPDF = async (data: ReceiptData) => {
   doc.text("MONTO RECIBIDO EN ESTA OPERACIÓN:", margin + 5, y);
   
   doc.setTextColor(5, 150, 105); // emerald-600
-  doc.text(`$ ${data.monto_total.toLocaleString('es-AR')}`, pageWidth - margin - 5, y, { align: 'right' });
+  doc.text(`$ ${data.monto_total.toLocaleString(locale)}`, pageWidth - margin - 5, y, { align: 'right' });
   
   y += 8;
   doc.setFontSize(9);

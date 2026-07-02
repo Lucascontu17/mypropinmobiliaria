@@ -68,6 +68,7 @@ export function VisitasView({
     setUpdatingId(id);
     try {
       await onUpdateVisita(id, newStatus, newDate);
+      await fetchVisitas();
     } finally {
       setUpdatingId(null);
     }
@@ -417,18 +418,35 @@ export default function VisitasPage() {
 
   const getVisitasFn = async () => {
     if (!isReady) return [];
+    // @ts-expect-error - Eden Treaty dynamic path
     const { data, error } = await client.admin.visitas.get();
     if (error) {
       console.error('[VISITAS] Error fetching:', error);
       return [];
     }
-    // @ts-ignore
     return data?.visitas ?? [];
   };
 
   const onUpdateVisita = async (id: string, newStatus: string, newDate?: string) => {
-    // TODO: Implementar patch real en el backend si existe
-    toast.info('Actualización enviada (Backend sync pendiente)');
+    if (!isReady) {
+      toast.error('Cliente no disponible');
+      return;
+    }
+
+    const body: Record<string, string> = { status: newStatus };
+    if (newDate) {
+      body.fecha_programada = newDate;
+    }
+
+    const { error } = await client.admin.visitas({ id }).patch(body);
+
+    if (error) {
+      console.error('[VISITAS] Error updating visita:', error);
+      toast.error('Error al actualizar la visita');
+      throw new Error(error.value?.message || 'Error al actualizar la visita');
+    }
+
+    toast.success('Visita actualizada correctamente');
   };
 
   return <VisitasView getVisitasFn={getVisitasFn} onUpdateVisita={onUpdateVisita} />;

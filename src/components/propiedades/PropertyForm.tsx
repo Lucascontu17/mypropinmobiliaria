@@ -169,7 +169,7 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
     if (!window.google || autocompleteRef.current) return;
 
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const { PlaceAutocompleteElement } = await google.maps.importLibrary('places');
       
       const pac = new PlaceAutocompleteElement({
@@ -367,6 +367,8 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
                   <option value="casa">🏡 Casa</option>
                   <option value="ph">🏘️ PH</option>
                   <option value="local">🏬 Local</option>
+                  <option value="galpon">🏭 Galpón</option>
+                  <option value="oficina">🏢 Oficina</option>
                   <option value="terreno">🌱 Terreno</option>
                   <option value="habitacion">🛌 Habitación</option>
                   <option value="otro">❓ Otro</option>

@@ -29,7 +29,7 @@ export function ContratosPage() {
   const fetchContratos = async () => {
     setIsLoading(true);
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       const res = await eden.admin.contratos.get();
       // Defensive check: handle res.data?.contratos to match the new backend structure
       const lista = res.data?.contratos ?? [];
@@ -41,14 +41,14 @@ export function ContratosPage() {
     }
   };
   
-  const contratos = allContratos.filter(c => 
-    c.propiedad.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.inquilino.toLowerCase().includes(searchTerm.toLowerCase())
+  const contratos = allContratos.filter(c =>
+    (c.propiedad ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.inquilino ?? '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleFinalizar = async (contratoId: string) => {
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       await eden.admin.contratos[contratoId].finalizar.post();
       toast.success('Contrato finalizado exitosamente.');
       setSelectedContrato(null);
@@ -60,7 +60,7 @@ export function ContratosPage() {
 
   const handleReunion = async (contratoId: string, target: 'inquilino' | 'propietario') => {
     try {
-      // @ts-ignore
+      // @ts-expect-error - Eden Treaty dynamic path
       await eden.admin.contratos[contratoId].reunion.post({ target });
       toast.success(`Notificación de reunión enviada al ${target}.`);
     } catch (e: any) {

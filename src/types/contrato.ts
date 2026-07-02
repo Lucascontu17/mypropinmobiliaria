@@ -12,7 +12,7 @@ export const PenaltyPeriodEnum = z.enum([
   'diario', 'semanal', 'mensual'
 ], { invalid_type_error: "Seleccione una periodicidad válida para la mora" });
 
-export const TipoAumentoEnum = z.enum(['PORCENTAJE_MANUAL', 'INDICE_ICL_IPC', 'INDICE_IPC', 'INDICE_ICL'], { invalid_type_error: "Seleccione un tipo de aumento válido" });
+export const TipoAumentoEnum = z.enum(['PORCENTAJE_MANUAL', 'MONTO_FIJO', 'INDICE_ICL_IPC', 'INDICE_IPC', 'INDICE_ICL'], { invalid_type_error: "Seleccione un tipo de aumento válido" });
 
 /**
  * Zod Schema para Contratos (Transacción Atómica de Alquiler)
@@ -60,6 +60,7 @@ export const contratoSchema = z.object({
     tipo_aumento: TipoAumentoEnum.optional().or(z.literal('')), // Switch entre Manual y Referencia IPC/ICL
     periodicidad: IncreasePeriodEnum.optional().or(z.literal('')),
     porcentaje: z.coerce.number({ invalid_type_error: "Porcentaje inválido" }).min(0.1, "El porcentaje debe ser mayor a 0").optional().or(z.literal('')),
+    monto_fijo: z.coerce.number({ invalid_type_error: "Monto fijo inválido" }).positive("El monto fijo debe ser mayor a 0").optional().or(z.literal('')),
   }),
 
   // Reglas de Rentabilidad: Intereses Morosos (Deuda)

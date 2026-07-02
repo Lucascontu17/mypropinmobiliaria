@@ -17,7 +17,12 @@ export function useApi() {
       console.warn(`[SECURITY] High risk detected: Frontend is running on "${window.location.hostname}" but API_URL is pointing to "${raw}". Connectivity will fail.`);
     }
 
-    return raw.endsWith('/v1') ? raw : `${raw.replace(/\/$/, '')}/api/v1`;
+    // Si ya termina en /v1 se usa tal cual.
+    // Si no, se normaliza: se elimina cualquier /api o /v1 final, luego se concatena /api/v1.
+    // Esto evita URL duplicadas como /api/api/v1 cuando raw ya contiene /api.
+    return raw.endsWith('/v1')
+      ? raw
+      : `${raw.replace(/\/api\/?$/, '').replace(/\/$/, '')}/api/v1`;
   }, []);
 
   const apiFetch = useCallback(async (path: string, options: RequestInit = {}) => {
