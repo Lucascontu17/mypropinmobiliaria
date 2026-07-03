@@ -5,6 +5,7 @@ import { Plus, Search, Building2, Edit2, Trash2, Users, Loader2 } from 'lucide-r
 import { cn } from '@/lib/utils';
 import { PropietarioForm } from '@/components/actores/PropietarioForm';
 import { useEden } from '@/services/eden';
+import { toast } from 'sonner';
 
 export function PropietariosPage() {
   const { hasPermission } = useInmobiliaria();
@@ -163,10 +164,32 @@ export function PropietariosPage() {
                         </button>
                         {hasPermission(['superadmin']) && (
                           <button
-                            onClick={() => {
-                              toast.error('Función no disponible', {
-                                description: 'La eliminación de propietarios se gestiona desde el backend.'
-                              });
+                            onClick={async () => {
+                              const nombre = p?.nombre || 'este propietario';
+                              const confirmar = window.confirm(`¿Estás seguro de eliminar a "${nombre}"?\n\nEsta acción no se puede deshacer.`);
+                              if (!confirmar) return;
+
+                              try {
+                                // @ts-expect-error - Eden Treaty dynamic path
+                                const { data, error: deleteError } = await eden.admin.owners[p.id].delete();
+
+                                if (deleteError) {
+                                  const msg = deleteError?.value?.error || 'Error al eliminar propietario';
+                                  toast.error('Error', { description: msg });
+                                  return;
+                                }
+
+                                toast.success('Propietario eliminado', {
+                                  description: `${nombre} ha sido eliminado correctamente.`
+                                });
+
+                                // Refrescar la lista
+                                setPropietarios(prev => prev.filter(o => o.id !== p.id));
+                              } catch (err: any) {
+                                toast.error('Error inesperado', {
+                                  description: err?.message || 'No se pudo eliminar el propietario'
+                                });
+                              }
                             }}
                             className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                           >
