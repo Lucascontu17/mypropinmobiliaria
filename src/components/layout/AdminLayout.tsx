@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
+import { LogoUploadModal } from './LogoUploadModal';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
 
@@ -43,6 +44,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-renta-50 flex-col">
+      {/* Modal obligatorio de subida de logo */}
+      <LogoUploadModal />
+      
       {renderGraceBanner()}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}

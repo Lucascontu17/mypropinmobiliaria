@@ -312,8 +312,8 @@ export function MarketplacePage() {
           {catalog?.addons.map((addon) => (
             <div key={addon.id} className={`group bg-white rounded-2xl border transition-all duration-300 p-6 flex flex-col hover:shadow-lg ${addon.is_acquired ? 'border-emerald-300 ring-2 ring-emerald-500/10' : 'border-admin-border hover:border-renta-300'}`}>
               <div className="flex items-center justify-between mb-4">
-                <div className="h-12 w-12 rounded-xl bg-renta-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <PlusCircle className="h-6 w-6 text-renta-600" />
+                <div className="h-12 w-12 rounded-xl bg-renta-50 flex items-center justify-center group-hover:scale-110 transition-transform text-2xl">
+                  {addon.icon_tag || <PlusCircle className="h-6 w-6 text-renta-600" />}
                 </div>
                 {addon.is_acquired && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-200">

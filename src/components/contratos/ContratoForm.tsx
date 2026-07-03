@@ -1,9 +1,9 @@
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
-import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info, Search, Link as LinkIcon, UserCheck, UserX, UploadCloud, CheckCircle2, Loader2 } from 'lucide-react';
+import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info, Search, Link as LinkIcon, UserCheck, UserX, UploadCloud, CheckCircle2, Loader2, Check, Pencil } from 'lucide-react';
 import { useForm, FormProvider, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { contratoSchema, type ContratoFormData } from '@/types/contrato';
@@ -131,7 +131,8 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
     }
   };
 
-  const onSubmit = async (data: ContratoFormData) => {
+  // --- Lógica de envío extraída para reutilizar con confirmación ---
+  const submitContract = async (data: ContratoFormData) => {
     console.group('🚀 [CONTRATO-DEBUG] Iniciando Transacción Atómica');
     console.log('📦 Form Data:', data);
     console.log('🏢 Inmobiliaria ID:', inmobiliaria_id);
@@ -220,7 +221,8 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
         ...data,
         propiedad_uid: (data as any).uid_propiedad,
         inquilino_id: finalUidInquilino,
-        monto_actual: data.monto_inicial, // Usamos el monto inicial como actual
+        monto_actual: retroMontoManual.current ? String(retroMontoEditado) : data.monto_inicial,
+        retro_monto_editado: retroMontoManual.current,
         contrato_url: finalContratoUrl,
         inmobiliaria_id: inmobiliaria_id!
       };
@@ -252,11 +254,131 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
     }
   };
 
+  // --- onSubmit con intercepción de doble confirmación ---
+  const onSubmit = async (data: ContratoFormData) => {
+    // Si hay preview retroactivo visible, mostrar modal de confirmación
+    if (retroPreview?.visible) {
+      retroFormDataRef.current = data;
+      setShowRetroConfirm(true);
+      return;
+    }
+    // Flujo normal: enviar directamente
+    await submitContract(data);
+  };
+
+  const confirmRetroSubmit = async () => {
+    setShowRetroConfirm(false);
+    if (retroFormDataRef.current) {
+      await submitContract(retroFormDataRef.current);
+      retroFormDataRef.current = null;
+    }
+  };
+
+  const cancelRetroSubmit = () => {
+    setShowRetroConfirm(false);
+    retroFormDataRef.current = null;
+  };
+
   // Observamos los switches para mostrar condicionalmente el form
   const aplicarAumento = useWatch({ control, name: 'reglas_aumento.aplicar_aumento' });
   const tipoAumento = useWatch({ control, name: 'reglas_aumento.tipo_aumento' });
   const aplicarMora = useWatch({ control, name: 'reglas_mora.aplicar_mora' });
   const pagoMesCurso = useWatch({ control, name: 'pago_mes_curso' });
+  const fechaInicioVal = useWatch({ control, name: 'fecha_inicio' });
+  const montoInicialVal = useWatch({ control, name: 'monto_inicial' });
+  const porcentajeAumento = useWatch({ control, name: 'reglas_aumento.porcentaje' });
+  const montoFijoAumento = useWatch({ control, name: 'reglas_aumento.monto_fijo' });
+  const periodicidadAumento = useWatch({ control, name: 'reglas_aumento.periodicidad' });
+
+  // --- Cálculo de preview de aumentos retrospectivos ---
+  const [retroPreview, setRetroPreview] = useState<{
+    montoActual: number;
+    periodos: number;
+    detalle: string;
+    visible: boolean;
+  } | null>(null);
+
+  // --- Estado para edición manual del monto y doble confirmación ---
+  const [showRetroConfirm, setShowRetroConfirm] = useState(false);
+  const [editandoMonto, setEditandoMonto] = useState(false);
+  const [retroMontoEditado, setRetroMontoEditado] = useState<number>(0);
+  const retroMontoManual = useRef(false);
+  const retroFormDataRef = useRef<ContratoFormData | null>(null);
+
+  useEffect(() => {
+    if (!aplicarAumento || !fechaInicioVal || !montoInicialVal) {
+      setRetroPreview(null);
+      return;
+    }
+
+    const fechaInicio = new Date(fechaInicioVal);
+    const ahora = new Date();
+    const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+
+    if (fechaInicio >= inicioMes) {
+      setRetroPreview(null);
+      return;
+    }
+
+    const periodicidadMap: Record<string, number> = {
+      mensual: 1, bimestral: 2, trimestral: 3,
+      cuatrimestral: 4, semestral: 6, anual: 12
+    };
+
+    const periodoMeses = periodicidadMap[periodicidadAumento || ''] || 0;
+    if (periodoMeses <= 0) {
+      setRetroPreview(null);
+      return;
+    }
+
+    const monthsElapsed = (inicioMes.getFullYear() - fechaInicio.getFullYear()) * 12 +
+                          (inicioMes.getMonth() - fechaInicio.getMonth());
+
+    if (monthsElapsed <= 0) {
+      setRetroPreview(null);
+      return;
+    }
+
+    const periodosCompletos = Math.floor(monthsElapsed / periodoMeses);
+    if (periodosCompletos <= 0) {
+      setRetroPreview(null);
+      return;
+    }
+
+    let montoCalc = Number(montoInicialVal) || 0;
+    let detalle = '';
+
+    if (tipoAumento === 'PORCENTAJE_MANUAL') {
+      const pct = Number(porcentajeAumento) || 0;
+      for (let i = 0; i < periodosCompletos; i++) {
+        montoCalc = montoCalc * (1 + (pct / 100));
+      }
+      montoCalc = Math.round(montoCalc * 100) / 100;
+      detalle = `${periodosCompletos} períodos × ${pct}%`;
+    } else if (tipoAumento === 'MONTO_FIJO') {
+      const fijo = Number(montoFijoAumento) || 0;
+      montoCalc = montoCalc + (fijo * periodosCompletos);
+      detalle = `${periodosCompletos} períodos × $${fijo}`;
+    } else if (tipoAumento === 'INDICE_IPC' || tipoAumento === 'INDICE_ICL' || tipoAumento === 'INDICE_ICL_IPC') {
+      detalle = `Se calculará con índices oficiales al guardar`;
+    } else {
+      setRetroPreview(null);
+      return;
+    }
+
+    // Sincronizar el monto editable si el usuario no lo ha modificado manualmente
+    if (!retroMontoManual.current) {
+      setRetroMontoEditado(montoCalc);
+    }
+
+    setRetroPreview({
+      montoActual: montoCalc,
+      periodos: periodosCompletos,
+      detalle,
+      visible: true
+    });
+  }, [aplicarAumento, fechaInicioVal, montoInicialVal, tipoAumento,
+      porcentajeAumento, montoFijoAumento, periodicidadAumento]);
 
   return (
     <FormProvider {...methods}>
@@ -674,7 +796,161 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                 )}
              </div>
 
-             {/* Intereses Morosos */}
+              {/* ⏪ Preview de Aumentos Retrospectivos */}
+              {retroPreview?.visible && (
+                <div className="p-5 rounded-2xl border border-amber-200 bg-amber-50/60 space-y-3 animate-fade-in">
+                  <div className="flex items-center gap-2 border-b border-amber-200 pb-2">
+                    <Calendar className="h-4 w-4 text-amber-600" />
+                    <h3 className="text-sm font-jakarta font-bold text-amber-900">
+                      Contrato con Fecha Retroactiva
+                    </h3>
+                  </div>
+                  
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between items-center bg-white/70 rounded-lg p-2.5 border border-amber-100">
+                      <span className="text-amber-800 font-medium">Monto inicial:</span>
+                      <span className="font-bold text-renta-900">{config.currency_code} {Number(montoInicialVal || 0).toLocaleString()}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center bg-amber-100/70 rounded-lg p-2.5 border border-amber-200">
+                      <span className="text-amber-800 font-medium">Períodos transcurridos:</span>
+                      <span className="font-bold text-amber-900">{retroPreview.periodos} × {periodicidadAumento}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center bg-emerald-100/70 rounded-lg p-2.5 border border-emerald-200">
+                      <span className="text-emerald-800 font-medium">Monto actual calculado:</span>
+                      <div className="flex items-center gap-2">
+                        {editandoMonto ? (
+                          <div className="flex items-center gap-1">
+                            <span className="text-emerald-700 text-xs">{config.currency_code}</span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={retroMontoEditado}
+                              onChange={(e) => {
+                                retroMontoManual.current = true;
+                                setRetroMontoEditado(Number(e.target.value));
+                              }}
+                              className="w-28 text-right font-bold text-emerald-700 text-sm bg-white border border-emerald-300 rounded-lg px-2 py-1 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-200"
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setEditandoMonto(false)}
+                              className="p-1 rounded-md hover:bg-emerald-200 transition-colors"
+                              title="Confirmar edición"
+                            >
+                              <Check className="h-3.5 w-3.5 text-emerald-600" />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <span className="font-bold text-emerald-700 text-sm">
+                              {config.currency_code} {retroMontoEditado.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRetroMontoEditado(retroPreview.montoActual);
+                                setEditandoMonto(true);
+                              }}
+                              className="p-1 rounded-md hover:bg-emerald-200 transition-colors"
+                              title="Editar monto manualmente"
+                            >
+                              <Pencil className="h-3 w-3 text-emerald-500" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <p className="text-[10px] text-amber-700 bg-white/50 p-2 rounded-lg italic flex items-center gap-1.5">
+                      <Info className="h-3 w-3 shrink-0" />
+                      {tipoAumento === 'INDICE_IPC' || tipoAumento === 'INDICE_ICL' || tipoAumento === 'INDICE_ICL_IPC'
+                        ? 'Los aumentos por índice se calculan al guardar el contrato usando los valores oficiales.'
+                        : `Al guardar, el contrato iniciará con ${config.currency_code} ${retroMontoEditado.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}. Los aumentos futuros seguirán aplicándose según la periodicidad configurada.`
+                      }
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* ⚠️ Modal de Doble Confirmación para Contrato Retroactivo */}
+              {showRetroConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+                  <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 p-6 space-y-4 border border-amber-200">
+                    <div className="flex items-center gap-3 border-b border-amber-200 pb-3">
+                      <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
+                        <AlertTriangle className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-jakarta font-bold text-renta-950">
+                          Confirmar Contrato Retroactivo
+                        </h3>
+                        <p className="text-[11px] text-renta-500">
+                          Estás creando un contrato con fecha de inicio en el pasado
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2.5 text-xs bg-amber-50/80 rounded-xl p-4 border border-amber-100">
+                      <div className="flex justify-between">
+                        <span className="text-renta-600">Fecha de inicio</span>
+                        <span className="font-semibold text-renta-950">
+                          {retroFormDataRef.current?.fecha_inicio
+                            ? new Date(retroFormDataRef.current.fecha_inicio).toLocaleDateString()
+                            : '-'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-renta-600">Monto inicial</span>
+                        <span className="font-semibold text-renta-950">
+                          {config.currency_code} {Number(retroFormDataRef.current?.monto_inicial || 0).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-renta-600">Períodos transcurridos</span>
+                        <span className="font-semibold text-renta-950">{retroPreview?.periodos} × {periodicidadAumento}</span>
+                      </div>
+                      <div className="flex justify-between pt-2 border-t border-amber-200">
+                        <span className="font-semibold text-emerald-800">Monto actual <span className="text-[10px] font-normal">({retroMontoManual.current ? 'editado manualmente' : 'calculado automáticamente'})</span></span>
+                        <span className="font-bold text-emerald-700">
+                          {config.currency_code} {retroMontoEditado.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="bg-amber-100/60 rounded-xl p-3 flex items-start gap-2.5 border border-amber-200">
+                      <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-amber-800 leading-relaxed">
+                        Al confirmar, se generará el contrato con el monto actual indicado y se crearán las cuotas desde la fecha de inicio.
+                        Los aumentos futuros continuarán aplicándose según la periodicidad configurada.
+                        <strong className="block mt-1">Esta acción no se puede deshacer.</strong>
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={cancelRetroSubmit}
+                        className="px-5 py-2.5 rounded-xl ring-1 ring-inset ring-admin-border bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={confirmRetroSubmit}
+                        className="px-5 py-2.5 rounded-xl bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700 transition-colors shadow-lg shadow-amber-600/20 flex items-center gap-2"
+                      >
+                        <Check className="h-4 w-4" />
+                        Sí, Confirmar y Crear
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Intereses Morosos */}
              <div className={cn(
                "p-5 rounded-2xl border transition-colors space-y-4", 
                aplicarMora ? "bg-rose-50/50 border-rose-200" : "bg-white border-admin-border"
