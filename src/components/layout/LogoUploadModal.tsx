@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
  * hasta que el usuario suba un logo válido.
  */
 export function LogoUploadModal() {
-  const { logo_url, nombre, isLoaded, isSignedIn, isDbLoading } = useInmobiliaria();
+  const { logo_url, nombre, isLoaded, isSignedIn, isDbLoading, requires_logo_upload } = useInmobiliaria();
   const { client, isReady } = useEden();
   const { mutate } = useSWRConfig();
 
@@ -32,13 +32,18 @@ export function LogoUploadModal() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Determinar si la inmobiliaria necesita subir logo ──
-  // IMPORTANTE: Esperar a que SWR termine el primer fetch (isDbLoading)
-  // para evitar que el modal aparezca y desaparezca por la race condition
-  // entre metadata de Clerk y datos reales de la DB.
+  // IMPORTANTE:
+  // 1. Esperar a que SWR termine el primer fetch (isDbLoading)
+  //    para evitar race condition entre metadata de Clerk y DB.
+  // 2. Solo forzar el logo si requires_logo_upload = true
+  //    (inmobiliarias existentes antes del 03/07/2026).
+  //    Las nuevas inmobiliarias tienen requires_logo_upload = false.
   const needsLogo = (() => {
     if (!isLoaded || !isSignedIn) return false;
     if (!isReady) return false;
-    if (isDbLoading) return false; // Esperar a que la DB responda
+    if (isDbLoading) return false;
+    // Solo forzar logo si la inmobiliaria fue marcada como legacy
+    if (!requires_logo_upload) return false;
     if (!logo_url) return true;
     if (logo_url === '/logo.png') return true;
     return false;

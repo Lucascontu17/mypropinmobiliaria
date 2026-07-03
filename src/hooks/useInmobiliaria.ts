@@ -53,6 +53,7 @@ export function useInmobiliaria() {
   const role = metadata.role ?? 'vendedor';
   const nombre = dbData?.nombre ?? metadata.nombre ?? 'Mi Inmobiliaria';
   const logo_url = dbData?.logo_url ?? metadata.logo_url ?? undefined;
+  const requires_logo_upload = dbData?.requires_logo_upload ?? metadata.requires_logo_upload ?? false;
 
   /**
    * Valida jerarquías de roles contra la UI para componentes que necesitan ocultarse o 
@@ -72,6 +73,7 @@ export function useInmobiliaria() {
     inmobiliaria_id: metadata.inmobiliaria_id ?? undefined,
     nombre,
     logo_url,
+    requires_logo_upload,
     country_code: metadata.country_code ?? undefined,
     role,
     isLoaded,
