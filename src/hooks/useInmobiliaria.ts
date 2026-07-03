@@ -35,7 +35,7 @@ export function useInmobiliaria() {
   const metadata = (user?.publicMetadata ?? {}) as Partial<InmobiliariaMetadata>;
 
   // Fetch real-time data from DB as fallback/sync for branding (Zero Leaks compliant)
-  const { data: dbData } = useSWR(
+  const { data: dbData, isValidating: isDbLoading } = useSWR(
     isSignedIn && isReady ? '/admin/me' : null,
     async () => {
       // @ts-expect-error - Eden Treaty dynamic path
@@ -76,6 +76,7 @@ export function useInmobiliaria() {
     role,
     isLoaded,
     isSignedIn: isSignedIn ?? false,
+    isDbLoading,
     hasPermission,
     suscripcion: dbData?.suscripcion
     // Note: User property omitida intencionalmente fuera de "hasPermission" check para evitar Zero Leaks accidentales del tenant
