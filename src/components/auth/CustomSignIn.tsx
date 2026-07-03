@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSignIn, useClerk } from '@clerk/clerk-react';
-import { Mail, Lock, Loader2, ArrowRight, KeyRound, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowRight, KeyRound, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
@@ -24,6 +24,18 @@ export const CustomSignIn = () => {
   const [newPassword, setNewPassword] = useState('');
   const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
 
+  // Diagnóstico: Verificar que VITE_CLERK_PUBLISHABLE_KEY esté configurada
+  useEffect(() => {
+    const pk = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+    if (!pk) {
+      console.error('[AUTH-DIAG] ❌ VITE_CLERK_PUBLISHABLE_KEY no está configurada en .env');
+    } else if (pk.includes('pk_test_') && window.location.hostname !== 'localhost' && !window.location.hostname.includes('railway')) {
+      console.warn('[AUTH-DIAG] ⚠️ Usando Clerk key de TEST (pk_test_) en entorno que NO es localhost.');
+      console.warn('[AUTH-DIAG] ⚠️ Las sesiones de test pueden no funcionar en dominios de producción.');
+    } else {
+      console.log(`[AUTH-DIAG] ✅ Clerk publishable key presente: ${pk.substring(0, 15)}...`);
+    }
+  }, []);
 
   const handleSignIn = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
