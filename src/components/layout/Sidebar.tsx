@@ -100,8 +100,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <img src={resolvedLogoUrl} alt={nombre} className="h-full w-full object-contain" />
           </div>
         ) : (
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white p-1 shadow-sm overflow-hidden">
-            <img src="/logo.png" alt="Zonatia Logo" className="h-full w-full object-contain" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-renta-500 to-renta-700 text-white text-sm font-bold overflow-hidden">
+            {nombre?.charAt(0)?.toUpperCase() || 'Z'}
           </div>
         )}
         {!isCollapsed && (
