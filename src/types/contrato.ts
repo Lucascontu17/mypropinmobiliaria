@@ -12,7 +12,7 @@ export const PenaltyPeriodEnum = z.enum([
   'diario', 'semanal', 'mensual'
 ], { invalid_type_error: "Seleccione una periodicidad válida para la mora" });
 
-export const TipoAumentoEnum = z.enum(['PORCENTAJE_MANUAL', 'MONTO_FIJO', 'INDICE_ICL_IPC', 'INDICE_IPC', 'INDICE_ICL'], { invalid_type_error: "Seleccione un tipo de aumento válido" });
+export const TipoAumentoEnum = z.enum(['PORCENTAJE_MANUAL', 'MONTO_FIJO', 'INDICE_IPC', 'INDICE_ICL'], { invalid_type_error: "Seleccione un tipo de aumento válido" });
 
 /**
  * Zod Schema para Contratos (Transacción Atómica de Alquiler)

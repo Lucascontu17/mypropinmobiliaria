@@ -359,7 +359,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
       const fijo = Number(montoFijoAumento) || 0;
       montoCalc = montoCalc + (fijo * periodosCompletos);
       detalle = `${periodosCompletos} períodos × $${fijo}`;
-    } else if (tipoAumento === 'INDICE_IPC' || tipoAumento === 'INDICE_ICL' || tipoAumento === 'INDICE_ICL_IPC') {
+    } else if (tipoAumento === 'INDICE_IPC' || tipoAumento === 'INDICE_ICL') {
       detalle = `Se calculará con índices oficiales al guardar`;
     } else {
       setRetroPreview(null);
@@ -739,7 +739,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                             <option value="INDICE_ICL">Aumento por ICL (Locación)</option>
                           </>
                         ) : (
-                          <option value="INDICE_ICL_IPC">Actualización por Índices Oficiales (ICL/IPC)</option>
+                          <option value="INDICE_IPC">Actualización por IPC (Consumidor)</option>
                         )}
                         <option value="PORCENTAJE_MANUAL">Porcentaje Personalizado</option>
                         <option value="MONTO_FIJO">Monto Fijo ($)</option>
@@ -783,7 +783,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                         </div>
                       )}
 
-                      {(tipoAumento === 'INDICE_ICL_IPC' || tipoAumento === 'INDICE_IPC' || tipoAumento === 'INDICE_ICL') && (
+                      {(tipoAumento === 'INDICE_IPC' || tipoAumento === 'INDICE_ICL') && (
                         <p className="text-[10px] text-emerald-700 bg-emerald-100 p-2 rounded-lg mt-2 font-semibold">
                            {country_code === 'AR' 
                             ? "IMPORTANTE: Los valores de IPC/ICL se gestionan manualmente desde el Panel Central. El sistema tomará el valor vigente al momento del ajuste."
@@ -866,7 +866,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                     
                     <p className="text-[10px] text-amber-700 bg-white/50 p-2 rounded-lg italic flex items-center gap-1.5">
                       <Info className="h-3 w-3 shrink-0" />
-                      {tipoAumento === 'INDICE_IPC' || tipoAumento === 'INDICE_ICL' || tipoAumento === 'INDICE_ICL_IPC'
+                      {tipoAumento === 'INDICE_IPC' || tipoAumento === 'INDICE_ICL'
                         ? 'Los aumentos por índice se calculan al guardar el contrato usando los valores oficiales.'
                         : `Al guardar, el contrato iniciará con ${config.currency_code} ${retroMontoEditado.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}. Los aumentos futuros seguirán aplicándose según la periodicidad configurada.`
                       }

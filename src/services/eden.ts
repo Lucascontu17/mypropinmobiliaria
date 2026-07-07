@@ -56,8 +56,7 @@ export function useEden() {
     const fetchToken = () => {
       getToken({ template: 'zonatia-session' }).then(t => {
         if (t) {
-          console.log('[EDEN] Token cached and saved to localStorage');
-          localStorage.setItem('zonatia_token', t);
+          console.log('[EDEN] Token cached in memory (no localStorage)');
           setToken(t);
         }
       });

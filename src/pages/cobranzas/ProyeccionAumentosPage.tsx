@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { TrendingUp, ArrowUpRight, Percent, BarChart3, AlertCircle, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type TipoAumento = 'PORCENTAJE_MANUAL' | 'MONTO_FIJO' | 'INDICE_IPC' | 'INDICE_ICL' | 'INDICE_ICL_IPC';
+type TipoAumento = 'PORCENTAJE_MANUAL' | 'MONTO_FIJO' | 'INDICE_IPC' | 'INDICE_ICL';
 
 interface ProyeccionItem {
   contrato_id: string;
@@ -37,7 +37,7 @@ const TIPO_AUMENTO_CONFIG: Record<TipoAumento, { label: string; color: string; b
   MONTO_FIJO:        { label: 'Fijo $',  color: 'text-rose-700',     bg: 'bg-rose-50',     border: 'border-rose-200' },
   INDICE_IPC:        { label: 'IPC',     color: 'text-orange-700',   bg: 'bg-orange-50',   border: 'border-orange-200' },
   INDICE_ICL:        { label: 'ICL',     color: 'text-emerald-700',  bg: 'bg-emerald-50',  border: 'border-emerald-200' },
-  INDICE_ICL_IPC:    { label: 'ICL+IPC', color: 'text-purple-700',   bg: 'bg-purple-50',   border: 'border-purple-200' },
+  // Eliminado: INDICE_ICL_IPC no existe como tipo de aumento independiente
 };
 
 // Helper: YYYY-MM → YYYY-MM offset by N months

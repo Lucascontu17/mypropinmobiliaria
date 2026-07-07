@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { UploadCloud, X, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFormContext } from 'react-hook-form';
@@ -19,7 +19,20 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
   const files = watch(name) as File[] || [];
   const error = errors[name]?.message as string;
 
+  // Bug #1 Fix: Revocar URLs blob: al desmontar o cuando cambian los archivos
+  // para prevenir fuga de memoria por URL.createObjectURL() no liberado
+  useEffect(() => {
+    const objectUrls = files
+      .filter(f => f instanceof File)
+      .map(f => URL.createObjectURL(f));
+    
+    return () => {
+      objectUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [files]);
+
   const handleFiles = (newFiles: File[]) => {
+
     // Prevent adding more than 20
     const totalFiles = [...files, ...newFiles].slice(0, 20);
     setValue(name, totalFiles, { shouldValidate: true });
@@ -54,14 +67,30 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
       data-shepherd="gallery-uploader"
       className="space-y-3">
       <div className="flex justify-between items-center mb-1">
-        <label className="text-sm font-semibold text-renta-900">{t('gallery_label', 'Catálogo de Imágenes (4 a 20 permitidas)')} <span className="text-red-500">*</span></label>
+        <label className="text-sm font-semibold text-renta-900">{t('gallery_label', 'Catálogo de Imágenes (4 a 20 requeridas para publicar)')}</label>
         <span className={cn(
           "text-xs font-bold px-2 py-1 rounded-full",
-          files.length >= 4 && files.length <= 20 ? "bg-green-100 text-green-700" : "bg-red-50 text-red-600"
+          files.length >= 4 && files.length <= 20 ? "bg-green-100 text-green-700" : "bg-amber-50 text-amber-600"
         )}>
-          {files.length}/{t('gallery_max', '20 Subidas')}
+          {files.length}/{t('gallery_max', '20 Máx.')}
         </span>
       </div>
+
+      {/* ⚠️ AVISO IMPORTANTE: Si no hay al menos 4 imágenes */}
+      {files.length < 4 && (
+        <div className="flex items-start gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+          <div className="flex-shrink-0 mt-0.5">
+            <svg className="h-4 w-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <div className="text-xs text-amber-800 leading-relaxed">
+            <strong>Importante:</strong> Has subido <strong>{files.length} de 4 imágenes mínimas</strong>. 
+            La propiedad podrá guardarse sin imágenes, pero <strong>no podrá publicarse</strong> (status Disponible) 
+            hasta que tenga al menos 4 imágenes.
+          </div>
+        </div>
+      )}
 
       <div 
         className={cn(
