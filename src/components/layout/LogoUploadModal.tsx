@@ -8,7 +8,7 @@ import {
   FileWarning,
 } from 'lucide-react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
-import { useEden } from '@/services/eden';
+import { useEden, BASE_URL } from '@/services/eden';
 import { useSWRConfig } from 'swr';
 import { cn } from '@/lib/utils';
 
@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
  */
 export function LogoUploadModal() {
   const { logo_url, nombre, isLoaded, isSignedIn, isDbLoading, requires_logo_upload } = useInmobiliaria();
-  const { client, isReady } = useEden();
+  const { client, isReady, token } = useEden();
   const { mutate } = useSWRConfig();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -100,6 +100,8 @@ export function LogoUploadModal() {
   };
 
   // ── Subir logo al servidor ──
+  // NOTA: Usamos fetch nativo para upload porque Eden Treaty 1.x no maneja
+  // correctamente FormData / multipart uploads, serializando mal el body.
   const handleUpload = async () => {
     if (!selectedFile || !isReady) return;
 
@@ -107,17 +109,29 @@ export function LogoUploadModal() {
     setError(null);
 
     try {
-      // Paso 1: Subir el archivo al servidor
+      // Paso 1: Subir el archivo al servidor usando fetch nativo
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('folder', 'logos');
 
-      // @ts-expect-error - Eden Treaty dynamic path
-      const { data: uploadRes, error: uploadError } = await client.admin['upload-file'].post(formData);
+      const region = localStorage.getItem('zonatia_audit_region') || 'AR';
+      const response = await fetch(`${BASE_URL}/api/v1/admin/upload-file`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-region': region,
+        },
+        // NO establecer Content-Type — el browser lo fija automáticamente
+        // con el boundary correcto para multipart/form-data
+        body: formData,
+      });
 
-      if (uploadError) {
-        throw new Error(uploadError.value?.error || 'Error al subir el archivo');
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || 'Error al subir el archivo');
       }
+
+      const uploadRes = await response.json();
 
       if (!uploadRes?.url) {
         throw new Error('No se recibió la URL del archivo');
@@ -134,8 +148,6 @@ export function LogoUploadModal() {
       }
 
       // Forzar revalidación del cache SWR para /admin/me
-      // Al recibir los datos actualizados, logo_url dejará de ser undefined
-      // y needsLogo retornará false, ocultando el modal automáticamente.
       await mutate('/admin/me');
     } catch (err: any) {
       setError(err.message || 'Error inesperado');

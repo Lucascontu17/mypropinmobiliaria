@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { useEden } from '@/services/eden';
+import { useEden, BASE_URL } from '@/services/eden';
 import { toast } from 'sonner';
 import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info, Search, Link as LinkIcon, UserCheck, UserX, UploadCloud, CheckCircle2, Loader2, Check, Pencil } from 'lucide-react';
 import { useForm, FormProvider, useWatch, Controller } from 'react-hook-form';
@@ -47,7 +47,7 @@ const FileUploadField = ({ label, registerProps, watchValue, accept, hint }: { l
 export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables, onCancel, onSubmitSuccess }: ContratoFormProps) {
   const { inmobiliaria_id, country_code } = useInmobiliaria();
   const { config } = useRegion();
-  const { client: eden } = useEden();
+  const { client: eden, token } = useEden();
   const navigate = useNavigate();
 
   const [isLinking, setIsLinking] = useState(false);
@@ -144,15 +144,31 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
       let finalContratoUrl = null;
 
       // Helper for file upload
+      // NOTA: Usamos fetch nativo porque Eden Treaty 1.x no maneja
+      // correctamente FormData / multipart uploads.
       const uploadFile = async (fileList: any, folder: string) => {
         if (!fileList || fileList.length === 0) return null;
         const file = fileList[0];
         const formData = new FormData();
         formData.append('file', file);
         formData.append('folder', folder);
-        // @ts-expect-error - Eden Treaty dynamic path
-        const { data: res, error } = await eden.admin['upload-file'].post(formData);
-        if (error) throw new Error(error.value?.error || 'Error subiendo archivo');
+
+        const region = localStorage.getItem('zonatia_audit_region') || 'AR';
+        const response = await fetch(`${BASE_URL}/api/v1/admin/upload-file`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'x-region': region,
+          },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || 'Error subiendo archivo');
+        }
+
+        const res = await response.json();
         return res?.url;
       };
 
