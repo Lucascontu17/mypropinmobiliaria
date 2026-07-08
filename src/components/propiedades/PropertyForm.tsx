@@ -301,11 +301,17 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
     }
   };
 
+  // Bug #2 Fix: Solo limpiar título/descripción si el usuario CAMBIA el status
+  // manualmente a no-DISPONIBLE durante la edición, NO en el montaje inicial.
+  // Esto evita borrar los campos al editar una propiedad ALQUILADA/VENDIDA/VENTA
+  // que ya tenía título y descripción guardados.
+  const prevStatusRef = useRef(currentStatus);
   useEffect(() => {
-    if (currentStatus !== 'DISPONIBLE') {
+    if (prevStatusRef.current === 'DISPONIBLE' && currentStatus !== 'DISPONIBLE') {
       setValue('titulo', null as any);
       setValue('descripcion', null as any);
     }
+    prevStatusRef.current = currentStatus;
   }, [currentStatus, setValue]);
 
   const { onChange: rStatusOnChange, ...rStatusRest } = register('status');
@@ -921,7 +927,7 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
                  <h3 className="text-xl font-jakarta font-bold text-renta-950">Publicar Propiedad</h3>
               </div>
               <p className="font-inter text-renta-600 mb-6 leading-relaxed">
-                Estás por cambiar el estado a <strong>Disponible</strong>. Esto publicará la propiedad en la Landing Page a la vista de los clientes. Por favor, asegúrate de rellenar o revisar el <strong>Título</strong> y la <strong>Descripción</strong>.
+                Estás por cambiar el estado a <strong>Disponible</strong>. Esto publicará la propiedad en la Landing Page a la vista de los clientes. Por favor, asegúrate de rellenar o revisar el <strong>Título</strong>, la <strong>Descripción</strong> y tener al menos <strong>4 imágenes</strong> subidas.
               </p>
               <div className="flex justify-end gap-3 pt-4 border-t border-renta-100">
                  <button 

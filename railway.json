@@ -2,6 +2,10 @@
   "$schema": "https://railway.app/railway.schema.json",
   "deploy": {
     "startCommand": "npm run start",
-    "healthcheckTimeout": 300
+    "healthcheckTimeout": 300,
+    "resources": {
+      "cpu": 0.1,
+      "memory": 256
+    }
   }
 }

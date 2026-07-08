@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
@@ -50,6 +50,13 @@ export function ConfiguracionPage() {
   const [errorTelefono, setErrorTelefono] = useState('');
 
   const [isSaving, setIsSaving] = useState(false);
+
+  // Sincronizar el estado local cuando los datos de la API se carguen asincrónicamente
+  useEffect(() => {
+    if (logoInmoActual) {
+      setLogoUrl(logoInmoActual);
+    }
+  }, [logoInmoActual]);
 
   const handleSave = async () => {
     try {

@@ -8,7 +8,7 @@ import {
   FileWarning,
 } from 'lucide-react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
-import { useEden } from '@/services/eden';
+import { useEden, BASE_URL } from '@/services/eden';
 import { useSWRConfig } from 'swr';
 import { cn } from '@/lib/utils';
 
@@ -20,8 +20,8 @@ import { cn } from '@/lib/utils';
  * hasta que el usuario suba un logo válido.
  */
 export function LogoUploadModal() {
-  const { logo_url, nombre, isLoaded, isSignedIn, isDbLoading } = useInmobiliaria();
-  const { client, isReady } = useEden();
+  const { logo_url, nombre, isLoaded, isSignedIn, isDbLoading, requires_logo_upload } = useInmobiliaria();
+  const { client, isReady, token } = useEden();
   const { mutate } = useSWRConfig();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -32,13 +32,18 @@ export function LogoUploadModal() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Determinar si la inmobiliaria necesita subir logo ──
-  // IMPORTANTE: Esperar a que SWR termine el primer fetch (isDbLoading)
-  // para evitar que el modal aparezca y desaparezca por la race condition
-  // entre metadata de Clerk y datos reales de la DB.
+  // IMPORTANTE:
+  // 1. Esperar a que SWR termine el primer fetch (isDbLoading)
+  //    para evitar race condition entre metadata de Clerk y DB.
+  // 2. Solo forzar el logo si requires_logo_upload = true
+  //    (inmobiliarias existentes antes del 03/07/2026).
+  //    Las nuevas inmobiliarias tienen requires_logo_upload = false.
   const needsLogo = (() => {
     if (!isLoaded || !isSignedIn) return false;
     if (!isReady) return false;
-    if (isDbLoading) return false; // Esperar a que la DB responda
+    if (isDbLoading) return false;
+    // Solo forzar logo si la inmobiliaria fue marcada como legacy
+    if (!requires_logo_upload) return false;
     if (!logo_url) return true;
     if (logo_url === '/logo.png') return true;
     return false;
@@ -95,6 +100,8 @@ export function LogoUploadModal() {
   };
 
   // ── Subir logo al servidor ──
+  // NOTA: Usamos fetch nativo para upload porque Eden Treaty 1.x no maneja
+  // correctamente FormData / multipart uploads, serializando mal el body.
   const handleUpload = async () => {
     if (!selectedFile || !isReady) return;
 
@@ -102,35 +109,54 @@ export function LogoUploadModal() {
     setError(null);
 
     try {
-      // Paso 1: Subir el archivo al servidor
+      // Paso 1: Subir el archivo al servidor usando fetch nativo
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('folder', 'logos');
 
-      // @ts-expect-error - Eden Treaty dynamic path
-      const { data: uploadRes, error: uploadError } = await client.admin['upload-file'].post(formData);
+      const region = localStorage.getItem('zonatia_audit_region') || 'AR';
+      const response = await fetch(`${BASE_URL}/api/v1/admin/upload-file`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-region': region,
+        },
+        // NO establecer Content-Type — el browser lo fija automáticamente
+        // con el boundary correcto para multipart/form-data
+        body: formData,
+      });
 
-      if (uploadError) {
-        throw new Error(uploadError.value?.error || 'Error al subir el archivo');
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || 'Error al subir el archivo');
       }
+
+      const uploadRes = await response.json();
 
       if (!uploadRes?.url) {
         throw new Error('No se recibió la URL del archivo');
       }
 
-      // Paso 2: Actualizar el logo_url de la inmobiliaria
-      // @ts-expect-error - Eden Treaty dynamic path
-      const { error: updateError } = await client.admin.me.put({
-        logo_url: uploadRes.url,
+      // Paso 2: Actualizar el logo_url de la inmobiliaria usando fetch nativo
+      // NOTA: Eden Treaty 1.x también falla con 403 en PUT /admin/me,
+      // por lo que usamos fetch nativo aquí también.
+      const updateResponse = await fetch(`${BASE_URL}/api/v1/admin/me`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'x-region': region,
+        },
+        body: JSON.stringify({ logo_url: uploadRes.url }),
       });
 
-      if (updateError) {
-        throw new Error('Error al actualizar el logo');
+      if (!updateResponse.ok) {
+        const errData = await updateResponse.json().catch(() => ({}));
+        console.error('[LOGO-UPDATE] Error response:', updateResponse.status, errData);
+        throw new Error(errData.error || `Error al actualizar el logo (${updateResponse.status})`);
       }
 
       // Forzar revalidación del cache SWR para /admin/me
-      // Al recibir los datos actualizados, logo_url dejará de ser undefined
-      // y needsLogo retornará false, ocultando el modal automáticamente.
       await mutate('/admin/me');
     } catch (err: any) {
       setError(err.message || 'Error inesperado');

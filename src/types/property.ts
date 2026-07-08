@@ -84,6 +84,15 @@ export const propertySchema = z.object({
         path: ["descripcion"]
       });
     }
+    // Validar que tenga al menos 4 imágenes para publicar
+    const imageCount = data.imagenes?.length || 0;
+    if (imageCount < 4) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Se requieren al menos 4 imágenes para publicar la propiedad. Has subido ${imageCount}.`,
+        path: ["imagenes"]
+      });
+    }
   }
 });
 

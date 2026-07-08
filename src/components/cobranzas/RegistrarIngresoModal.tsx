@@ -7,7 +7,7 @@ import { useRegion } from '@/hooks/useRegion';
 import { NumericInput } from '@/components/common/NumericInput';
 import { X, Save, Wallet, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useEden } from '@/services/eden';
+import { useEden, BASE_URL } from '@/services/eden';
 import { toast } from 'sonner';
 import { generateReceiptPDF } from '@/utils/receiptGenerator';
 import { numeroALetras } from '@/utils/numberToWords';
@@ -21,8 +21,8 @@ interface RegistrarIngresoModalProps {
 
 export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: RegistrarIngresoModalProps) {
   const { inmobiliaria_id, nombre: nombreInmobiliaria } = useInmobiliaria();
-  const { config, formatCurrency } = useRegion();
-  const { client: eden } = useEden();
+  const { config, formatCurrency, country_code } = useRegion();
+  const { client: eden, token } = useEden();
   const [montoAblVariable, setMontoAblVariable] = useState<number | ''>('');
   
   const ablDinamico = Number(montoAblVariable) || 0;
@@ -92,9 +92,23 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
         numero_recibo: `REC-${Date.now().toString().slice(-6)}`
       }));
 
-      const { error: uploadError } = await eden.admin.recibos.post(formData);
+      // NOTA: Usamos fetch nativo porque Eden Treaty no maneja correctamente
+      // FormData / multipart uploads, causando error 422 de validación en Elysia.
+      const uploadRes = await fetch(`${BASE_URL}/api/v1/admin/recibos`, {
+        method: 'POST',
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          'x-inmobiliaria-id': inmobiliaria_id || '',
+          'x-region': country_code,
+        },
+        // NO establecer Content-Type — el browser lo fija automáticamente
+        // con el boundary correcto para multipart/form-data
+        body: formData,
+      });
 
-      if (uploadError) {
+      if (!uploadRes.ok) {
+        const errBody = await uploadRes.json().catch(() => ({ error: 'Error desconocido' }));
+        console.error('[RECIBOS-UPLOAD] Error:', uploadRes.status, errBody);
         toast.error("El pago se registró pero hubo un problema al alojar el recibo.");
       } else {
         toast.success("Pago registrado y recibo generado correctamente.", {
