@@ -139,6 +139,20 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
         return;
       }
 
+      // ⚠️ AVISO DE FOTOS FALTANTES: Si guardó con menos de 4 imágenes, advertir
+      const imageCount = data.imagenes?.length || 0;
+      if (imageCount < 4 && currentStatus === 'DISPONIBLE') {
+        toast.warning(`Faltan imágenes para publicar`, {
+          description: `Has subido ${imageCount} de 4 imágenes mínimas. La propiedad está como "Disponible" pero NO será publicada en el portal hasta que tenga al menos 4 fotos.`,
+          duration: 8000,
+        });
+      } else if (imageCount < 4) {
+        toast.info("Recuerda las imágenes para publicar", {
+          description: `La propiedad se guardó con ${imageCount} imágenes. Cuando quieras publicarla, necesitarás al menos 4 fotos. Puedes agregarlas editando la propiedad más tarde.`,
+          duration: 6000,
+        });
+      }
+
       toast.success("Propiedad ingresada correctamente al inventario.", {
         icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
       });
