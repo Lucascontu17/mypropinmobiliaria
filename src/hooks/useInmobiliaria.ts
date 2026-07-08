@@ -1,7 +1,7 @@
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import type { CountryCode } from '@/types/region';
 import useSWR from 'swr';
-import { useEden } from '@/services/eden';
+import { BASE_URL } from '@/services/eden';
 
 export type UserRole = 'superadmin' | 'admin' | 'vendedor';
 
@@ -11,6 +11,7 @@ export interface InmobiliariaMetadata {
   logo_url: string;
   role: UserRole;
   country_code: CountryCode;
+  requires_logo_upload?: boolean;
   suscripcion?: {
     status: 'activa' | 'gracia' | 'vencida';
     isBlocked: boolean;
@@ -30,22 +31,33 @@ export interface InmobiliariaMetadata {
  */
 export function useInmobiliaria() {
   const { user, isLoaded, isSignedIn } = useUser();
-  const { client, isReady } = useEden();
+  const { isLoaded: isAuthLoaded, getToken } = useAuth();
+  const isReady = isAuthLoaded && !!user;
 
   const metadata = (user?.publicMetadata ?? {}) as Partial<InmobiliariaMetadata>;
 
   // Fetch real-time data from DB as fallback/sync for branding (Zero Leaks compliant)
+  // NOTA: Usamos fetch nativo porque Eden Treaty 1.x no maneja correctamente
+  // la autenticación con Clerk JWT en algunos casos y devuelve 403.
   const { data: dbData, isValidating: isDbLoading } = useSWR(
     isSignedIn && isReady ? '/admin/me' : null,
     async () => {
-      // @ts-expect-error - Eden Treaty dynamic path
-      const { data, error } = await client.admin.me.get();
-      if (error) {
-        console.warn('[useInmobiliaria] DB branding fetch failed, using metadata.');
+      try {
+        const token = await getToken({ template: 'zonatia-session' });
+        const region = localStorage.getItem('zonatia_audit_region') || 'AR';
+        const response = await fetch(`${BASE_URL}/api/v1/admin/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'x-region': region,
+          },
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const json = await response.json();
+        return json?.data;
+      } catch (err) {
+        console.warn('[useInmobiliaria] DB branding fetch failed, using metadata.', err);
         return null;
       }
-      // @ts-expect-error - Eden Treaty dynamic path
-      return data?.data;
     },
     { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
@@ -63,8 +75,6 @@ export function useInmobiliaria() {
    * @returns boolean
    */
   const hasPermission = (allowedRoles: UserRole[]): boolean => {
-    // Para simplificar la validación en caso de que un rol pueda acceder a ciertos recursos específicos
-    // o para componentes que requieran permisos de "read|write" de la etapa 2.
     if (!isSignedIn) return false;
     return allowedRoles.includes(role);
   };
@@ -81,6 +91,5 @@ export function useInmobiliaria() {
     isDbLoading,
     hasPermission,
     suscripcion: dbData?.suscripcion
-    // Note: User property omitida intencionalmente fuera de "hasPermission" check para evitar Zero Leaks accidentales del tenant
   };
 }
