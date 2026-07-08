@@ -835,7 +835,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                              <div className="flex items-center gap-2 bg-blue-50/70 rounded-lg p-2.5 border border-blue-200 mt-3 text-xs">
                                <Calendar className="h-3.5 w-3.5 text-blue-600 shrink-0" />
                                <span className="text-blue-800">
-                                 <strong>Primer aumento:</strong> {fechaPrimerAumento.toLocaleDateString()}
+                                 <strong>Primer aumento:</strong> {fechaPrimerAumento.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                                </span>
                              </div>
                            );
@@ -918,7 +918,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                     <div className="flex items-center justify-between gap-2 bg-indigo-50/70 rounded-lg p-2.5 border border-indigo-200">
                       <span className="text-indigo-800 font-medium">Último aumento aplicado:</span>
                       <span className="font-bold text-indigo-900">
-                        {new Date(retroPreview.ultimoAumento).toLocaleDateString()}
+                        {new Date(retroPreview.ultimoAumento).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                       </span>
                     </div>
                     
@@ -928,7 +928,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                         <span className="text-blue-800 font-medium">Próximo aumento:</span>
                       </div>
                       <span className="font-bold text-blue-900">
-                        {new Date(retroPreview.proximoAumento).toLocaleDateString()}
+                        {new Date(retroPreview.proximoAumento).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                       </span>
                     </div>
                     
@@ -991,13 +991,13 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                           <div className="flex justify-between">
                             <span className="text-indigo-600">Último aumento aplicado</span>
                             <span className="font-semibold text-indigo-950">
-                              {new Date(retroPreview.ultimoAumento).toLocaleDateString()}
+                              {new Date(retroPreview.ultimoAumento).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                             </span>
                           </div>
                           <div className="flex justify-between pt-1">
                             <span className="text-blue-600 font-semibold">Próximo aumento programado</span>
                             <span className="font-bold text-blue-900">
-                              {new Date(retroPreview.proximoAumento).toLocaleDateString()}
+                              {new Date(retroPreview.proximoAumento).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                             </span>
                           </div>
                         </>
