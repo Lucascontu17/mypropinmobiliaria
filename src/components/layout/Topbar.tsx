@@ -23,8 +23,8 @@ export function Topbar({ isSidebarCollapsed: _isSidebarCollapsed }: TopbarProps)
   const { signOut } = useClerk();
   const { hasAddon } = useActiveAddons();
 
-  // Resolver URL del logo — only show if the addon is active
-  const showCustomLogo = hasAddon('Logo Personalizado en Panel');
+  // Resolver URL del logo — only show if the addon is active AND a logo exists
+  const showCustomLogo = hasAddon('Logo Personalizado en Panel') && !!logo_url;
   const resolvedLogoUrl = useMemo(() => {
     if (!logo_url) return null;
     if (logo_url.startsWith('http')) return logo_url;
