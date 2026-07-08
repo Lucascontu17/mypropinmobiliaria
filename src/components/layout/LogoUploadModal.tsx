@@ -137,14 +137,23 @@ export function LogoUploadModal() {
         throw new Error('No se recibió la URL del archivo');
       }
 
-      // Paso 2: Actualizar el logo_url de la inmobiliaria
-      // @ts-expect-error - Eden Treaty dynamic path
-      const { error: updateError } = await client.admin.me.put({
-        logo_url: uploadRes.url,
+      // Paso 2: Actualizar el logo_url de la inmobiliaria usando fetch nativo
+      // NOTA: Eden Treaty 1.x también falla con 403 en PUT /admin/me,
+      // por lo que usamos fetch nativo aquí también.
+      const updateResponse = await fetch(`${BASE_URL}/api/v1/admin/me`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'x-region': region,
+        },
+        body: JSON.stringify({ logo_url: uploadRes.url }),
       });
 
-      if (updateError) {
-        throw new Error('Error al actualizar el logo');
+      if (!updateResponse.ok) {
+        const errData = await updateResponse.json().catch(() => ({}));
+        console.error('[LOGO-UPDATE] Error response:', updateResponse.status, errData);
+        throw new Error(errData.error || `Error al actualizar el logo (${updateResponse.status})`);
       }
 
       // Forzar revalidación del cache SWR para /admin/me
