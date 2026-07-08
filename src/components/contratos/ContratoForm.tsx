@@ -312,6 +312,8 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
     periodos: number;
     detalle: string;
     visible: boolean;
+    ultimoAumento: string;  // Fecha del último aumento aplicado
+    proximoAumento: string; // Fecha del próximo aumento programado
   } | null>(null);
 
   // --- Estado para edición manual del monto y doble confirmación ---
@@ -382,6 +384,14 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
       return;
     }
 
+    // Calcular fecha del último aumento aplicado
+    const fechaUltimoAumento = new Date(fechaInicio);
+    fechaUltimoAumento.setMonth(fechaUltimoAumento.getMonth() + (periodosCompletos * periodoMeses));
+    
+    // Calcular fecha del próximo aumento
+    const fechaProximoAumento = new Date(fechaUltimoAumento);
+    fechaProximoAumento.setMonth(fechaProximoAumento.getMonth() + periodoMeses);
+
     // Sincronizar el monto editable si el usuario no lo ha modificado manualmente
     if (!retroMontoManual.current) {
       setRetroMontoEditado(montoCalc);
@@ -391,7 +401,9 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
       montoActual: montoCalc,
       periodos: periodosCompletos,
       detalle,
-      visible: true
+      visible: true,
+      ultimoAumento: fechaUltimoAumento.toISOString().split('T')[0],
+      proximoAumento: fechaProximoAumento.toISOString().split('T')[0]
     });
   }, [aplicarAumento, fechaInicioVal, montoInicialVal, tipoAumento,
       porcentajeAumento, montoFijoAumento, periodicidadAumento]);
@@ -799,18 +811,40 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                         </div>
                       )}
 
-                      {(tipoAumento === 'INDICE_IPC' || tipoAumento === 'INDICE_ICL') && (
-                        <p className="text-[10px] text-emerald-700 bg-emerald-100 p-2 rounded-lg mt-2 font-semibold">
-                           {country_code === 'AR' 
-                            ? "IMPORTANTE: Los valores de IPC/ICL se gestionan manualmente desde el Panel Central. El sistema tomará el valor vigente al momento del ajuste."
-                            : "El valor del ICL/IPC deberá ser introducido en cada periodo de ajuste por la Inmobiliaria."
-                           }
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-             </div>
+                       {(tipoAumento === 'INDICE_IPC' || tipoAumento === 'INDICE_ICL') && (
+                         <p className="text-[10px] text-emerald-700 bg-emerald-100 p-2 rounded-lg mt-2 font-semibold">
+                            {country_code === 'AR' 
+                             ? "IMPORTANTE: Los valores de IPC/ICL se gestionan manualmente desde el Panel Central. El sistema tomará el valor vigente al momento del ajuste."
+                             : "El valor del ICL/IPC deberá ser introducido en cada periodo de ajuste por la Inmobiliaria."
+                            }
+                         </p>
+                       )}
+
+                       {/* 📅 Próximo aumento para contratos nuevos (no retroactivos) */}
+                       {!retroPreview?.visible && fechaInicioVal && periodicidadAumento && (
+                         (() => {
+                           const periodicidadMap: Record<string, number> = {
+                             mensual: 1, bimestral: 2, trimestral: 3,
+                             cuatrimestral: 4, semestral: 6, anual: 12
+                           };
+                           const meses = periodicidadMap[periodicidadAumento];
+                           if (!meses) return null;
+                           const fechaPrimerAumento = new Date(fechaInicioVal);
+                           fechaPrimerAumento.setMonth(fechaPrimerAumento.getMonth() + meses);
+                           return (
+                             <div className="flex items-center gap-2 bg-blue-50/70 rounded-lg p-2.5 border border-blue-200 mt-3 text-xs">
+                               <Calendar className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                               <span className="text-blue-800">
+                                 <strong>Primer aumento:</strong> {fechaPrimerAumento.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                               </span>
+                             </div>
+                           );
+                         })()
+                       )}
+                     </div>
+                   </div>
+                 )}
+              </div>
 
               {/* ⏪ Preview de Aumentos Retrospectivos */}
               {retroPreview?.visible && (
@@ -879,6 +913,24 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                         )}
                       </div>
                     </div>
+
+                    {/* Timeline de Aumentos */}
+                    <div className="flex items-center justify-between gap-2 bg-indigo-50/70 rounded-lg p-2.5 border border-indigo-200">
+                      <span className="text-indigo-800 font-medium">Último aumento aplicado:</span>
+                      <span className="font-bold text-indigo-900">
+                        {new Date(retroPreview.ultimoAumento).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between gap-2 bg-blue-100/70 rounded-lg p-2.5 border border-blue-300">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="h-3 w-3 text-blue-600" />
+                        <span className="text-blue-800 font-medium">Próximo aumento:</span>
+                      </div>
+                      <span className="font-bold text-blue-900">
+                        {new Date(retroPreview.proximoAumento).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                      </span>
+                    </div>
                     
                     <p className="text-[10px] text-amber-700 bg-white/50 p-2 rounded-lg italic flex items-center gap-1.5">
                       <Info className="h-3 w-3 shrink-0" />
@@ -934,6 +986,22 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                           {config.currency_code} {retroMontoEditado.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
+                      {retroPreview && (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-indigo-600">Último aumento aplicado</span>
+                            <span className="font-semibold text-indigo-950">
+                              {new Date(retroPreview.ultimoAumento).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                            </span>
+                          </div>
+                          <div className="flex justify-between pt-1">
+                            <span className="text-blue-600 font-semibold">Próximo aumento programado</span>
+                            <span className="font-bold text-blue-900">
+                              {new Date(retroPreview.proximoAumento).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                            </span>
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     <div className="bg-amber-100/60 rounded-xl p-3 flex items-start gap-2.5 border border-amber-200">
