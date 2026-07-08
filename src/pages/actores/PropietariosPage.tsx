@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { PropietarioForm } from '@/components/actores/PropietarioForm';
 import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
+import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
 export function PropietariosPage() {
   const { hasPermission } = useInmobiliaria();
@@ -42,10 +43,33 @@ export function PropietariosPage() {
     (p.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni || '').includes(searchTerm)
   );
 
+  const shepherdSteps: ShepherdStep[] = [
+    {
+      target: '[data-shepherd="own-header"]',
+      title: t('tour_own_header_title', 'Gestión de Propietarios'),
+      content: t('tour_own_header_desc', 'Administre aquí los dueños de los inmuebles gestionados por su inmobiliaria. Podrá registrar nuevos propietarios, consultar sus datos de contacto y configurar el tipo de comisión (fija o porcentual) que perciben por cada alquiler.'),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-shepherd="own-buscador"]',
+      title: t('tour_own_buscador_title', 'Buscador de Propietarios'),
+      content: t('tour_own_buscador_desc', 'Busque propietarios por nombre o documento. El sistema filtra la tabla en tiempo real a medida que escribe para localizar rápidamente al titular deseado.'),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-shepherd="own-tabla"]',
+      title: t('tour_own_tabla_title', 'Listado de Propietarios'),
+      content: t('tour_own_tabla_desc', 'Cada registro incluye el nombre del propietario, su DNI/CUIT, información de contacto (email y celular), y la comisión pactada. Desde la columna de acciones puede editar sus datos o eliminarlos si cuenta con permisos de superadministrador.'),
+      placement: 'top',
+    }
+  ];
+
   return (
     <div className="space-y-6">
+      <LocalShepherd steps={shepherdSteps} storageKey="enjoy_local_propietarios" />
+
       {/* ── Header ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
+      <div data-shepherd="own-header" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
         <div>
           <h1 className="text-2xl font-bold text-renta-950 font-jakarta">{t('nav_propietarios', 'Propietarios')}</h1>
           <p className="text-sm text-renta-600 font-inter mt-1">
@@ -65,8 +89,9 @@ export function PropietariosPage() {
       </div>
 
       {/* ── Toolbar ── */}
-      <div className="flex items-center gap-4 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+      <div data-shepherd="own-buscador" className="flex items-center gap-4 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
         <div className="relative flex-1 max-w-md">
+
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-renta-400" />
           <input
             type="text"
@@ -79,7 +104,8 @@ export function PropietariosPage() {
       </div>
 
       {/* ── Data Table ── */}
-      <div className="rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-white shadow-sm overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+      <div data-shepherd="own-tabla" className="rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-white shadow-sm overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm font-inter">
             <thead className="bg-renta-50/50 text-renta-600 border-b border-admin-border">

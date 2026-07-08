@@ -370,24 +370,94 @@ export function MarketplacePage() {
           ))}
         </div>
       ) : (
-        <div className="space-y-8">
-          {/* Packages */}
+        <div className="space-y-10">
+          {/* Packages - Rediseño Premium */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {catalog?.packages.map((pkg) => (
-              <div key={pkg.id} className="relative bg-white rounded-2xl ring-1 ring-inset ring-admin-border border-transparent p-6 flex flex-col">
-                <div className="absolute -top-3 right-4 bg-emerald-500 text-white text-[10px] font-bold tracking-widest px-3 py-1 rounded-full uppercase">
-                  Pack {pkg.puntos} Ptos
-                </div>
-                <h3 className="text-base font-bold font-jakarta text-renta-950 mb-1">{pkg.nombre}</h3>
-                <div className="text-2xl font-black text-renta-950 mb-4">{formatCurrency(pkg.precio)}</div>
-                <button
-                  onClick={() => comprarPuntos(pkg.puntos, Number(pkg.precio))}
-                  className="w-full border-2 border-renta-950 text-renta-950 rounded-xl py-3 text-xs font-bold hover:bg-renta-950 hover:text-white transition-all"
+            {catalog?.packages.map((pkg, index) => {
+              // Definir estilos según el paquete (Bronce, Plata, Oro)
+              const isBronce = pkg.nombre.toLowerCase().includes('bronce');
+              const isPlata = pkg.nombre.toLowerCase().includes('plata');
+              const isOro = pkg.nombre.toLowerCase().includes('oro');
+              
+              const tierConfig = isBronce
+                ? { gradient: 'from-amber-700 to-amber-900', bg: 'bg-amber-50', border: 'border-amber-200/60', lightBg: 'bg-amber-50/40', accent: 'text-amber-700', icon: '🥉', shadow: 'shadow-amber-900/10', ring: 'ring-amber-200/30', btnBg: 'bg-amber-800', btnHover: 'hover:bg-amber-700', badgeColor: 'bg-amber-600' }
+                : isPlata
+                ? { gradient: 'from-slate-500 to-slate-700', bg: 'bg-slate-50', border: 'border-slate-200/60', lightBg: 'bg-slate-50/40', accent: 'text-slate-700', icon: '🥈', shadow: 'shadow-slate-900/10', ring: 'ring-slate-200/30', btnBg: 'bg-slate-700', btnHover: 'hover:bg-slate-600', badgeColor: 'bg-slate-600' }
+                : { gradient: 'from-yellow-500 to-amber-600', bg: 'bg-yellow-50', border: 'border-yellow-200/60', lightBg: 'bg-yellow-50/40', accent: 'text-yellow-700', icon: '🥇', shadow: 'shadow-yellow-900/15', ring: 'ring-yellow-200/30', btnBg: 'bg-gradient-to-r from-yellow-500 to-amber-600', btnHover: 'hover:from-yellow-400 hover:to-amber-500', badgeColor: 'bg-gradient-to-r from-yellow-500 to-amber-600' };
+
+              return (
+                <div
+                  key={pkg.id}
+                  className={`group relative bg-white rounded-3xl p-[1px] transition-all duration-500 hover:shadow-2xl ${isOro ? 'bg-gradient-to-b from-yellow-300 via-yellow-200 to-transparent shadow-xl shadow-yellow-900/20' : `ring-1 ring-inset ${tierConfig.ring} shadow-lg ${tierConfig.shadow}`}`}
                 >
-                  Elegir Pack
-                </button>
-              </div>
-            ))}
+                  {/* Inner Card */}
+                  <div className={`relative bg-white rounded-[23px] p-6 sm:p-7 flex flex-col h-full ${isOro ? 'ring-1 ring-inset ring-yellow-200/50' : ''}`}>
+                    
+                    {/* Popular Badge - Solo para Plata (el del medio) */}
+                    {isPlata && (
+                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-slate-700 to-slate-800 text-white text-[9px] font-black tracking-[0.2em] px-4 py-1.5 rounded-full uppercase shadow-lg shadow-slate-900/30 z-10 whitespace-nowrap border border-white/10">
+                        ⭐ MÁS POPULAR
+                      </div>
+                    )}
+
+                    {/* Icono y Título */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`w-11 h-11 ${tierConfig.bg} rounded-2xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform duration-300 shadow-inner ${tierConfig.border}`}>
+                        <span>{tierConfig.icon}</span>
+                      </div>
+                      <div>
+                        <h3 className="text-base font-black font-jakarta text-renta-950 leading-tight">{pkg.nombre}</h3>
+                        <p className={`text-[10px] font-bold tracking-wider ${tierConfig.accent} mt-0.5`}>
+                          {pkg.puntos.toLocaleString()} Puntos de Visibilidad
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Precio */}
+                    <div className="mb-5">
+                      <p className="text-[9px] font-bold text-renta-400 uppercase tracking-[0.2em] mb-1">Inversión</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-black font-jakarta text-renta-950 tracking-tight">{formatCurrency(pkg.precio)}</span>
+                        <span className="text-xs font-bold text-renta-400">/ único</span>
+                      </div>
+                    </div>
+
+                    {/* Barra de Valor Proporcional */}
+                    <div className={`p-4 ${tierConfig.lightBg} rounded-2xl ${tierConfig.border} mb-5 flex-1`}>
+                      <div className="flex items-center gap-2 mb-2.5">
+                        <div className="flex-1 h-2 bg-renta-200/50 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full bg-gradient-to-r ${tierConfig.gradient} transition-all duration-700 group-hover:opacity-80`} style={{ width: `${(pkg.puntos / (catalog?.packages?.[catalog.packages.length - 1]?.puntos || pkg.puntos)) * 100}%` }} />
+                        </div>
+                        <span className={`text-[10px] font-black ${tierConfig.accent}`}>{pkg.puntos} pts</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Zap className={`h-3 w-3 ${tierConfig.accent}`} />
+                        <span className="text-[10px] font-bold text-renta-500">
+                          {isBronce ? 'Ideal para empezar' : isPlata ? 'El balance perfecto' : 'Máximo rendimiento'}
+
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Botón */}
+                    <button
+                      onClick={() => comprarPuntos(pkg.puntos, Number(pkg.precio))}
+                      className={`w-full ${tierConfig.btnBg} text-white rounded-2xl py-3.5 text-xs font-black uppercase tracking-widest ${tierConfig.btnHover} transition-all duration-300 active:scale-[0.97] shadow-lg ${tierConfig.shadow} flex items-center justify-center gap-2 group/btn`}
+                    >
+                      Elegir este Pack
+                      <ArrowRight className="h-3.5 w-3.5 opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all duration-300" />
+                    </button>
+
+                    {/* Info extra */}
+                    <div className="mt-3 flex items-center justify-center gap-1">
+                      <span className="text-[8px] font-bold text-renta-400 uppercase tracking-wider">
+                        {(pkg.puntos / Number(pkg.precio)).toFixed(2)} pts / {country_code === 'MX' ? '$' : '$'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Custom Points */}

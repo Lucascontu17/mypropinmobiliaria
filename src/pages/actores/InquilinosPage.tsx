@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { InquilinoForm } from '@/components/actores/InquilinoForm';
 import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
+import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
 export function InquilinosPage() {
   const { hasPermission, inmobiliaria_id } = useInmobiliaria();
@@ -39,10 +40,33 @@ export function InquilinosPage() {
     (p.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni || '').includes(searchTerm)
   );
 
+  const shepherdSteps: ShepherdStep[] = [
+    {
+      target: '[data-shepherd="inq-header"]',
+      title: t('tour_inq_header_title', 'Gestión de Inquilinos'),
+      content: t('tour_inq_header_desc', 'Administre aquí todos los locatarios de sus propiedades. Puede consultar su información de contacto, documentos y estado de cuenta. Desde esta sección podrá registrar nuevos inquilinos, editarlos y darles seguimiento.'),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-shepherd="inq-buscador"]',
+      title: t('tour_inq_buscador_title', 'Buscador de Inquilinos'),
+      content: t('tour_inq_buscador_desc', 'Utilice este campo para buscar rápidamente inquilinos por nombre o DNI. A medida que escribe, la tabla se filtra automáticamente para mostrar los resultados coincidentes.'),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-shepherd="inq-tabla"]',
+      title: t('tour_inq_tabla_title', 'Listado y Acciones'),
+      content: t('tour_inq_tabla_desc', 'Cada fila representa un inquilino con su ID de plataforma, datos personales y contacto telefónico. Desde la columna de acciones puede editar sus datos o, si tiene permisos de superadministrador, eliminar el registro.'),
+      placement: 'top',
+    }
+  ];
+
   return (
     <div className="space-y-6">
+      <LocalShepherd steps={shepherdSteps} storageKey="enjoy_local_inquilinos" />
+
       {/* ── Header ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
+      <div data-shepherd="inq-header" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
         <div>
           <h1 className="text-2xl font-bold text-renta-950 font-jakarta">{t('nav_inquilinos', 'Inquilinos')}</h1>
           <p className="text-sm text-renta-600 font-inter mt-1">
@@ -52,8 +76,9 @@ export function InquilinosPage() {
       </div>
 
       {/* ── Toolbar ── */}
-      <div className="flex items-center gap-4 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+      <div data-shepherd="inq-buscador" className="flex items-center gap-4 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
         <div className="relative flex-1 max-w-md">
+
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-renta-400" />
           <input
             type="text"
@@ -66,7 +91,8 @@ export function InquilinosPage() {
       </div>
 
       {/* ── Data Table ── */}
-      <div className="rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-white shadow-sm overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+      <div data-shepherd="inq-tabla" className="rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-white shadow-sm overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm font-inter">
             <thead className="bg-renta-50/50 text-renta-600 border-b border-admin-border">
