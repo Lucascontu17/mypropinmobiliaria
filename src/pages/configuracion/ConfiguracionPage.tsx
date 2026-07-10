@@ -40,7 +40,13 @@ export function ConfiguracionPage() {
   const canViewConfig = isSuperadmin || isAdmin;
   const canEditConfig = isSuperadmin; // Solo Superadmin guarda cambios técnicos
   
+  // NOTA: El add-on "Logo Personalizado en Panel" solo controla si el logo
+  // se muestra en el Sidebar/Topbar. En Configuración siempre se permite
+  // cargar/configurar el logo aunque no se tenga el add-on.
+  // Ver Sidebar.tsx y Topbar.tsx para la lógica de visualización condicional.
   const hasLogoAddon = hasAddon('Logo Personalizado en Panel');
+
+
 
   const [nombreAgencia, setNombreAgencia] = useState(nombreInmoActual);
   const [logoUrl, setLogoUrl] = useState(logoInmoActual || '');
@@ -69,12 +75,14 @@ export function ConfiguracionPage() {
       
       setIsSaving(true);
       
-      // Update Branding if changed
-      if (nombreAgencia !== nombreInmoActual || (hasLogoAddon && logoUrl !== logoInmoActual)) {
+      // Update Branding if changed (logo SIEMPRE se guarda en BD, el add-on
+      // "Logo Personalizado en Panel" solo controla su visualización en Sidebar/Topbar)
+      if (nombreAgencia !== nombreInmoActual || logoUrl !== logoInmoActual) {
         const { error } = await client.admin.me.put({ 
           nombre: nombreAgencia,
-          ...(hasLogoAddon ? { logo_url: logoUrl } : {})
+          logo_url: logoUrl || null
         });
+
         if (error) {
           toast.error("Error al actualizar los datos de la agencia: " + error.value);
           setIsSaving(false);
@@ -281,7 +289,9 @@ export function ConfiguracionPage() {
                </p>
             </div>
 
-            {/* Logo de la Agencia (Protegido por Add-on) */}
+            {/* Logo de la Agencia — Siempre editable. 
+                El add-on "Logo Personalizado en Panel" solo controla 
+                si se muestra en Sidebar/Topbar (ver Sidebar.tsx y Topbar.tsx) */}
             <div className="border-t border-admin-border-subtle pt-6 space-y-4">
                <div className="flex items-center justify-between">
                   <label className="text-sm font-bold text-renta-950 flex items-center gap-2">
@@ -291,20 +301,17 @@ export function ConfiguracionPage() {
                   {!hasLogoAddon && (
                     <Link 
                       to="/marketplace"
-                      className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 hover:bg-amber-100 transition-colors"
+                      className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-renta-500 bg-renta-50 px-2.5 py-1 rounded-full border border-renta-200 hover:bg-renta-100 transition-colors"
                     >
                       <Lock className="h-3 w-3" />
-                      Add-on Requerido
+                      No visible en Panel
                     </Link>
                   )}
                </div>
 
                <div className="flex items-center gap-6">
                   {/* Preview */}
-                  <div className={cn(
-                    "h-20 w-20 rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden bg-renta-50",
-                    hasLogoAddon ? "border-renta-200" : "border-amber-200 opacity-60"
-                  )}>
+                  <div className="h-20 w-20 rounded-2xl border-2 border-dashed border-renta-200 flex items-center justify-center overflow-hidden bg-renta-50">
                     {logoUrl ? (
                       <img src={logoUrl.startsWith('/') ? `${import.meta.env.VITE_API_URL || ''}${logoUrl}` : logoUrl} alt="Preview" className="h-full w-full object-contain" />
                     ) : (
@@ -318,35 +325,27 @@ export function ConfiguracionPage() {
                           type="text"
                           value={logoUrl}
                           onChange={(e) => setLogoUrl(e.target.value)}
-                          disabled={!hasLogoAddon}
-                          placeholder={hasLogoAddon ? "URL del logo (png, jpg...)" : "Funcionalidad bloqueada"}
+                          placeholder="URL del logo (png, jpg...)"
                           className={cn(
                             "w-full h-10 px-4 pr-10 rounded-xl border text-sm transition-all",
-                            hasLogoAddon 
-                              ? "border-admin-border bg-white text-renta-900 focus:ring-2 focus:ring-renta-500/20" 
-                              : "border-amber-100 bg-amber-50/30 text-amber-400 cursor-not-allowed"
+                            "border-admin-border bg-white text-renta-900 focus:ring-2 focus:ring-renta-500/20"
                           )}
                         />
-                        {!hasLogoAddon && (
-                          <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-400" />
-                        )}
                      </div>
                      <p className="text-[10px] text-renta-500 leading-relaxed">
-                       {hasLogoAddon 
-                         ? t('config_logo_desc', 'Ingrese la URL directa de su logo o utilice el uploader de propiedades para generar una. Recomendado: 400x400px fondo transparente.')
-                         : t('config_logo_bloqueado', 'Para personalizar el logo en el panel, debe adquirir el add-on "Logo Personalizado en Panel" desde el Marketplace.')}
+                       {t('config_logo_desc', 'Ingrese la URL directa de su logo. Recomendado: 400x400px fondo transparente.')}
+                       {!hasLogoAddon && (
+                         <> El logo se guarda en la base de datos, pero para que se muestre en el panel (
+                         <Link to="/marketplace" className="text-renta-600 hover:text-renta-950 underline underline-offset-2">
+                           adquirir add-on
+                         </Link>
+                         ) "Logo Personalizado en Panel".</>
+                       )}
                      </p>
-                     {!hasLogoAddon && (
-                       <Link 
-                         to="/marketplace"
-                         className="inline-flex items-center gap-1.5 text-[10px] font-bold text-renta-600 hover:text-renta-950 underline decoration-renta-200 underline-offset-4"
-                       >
-                         Explorar Marketplace <ExternalLink className="h-3 w-3" />
-                       </Link>
-                     )}
                   </div>
                </div>
             </div>
+
          </div>
       </div>
 

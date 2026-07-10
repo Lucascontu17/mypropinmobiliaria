@@ -373,28 +373,27 @@ export function MarketplacePage() {
         <div className="space-y-10">
           {/* Packages - Rediseño Premium */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {catalog?.packages.map((pkg, index) => {
-              // Definir estilos según el paquete (Bronce, Plata, Oro)
-              const isBronce = pkg.nombre.toLowerCase().includes('bronce');
-              const isPlata = pkg.nombre.toLowerCase().includes('plata');
-              const isOro = pkg.nombre.toLowerCase().includes('oro');
-              
-              const tierConfig = isBronce
-                ? { gradient: 'from-amber-700 to-amber-900', bg: 'bg-amber-50', border: 'border-amber-200/60', lightBg: 'bg-amber-50/40', accent: 'text-amber-700', icon: '🥉', shadow: 'shadow-amber-900/10', ring: 'ring-amber-200/30', btnBg: 'bg-amber-800', btnHover: 'hover:bg-amber-700', badgeColor: 'bg-amber-600' }
-                : isPlata
-                ? { gradient: 'from-slate-500 to-slate-700', bg: 'bg-slate-50', border: 'border-slate-200/60', lightBg: 'bg-slate-50/40', accent: 'text-slate-700', icon: '🥈', shadow: 'shadow-slate-900/10', ring: 'ring-slate-200/30', btnBg: 'bg-slate-700', btnHover: 'hover:bg-slate-600', badgeColor: 'bg-slate-600' }
-                : { gradient: 'from-yellow-500 to-amber-600', bg: 'bg-yellow-50', border: 'border-yellow-200/60', lightBg: 'bg-yellow-50/40', accent: 'text-yellow-700', icon: '🥇', shadow: 'shadow-yellow-900/15', ring: 'ring-yellow-200/30', btnBg: 'bg-gradient-to-r from-yellow-500 to-amber-600', btnHover: 'hover:from-yellow-400 hover:to-amber-500', badgeColor: 'bg-gradient-to-r from-yellow-500 to-amber-600' };
+          {catalog?.packages.map((pkg, index) => {
+              // Visual tiers dinámicos definidos desde el panel central
+              const tier = pkg.tier || 'default';
+              const tierConfigs: Record<string, { gradient: string; bg: string; border: string; lightBg: string; accent: string; icon: string; shadow: string; ring: string; btnBg: string; btnHover: string; badgeColor: string; label: string }> = {
+                bronze: { gradient: 'from-amber-700 to-amber-900', bg: 'bg-amber-50', border: 'border-amber-200/60', lightBg: 'bg-amber-50/40', accent: 'text-amber-700', icon: '🥉', shadow: 'shadow-amber-900/10', ring: 'ring-amber-200/30', btnBg: 'bg-amber-800', btnHover: 'hover:bg-amber-700', badgeColor: 'bg-amber-600', label: 'Bronce' },
+                silver: { gradient: 'from-slate-500 to-slate-700', bg: 'bg-slate-50', border: 'border-slate-200/60', lightBg: 'bg-slate-50/40', accent: 'text-slate-700', icon: '🥈', shadow: 'shadow-slate-900/10', ring: 'ring-slate-200/30', btnBg: 'bg-slate-700', btnHover: 'hover:bg-slate-600', badgeColor: 'bg-slate-600', label: 'Plata' },
+                gold: { gradient: 'from-yellow-500 to-amber-600', bg: 'bg-yellow-50', border: 'border-yellow-200/60', lightBg: 'bg-yellow-50/40', accent: 'text-yellow-700', icon: '🥇', shadow: 'shadow-yellow-900/15', ring: 'ring-yellow-200/30', btnBg: 'bg-gradient-to-r from-yellow-500 to-amber-600', btnHover: 'hover:from-yellow-400 hover:to-amber-500', badgeColor: 'bg-gradient-to-r from-yellow-500 to-amber-600', label: 'Oro' },
+                default: { gradient: 'from-teal-500 to-teal-700', bg: 'bg-teal-50', border: 'border-teal-200/60', lightBg: 'bg-teal-50/40', accent: 'text-teal-700', icon: '🎯', shadow: 'shadow-teal-900/10', ring: 'ring-teal-200/30', btnBg: 'bg-teal-700', btnHover: 'hover:bg-teal-600', badgeColor: 'bg-teal-600', label: 'Estándar' },
+              };
+              const tierConfig = tierConfigs[tier] || tierConfigs.default;
 
               return (
                 <div
                   key={pkg.id}
-                  className={`group relative bg-white rounded-3xl p-[1px] transition-all duration-500 hover:shadow-2xl ${isOro ? 'bg-gradient-to-b from-yellow-300 via-yellow-200 to-transparent shadow-xl shadow-yellow-900/20' : `ring-1 ring-inset ${tierConfig.ring} shadow-lg ${tierConfig.shadow}`}`}
+                  className={`group relative bg-white rounded-3xl p-[1px] transition-all duration-500 hover:shadow-2xl ${tier === 'gold' ? 'bg-gradient-to-b from-yellow-300 via-yellow-200 to-transparent shadow-xl shadow-yellow-900/20' : `ring-1 ring-inset ${tierConfig.ring} shadow-lg ${tierConfig.shadow}`}`}
                 >
                   {/* Inner Card */}
-                  <div className={`relative bg-white rounded-[23px] p-6 sm:p-7 flex flex-col h-full ${isOro ? 'ring-1 ring-inset ring-yellow-200/50' : ''}`}>
+                  <div className={`relative bg-white rounded-[23px] p-6 sm:p-7 flex flex-col h-full ${tier === 'gold' ? 'ring-1 ring-inset ring-yellow-200/50' : ''}`}>
                     
                     {/* Popular Badge - Solo para Plata (el del medio) */}
-                    {isPlata && (
+                    {tier === 'silver' && (
                       <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-slate-700 to-slate-800 text-white text-[9px] font-black tracking-[0.2em] px-4 py-1.5 rounded-full uppercase shadow-lg shadow-slate-900/30 z-10 whitespace-nowrap border border-white/10">
                         ⭐ MÁS POPULAR
                       </div>
@@ -433,7 +432,7 @@ export function MarketplacePage() {
                       <div className="flex items-center gap-1.5">
                         <Zap className={`h-3 w-3 ${tierConfig.accent}`} />
                         <span className="text-[10px] font-bold text-renta-500">
-                          {isBronce ? 'Ideal para empezar' : isPlata ? 'El balance perfecto' : 'Máximo rendimiento'}
+                          {tier === 'bronze' ? 'Ideal para empezar' : tier === 'silver' ? 'El balance perfecto' : tier === 'gold' ? 'Máximo rendimiento' : 'Gran valor'}
 
                         </span>
                       </div>

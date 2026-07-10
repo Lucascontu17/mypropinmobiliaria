@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { FormProvider, useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { propertySchema, type PropertyFormData } from '@/types/property';
-import { Save, X, Home, Map, Zap, DollarSign, Loader2, CheckCircle2, Tag, RefreshCw, UserPlus, Sparkles } from 'lucide-react';
+import { Save, X, Home, Map, Zap, DollarSign, Loader2, CheckCircle2, Tag, RefreshCw, UserPlus, Sparkles, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRegion } from '@/hooks/useRegion';
 import { NumericInput } from '@/components/common/NumericInput';
@@ -11,6 +11,9 @@ import { useApi } from '@/hooks/useApi';
 import { GalleryUploader } from './GalleryUploader';
 import { MapPicker } from './MapPicker';
 import { toast } from 'sonner';
+import { AcmButton } from './AcmButton';
+import { AcmPanel } from './AcmPanel';
+import { CloseSaleModal, type AcmResult } from './CloseSaleModal';
 
 interface ProveedorOpcion {
   id: string;
@@ -175,6 +178,15 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
   // AI Copilot State
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [aiTone, setAiTone] = useState('Lujoso y Profesional');
+
+  // ACM State
+  const [acmData, setAcmData] = useState<AcmResult | null>(null);
+  const [acmIsLoading, setAcmIsLoading] = useState(false);
+  const [acmError, setAcmError] = useState<string | undefined>(undefined);
+  const [acmPanelOpen, setAcmPanelOpen] = useState(false);
+  const [closeSaleModalOpen, setCloseSaleModalOpen] = useState(false);
+  // Se abre automáticamente al marcar VENDIDA
+  const [lastStatusChange, setLastStatusChange] = useState<string | null>(null);
 
   // --- Google Maps Autocomplete Implementation ---
   const autocompleteRef = useRef<any>(null);
@@ -438,6 +450,28 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
                       )}
                     />
                   </div>
+                  {/* ACM Button: disponible solo para operación de venta */}
+                  {currentOperacion === 'venta' && (
+                    <div className="mt-2">
+                      <AcmButton
+                        tipo_inmueble={watch('tipo_inmueble')}
+                        operacion={currentOperacion}
+                        barrio={watch('barrio')}
+                        ambientes={watch('ambientes')}
+                        mts2={watch('mts2')}
+                        onResults={(data: any) => {
+                          if (data?.error) {
+                            setAcmError(data.error);
+                          } else {
+                            setAcmData(data as AcmResult);
+                            setAcmPanelOpen(true);
+                            setAcmError(undefined);
+                          }
+                        }}
+                        disabled={false}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
@@ -451,6 +485,10 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
                         setPendingStatusChange(val);
                       } else {
                         rStatusOnChange(e);
+                      }
+                      // 🏆 AUTO-TRIGGER ACM CLOSE SALE: Si se marca VENDIDA, abrir modal para aportar cierre
+                      if (val === 'VENDIDA' && currentOperacion === 'venta' && initialData?.uid_prop) {
+                        setTimeout(() => setCloseSaleModalOpen(true), 300);
                       }
                     }}
                     className={cn(
@@ -973,6 +1011,31 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
            </div>
         </div>
       )}
+
+      {/* ACM Panel lateral */}
+      <AcmPanel
+        isOpen={acmPanelOpen}
+        onClose={() => setAcmPanelOpen(false)}
+        data={acmData}
+        isLoading={acmIsLoading}
+        error={acmError}
+        onOpenCloseSale={() => {
+          setAcmPanelOpen(false);
+          setTimeout(() => setCloseSaleModalOpen(true), 200);
+        }}
+      />
+
+      {/* CloseSale Modal */}
+      <CloseSaleModal
+        isOpen={closeSaleModalOpen}
+        onClose={() => setCloseSaleModalOpen(false)}
+        propiedadId={initialData?.uid_prop || ''}
+        acmData={acmData}
+        onCierreExitoso={(data) => {
+          console.log('[ACM] Cierre registrado:', data);
+          setCloseSaleModalOpen(false);
+        }}
+      />
 
     </FormProvider>
   );
