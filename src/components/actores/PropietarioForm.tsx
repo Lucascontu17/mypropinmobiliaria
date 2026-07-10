@@ -109,7 +109,8 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
         commission_type: data.comision_tipo as any,
         commission_value: data.comision_valor ? Number(data.comision_valor) : undefined,
         client_number: data.client_number || undefined,
-        sin_cuenta: sinCuenta
+        sin_cuenta: sinCuenta,
+        password: data.password || undefined
       };
 
       const ownerId = (initialData as any)?.id;
@@ -237,6 +238,27 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
           />
           {errors.cbu && <p className="text-xs text-red-500 font-medium">{errors.cbu.message}</p>}
         </div>
+
+        {/* Password */}
+        {!initialData && !sinCuenta && !watch('client_number') && (
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-renta-900">Contraseña</label>
+            <input
+              {...register('password')}
+              type="password"
+              autoComplete="new-password"
+              className={cn(
+                "w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
+                errors.password ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+              )}
+              placeholder="Mínimo 6 caracteres"
+            />
+            {errors.password && <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>}
+            <p className="text-[10px] text-renta-400 font-medium italic">
+              El propietario usará esta contraseña y su email para ingresar al panel de propietarios.
+            </p>
+          </div>
+        )}
 
         {/* Email */}
         <div className="space-y-1.5">

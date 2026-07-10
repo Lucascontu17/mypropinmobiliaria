@@ -36,6 +36,7 @@ export const contratoSchema = z.object({
     celular: z.string().optional().or(z.literal('')),
     dni_url: z.any().optional(),
     client_number: z.string().optional().or(z.literal('')), // Para vinculación global
+    password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').optional().or(z.literal('')),
   }).optional(),
   
   // Archivos

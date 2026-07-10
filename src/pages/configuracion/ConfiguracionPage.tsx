@@ -50,10 +50,28 @@ export function ConfiguracionPage() {
 
   const [nombreAgencia, setNombreAgencia] = useState(nombreInmoActual);
   const [logoUrl, setLogoUrl] = useState(logoInmoActual || '');
-  const [whatsappActivo, setWhatsappActivo] = useState(true);
-  const [emailActivo, setEmailActivo] = useState(true);
+  const [whatsappActivo, setWhatsappActivo] = useState(false);
+  const [emailActivo, setEmailActivo] = useState(false);
   const [telefono, setTelefono] = useState(config.phone_prefix + '1100000000');
   const [errorTelefono, setErrorTelefono] = useState('');
+
+  // Cargar configuración de notificaciones desde la API
+  useEffect(() => {
+    const cargarConfig = async () => {
+      try {
+        const { data: response } = await client.admin.me.get();
+        if (response?.success && response.data) {
+          const d = response.data;
+          setWhatsappActivo(d.enviar_whatsapp_rollover ?? false);
+          setEmailActivo(d.enviar_email_onboarding ?? false);
+          setTelefono(d.twilio_phone || config.phone_prefix + '1100000000');
+        }
+      } catch (err) {
+        console.warn('[Config] Error cargando configuración:', err);
+      }
+    };
+    cargarConfig();
+  }, []);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -75,22 +93,27 @@ export function ConfiguracionPage() {
       
       setIsSaving(true);
       
-      // Update Branding if changed (logo SIEMPRE se guarda en BD, el add-on
-      // "Logo Personalizado en Panel" solo controla su visualización en Sidebar/Topbar)
-      if (nombreAgencia !== nombreInmoActual || logoUrl !== logoInmoActual) {
-        const { error } = await client.admin.me.put({ 
-          nombre: nombreAgencia,
-          logo_url: logoUrl || null
-        });
+      // Actualizar branding y configuración de notificaciones TODO junto
+      const payload: Record<string, any> = {};
+      
+      if (nombreAgencia !== nombreInmoActual) payload.nombre = nombreAgencia;
+      if (logoUrl !== logoInmoActual) payload.logo_url = logoUrl || null;
+      
+      // Siempre enviar las preferencias de notificación (vienen de los toggles)
+      payload.enviar_whatsapp_rollover = whatsappActivo;
+      payload.enviar_email_onboarding = emailActivo;
+      payload.twilio_phone = telefono;
+      
+      const { error } = await client.admin.me.put(payload);
 
-        if (error) {
-          toast.error("Error al actualizar los datos de la agencia: " + error.value);
-          setIsSaving(false);
-          return;
-        }
-        // Force refresh all useInmobiliaria hooks
-        mutate('/admin/me');
+      if (error) {
+        toast.error("Error al guardar la configuración: " + error.value);
+        setIsSaving(false);
+        return;
       }
+      
+      // Force refresh all useInmobiliaria hooks
+      mutate('/admin/me');
 
       setTimeout(() => {
         setIsSaving(false);
