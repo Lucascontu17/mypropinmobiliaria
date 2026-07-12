@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phone, Rocket, X, Loader2 } from 'lucide-react';
+import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phone, Rocket, X, Loader2, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useEden } from '@/services/eden';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
+import { CloseSaleModal } from '@/components/propiedades/CloseSaleModal';
 import { toast } from 'sonner';
 
 export function PropiedadesPage() {
@@ -17,7 +18,13 @@ export function PropiedadesPage() {
   const { client: eden, isReady } = useEden();
 
   const [properties, setProperties] = useState<any[]>([]);
+  const [owners, setOwners] = useState<{ id: string; nombre: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // CloseSale Modal State (acción rápida desde el listado)
+  const [closeSaleModal, setCloseSaleModal] = useState<{ uid: string; moneda: string; valorVenta: number } | null>(null);
+  const [cierrePropertyId, setCierrePropertyId] = useState<string | null>(null);
+  const [cierreSuccess, setCierreSuccess] = useState<{ puntos_otorgados: number; nuevo_balance: number } | null>(null);
 
   // Booster Modal State
   const [boosterModal, setBoosterModal] = useState<{ uid: string; direccion: string } | null>(null);
@@ -25,17 +32,26 @@ export function PropiedadesPage() {
   const [isAssigning, setIsAssigning] = useState(false);
   
   useEffect(() => {
-    const fetchProperties = async () => {
-      if (!isReady) return; // Esperar a que el token esté listo
-
+    const fetchInitialData = async () => {
+      if (!isReady) return;
       setIsLoading(true);
       try {
-        const { data, error } = await eden.admin.propiedades.get();
-        if (error) {
-          console.error('[PROPIEDADES] Error fetching:', error);
+        // Fetch properties
+        const { data: propsData, error: propsError } = await eden.admin.propiedades.get();
+        if (propsError) {
+          console.error('[PROPIEDADES] Error fetching:', propsError);
         } else {
           // @ts-expect-error - Eden Treaty dynamic path
-          setProperties(data?.propiedades ?? []);
+          setProperties(propsData?.propiedades ?? []);
+        }
+
+        // Fetch owners for the CloseSale flow
+        // @ts-expect-error - Eden Treaty dynamic path
+        const { data: ownersData, error: ownersError } = await eden.admin.owners.get();
+        if (!ownersError && ownersData) {
+          // @ts-expect-error - Eden Treaty dynamic path
+          const ownerList = ownersData?.owners ?? [];
+          setOwners(ownerList.map((o: any) => ({ id: o.id, nombre: o.nombre || 'Sin nombre' })));
         }
       } catch (err) {
         console.error('[PROPIEDADES] Connection error:', err);
@@ -43,7 +59,7 @@ export function PropiedadesPage() {
         setIsLoading(false);
       }
     };
-    fetchProperties();
+    fetchInitialData();
   }, [eden, isReady]);
 
   const filteredProperties = properties.filter(p => {
@@ -63,7 +79,6 @@ export function PropiedadesPage() {
 
       toast.success(data?.message || 'Booster aplicado con éxito');
       
-      // Update local state to reflect new points if needed (or just re-fetch)
       setProperties(prev => prev.map(p => 
         p.uid_prop === boosterModal.uid 
           ? { ...p, puntos: (p.puntos || 0) + boosterPuntos } 
@@ -274,6 +289,20 @@ export function PropiedadesPage() {
                      </td>
                      <td className="px-6 py-4 text-right">
                        <div className="flex justify-end gap-1.5">
+                         {/* Botón Vendida — Solo para propiedades en venta o reservadas */}
+                         {['VENTA', 'RESERVADA'].includes(p?.status) && (
+                           <button 
+                             onClick={() => {
+                               setCierrePropertyId(p?.uid_prop);
+                               setCloseSaleModal({ uid: p?.uid_prop, moneda: p?.moneda, valorVenta: p?.valor_venta });
+                             }}
+                             title="Hacé clic para marcar esta propiedad como VENDIDA"
+                             className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-[11px] font-bold border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 transition-all"
+                           >
+                             <Trophy className="h-3.5 w-3.5" />
+                             <span>Vendida</span>
+                           </button>
+                         )}
                          {/* Booster Button — Solo para propiedades DISPONIBLE o VENTA */}
                          {['DISPONIBLE', 'VENTA'].includes(p?.status) && (
                            <button 
@@ -308,6 +337,30 @@ export function PropiedadesPage() {
         </div>
       </div>
 
+      {/* ── Modal: Cierre Rápido de Venta ── */}
+      {closeSaleModal && (
+        <CloseSaleModal
+          isOpen={true}
+          onClose={() => {
+            setCloseSaleModal(null);
+            setCierrePropertyId(null);
+            setCierreSuccess(null);
+          }}
+          propiedadId={closeSaleModal.uid}
+          acmData={null}
+          moneda={closeSaleModal.moneda}
+          owners={owners}
+          onCierreExitoso={(data) => {
+            setCierreSuccess(data);
+            setProperties(prev => prev.map(p => 
+              p.uid_prop === closeSaleModal.uid 
+                ? { ...p, status: 'VENDIDA', puntos: (p.puntos || 0) + (data.puntos_otorgados || 0) } 
+                : p
+            ));
+          }}
+        />
+      )}
+
       {/* ── Modal: Asignar Puntos ── */}
       {boosterModal && (
         <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in overflow-y-auto p-4">
@@ -330,7 +383,7 @@ export function PropiedadesPage() {
 
             {/* Modal Body */}
             <div className="p-6 space-y-6">
-              <div className="bg-renta-50 rounded-xl p-4 ring-1 ring-inset ring-admin-border border-transparent-subtle">
+              <div className="bg-renta-50 rounded-xl p-4 ring-1 ring-inset ring-admin-border border-transparent">
                 <p className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mb-1">Propiedad Seleccionada</p>
                 <p className="text-sm font-bold text-renta-950 flex items-center gap-2">
                   <Home className="h-4 w-4 text-renta-400" /> {boosterModal.direccion}
