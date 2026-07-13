@@ -52,7 +52,7 @@ export function ConfiguracionPage() {
   const [logoUrl, setLogoUrl] = useState(logoInmoActual || '');
   const [whatsappActivo, setWhatsappActivo] = useState(false);
   const [emailActivo, setEmailActivo] = useState(false);
-  const [telefono, setTelefono] = useState(config.phone_prefix + '1100000000');
+  const [telefono, setTelefono] = useState(config.phone_prefix);
   const [errorTelefono, setErrorTelefono] = useState('');
 
   // Cargar configuración de notificaciones desde la API
@@ -64,7 +64,7 @@ export function ConfiguracionPage() {
           const d = response.data;
           setWhatsappActivo(d.enviar_whatsapp_rollover ?? false);
           setEmailActivo(d.enviar_email_onboarding ?? false);
-          setTelefono(d.twilio_phone || config.phone_prefix + '1100000000');
+          setTelefono(d.twilio_phone || config.phone_prefix);
         }
       } catch (err) {
         console.warn('[Config] Error cargando configuración:', err);
