@@ -43,8 +43,8 @@ export function PropiedadFormPage() {
       if (isEditing) {
         // @ts-expect-error - Eden Treaty dynamic path
         const { data: propRes, error: propErr } = await client.admin.propiedades[id].get();
-        if (!propErr && propRes) {
-          setProperty(propRes);
+        if (!propErr && propRes?.data) {
+          setProperty(propRes.data);
         } else {
           // BUG #M-8 fix: si la propiedad no existe, informar y redirigir
           console.error('[PropiedadFormPage] Property not found:', propErr);
