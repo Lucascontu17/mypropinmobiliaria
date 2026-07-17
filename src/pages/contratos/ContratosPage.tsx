@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 import { ContratoDetailsModal } from '@/components/contratos/ContratoDetailsModal';
+import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
 // Mock Data
 // Delete MOCK_CONTRATOS as we will fetch real data
@@ -68,10 +69,33 @@ export function ContratosPage() {
     }
   };
 
+  const shepherdSteps: ShepherdStep[] = [
+    {
+      target: '[data-shepherd="ctr-header"]',
+      title: t('tour_ctr_header_title', 'Contratos y Alquileres'),
+      content: t('tour_ctr_header_desc', 'Administre el ciclo de vida completo de sus contratos de alquiler: desde la creación inicial, pasando por la indexación de precios, hasta la finalización del contrato. Aquí podrá consultar el estado de cada contrato y acceder a las acciones de gestión.'),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-shepherd="ctr-buscador"]',
+      title: t('tour_ctr_buscador_title', 'Buscador de Contratos'),
+      content: t('tour_ctr_buscador_desc', 'Busque contratos por el nombre de la propiedad o del inquilino. El listado se filtra automáticamente mientras escribe.'),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-shepherd="ctr-tabla"]',
+      title: t('tour_ctr_tabla_title', 'Listado de Contratos'),
+      content: t('tour_ctr_tabla_desc', 'Cada fila contiene la propiedad alquilada, el inquilino asociado, las fechas de inicio y finalización, y el estado actual del contrato. Use el botón "Gestionar" para finalizar el contrato o enviar notificaciones de reunión a las partes.'),
+      placement: 'top',
+    }
+  ];
+
   return (
     <div className="space-y-6">
+      <LocalShepherd steps={shepherdSteps} storageKey="enjoy_local_contratos" />
+
       {/* ── Header ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
+      <div data-shepherd="ctr-header" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
         <div>
           <h1 className="text-2xl font-bold text-renta-950 font-jakarta">{t('nav_contratos', 'Contratos y Alquileres')}</h1>
           <p className="text-sm text-renta-600 font-inter mt-1">

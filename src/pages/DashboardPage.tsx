@@ -22,6 +22,7 @@ import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
 import { useEden } from '@/services/eden';
 import { useNavigate } from 'react-router-dom';
+import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 
 interface StatCardProps {
   label: string;
@@ -183,11 +184,35 @@ export function DashboardPage() {
     return true;
   });
 
+  const shepherdSteps: ShepherdStep[] = [
+    {
+      target: '[data-shepherd="dash-kpis"]',
+      title: t('tour_dash_kpis_title', 'KPIs Estratégicos'),
+      content: t('tour_dash_kpis_desc', 'Este panel le ofrece una vista rápida del estado general de su negocio: propiedades activas, recaudación, morosidad, tasa de ocupación y comisiones. Cada indicador se actualiza en tiempo real.'),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-shepherd="dash-suscripcion"]',
+      title: t('tour_dash_suscripcion_title', 'Resumen de Suscripción'),
+      content: t('tour_dash_suscripcion_desc', 'Aquí se muestra el estado de su suscripción MyProp, el consumo de servicios de IA acumulado y el total a abonar en su próximo pago mensual. Si es miembro VIP, todas las funciones premium están bonificadas.'),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-shepherd="dash-acciones"]',
+      title: t('tour_dash_acciones_title', 'Acciones Rápidas'),
+      content: t('tour_dash_acciones_desc', 'Accesos directos a las tareas más frecuentes: visite su agenda de visitas, gestione cobranzas pendientes o cree un nuevo contrato con un solo clic.'),
+      placement: 'top',
+    }
+  ];
+
   return (
     <div className="space-y-8 pb-12">
+      <LocalShepherd steps={shepherdSteps} storageKey={`enjoy_local_dashboard_${role}`} />
+
       {/* ── Page Header ── */}
       <div className="opacity-0 animate-fade-in-up">
         <h1 className="text-2xl font-bold text-renta-950 lg:text-3xl font-jakarta">
+
           {t('panel_titulo', 'Panel de Control')}
         </h1>
         <p className="mt-1 text-sm text-renta-600 font-inter">
@@ -223,7 +248,8 @@ export function DashboardPage() {
       )}
 
       {/* ── Stats Grid ── */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div data-shepherd="dash-kpis" className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
         {isLoading ? (
           [...Array(6)].map((_, i) => (
             <div key={i} className="admin-card p-6 animate-pulse bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-2xl">
@@ -256,7 +282,8 @@ export function DashboardPage() {
       {/* ── Suscripción y Extras AI ── */}
       {!isLoading && (
         metrics?.suscripcion?.is_vip ? (
-          <div className="bg-gradient-to-r from-indigo-900 to-indigo-950 p-6 rounded-2xl border border-indigo-800 shadow-xl flex items-center justify-between gap-6 opacity-0 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+          <div data-shepherd="dash-suscripcion" className="bg-gradient-to-r from-indigo-900 to-indigo-950 p-6 rounded-2xl border border-indigo-800 shadow-xl flex items-center justify-between gap-6 opacity-0 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+
             <div className="flex items-center gap-4">
               <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center text-white backdrop-blur-sm border border-white/10 flex-shrink-0">
                 <Sparkles className="w-8 h-8 text-indigo-400" />
@@ -271,7 +298,8 @@ export function DashboardPage() {
             </div>
           </div>
         ) : metrics?.suscripcion && (
-          <div className="bg-gradient-to-r from-renta-900 to-renta-950 p-6 rounded-2xl border border-renta-800 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-6 opacity-0 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+          <div data-shepherd="dash-suscripcion" className="bg-gradient-to-r from-renta-900 to-renta-950 p-6 rounded-2xl border border-renta-800 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-6 opacity-0 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+
             <div className="flex items-center gap-4">
               <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center text-white backdrop-blur-sm border border-white/10 flex-shrink-0">
                 <Sparkles className="w-8 h-8 text-amber-400" />

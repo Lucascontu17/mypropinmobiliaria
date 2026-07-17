@@ -24,6 +24,10 @@ export const ownerSchema = z.object({
   comision_tipo: z.enum(['percent', 'fixed']),
   comision_valor: z.coerce.number()
     .min(0, 'La comisión no puede ser un valor negativo'),
+  password: z.string()
+    .min(6, 'La contraseña debe tener al menos 6 caracteres')
+    .optional()
+    .or(z.literal('')),
 });
 
 export type OwnerFormValues = z.infer<typeof ownerSchema>;

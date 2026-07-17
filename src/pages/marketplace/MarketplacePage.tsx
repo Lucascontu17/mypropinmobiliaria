@@ -13,7 +13,12 @@ import {
   PlusCircle, 
   Info,
   ArrowRight,
-  Mail
+  Mail,
+  Store,
+  ExternalLink,
+  MapPin,
+  Building2,
+  BadgeCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEden } from '@/services/eden';
@@ -25,7 +30,7 @@ export function MarketplacePage() {
   const { t, formatCurrency, country_code, config } = useRegion();
   const { client: eden, isReady } = useEden();
 
-  const [activeTab, setActiveTab] = useState<'addons' | 'points'>('addons');
+  const [activeTab, setActiveTab] = useState<'addons' | 'points' | 'partners'>('addons');
   
   // Data from API
   const [catalog, setCatalog] = useState<{
@@ -304,10 +309,20 @@ export function MarketplacePage() {
         >
           Comprar Puntos
         </button>
+        <button
+          onClick={() => setActiveTab('partners')}
+          className={cn(
+            "px-6 py-2.5 rounded-lg text-sm font-bold transition-all",
+            activeTab === 'partners' ? "bg-white text-renta-950 shadow-sm ring-1 ring-inset ring-admin-border border-transparent" : "text-renta-500 hover:text-renta-700"
+          )}
+        >
+          <Store className="h-4 w-4 inline-block -mt-0.5 mr-1.5" />
+          Servicios de Partners
+        </button>
       </div>
 
-      {/* ── Content Area ── */}
-      {activeTab === 'addons' ? (
+      {/* ── Content Area: Addons ── */}
+      {activeTab === 'addons' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {catalog?.addons.map((addon) => (
             <div key={addon.id} className={`group bg-white rounded-2xl border transition-all duration-300 p-6 flex flex-col hover:shadow-lg ${addon.is_acquired ? 'border-emerald-300 ring-2 ring-emerald-500/10' : 'border-admin-border hover:border-renta-300'}`}>
@@ -369,25 +384,97 @@ export function MarketplacePage() {
             </div>
           ))}
         </div>
-      ) : (
-        <div className="space-y-8">
-          {/* Packages */}
+      )}
+
+      {/* ── Content Area: Points ── */}
+      {activeTab === 'points' && (
+        <div className="space-y-10">
+          {/* Packages - Rediseño Premium */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {catalog?.packages.map((pkg) => (
-              <div key={pkg.id} className="relative bg-white rounded-2xl ring-1 ring-inset ring-admin-border border-transparent p-6 flex flex-col">
-                <div className="absolute -top-3 right-4 bg-emerald-500 text-white text-[10px] font-bold tracking-widest px-3 py-1 rounded-full uppercase">
-                  Pack {pkg.puntos} Ptos
-                </div>
-                <h3 className="text-base font-bold font-jakarta text-renta-950 mb-1">{pkg.nombre}</h3>
-                <div className="text-2xl font-black text-renta-950 mb-4">{formatCurrency(pkg.precio)}</div>
-                <button
-                  onClick={() => comprarPuntos(pkg.puntos, Number(pkg.precio))}
-                  className="w-full border-2 border-renta-950 text-renta-950 rounded-xl py-3 text-xs font-bold hover:bg-renta-950 hover:text-white transition-all"
+          {catalog?.packages.map((pkg, index) => {
+              // Visual tiers dinámicos definidos desde el panel central
+              const tier = pkg.tier || 'default';
+              const tierConfigs: Record<string, { gradient: string; bg: string; border: string; lightBg: string; accent: string; icon: string; shadow: string; ring: string; btnBg: string; btnHover: string; badgeColor: string; label: string }> = {
+                bronze: { gradient: 'from-amber-700 to-amber-900', bg: 'bg-amber-50', border: 'border-amber-200/60', lightBg: 'bg-amber-50/40', accent: 'text-amber-700', icon: '🥉', shadow: 'shadow-amber-900/10', ring: 'ring-amber-200/30', btnBg: 'bg-amber-800', btnHover: 'hover:bg-amber-700', badgeColor: 'bg-amber-600', label: 'Bronce' },
+                silver: { gradient: 'from-slate-500 to-slate-700', bg: 'bg-slate-50', border: 'border-slate-200/60', lightBg: 'bg-slate-50/40', accent: 'text-slate-700', icon: '🥈', shadow: 'shadow-slate-900/10', ring: 'ring-slate-200/30', btnBg: 'bg-slate-700', btnHover: 'hover:bg-slate-600', badgeColor: 'bg-slate-600', label: 'Plata' },
+                gold: { gradient: 'from-yellow-500 to-amber-600', bg: 'bg-yellow-50', border: 'border-yellow-200/60', lightBg: 'bg-yellow-50/40', accent: 'text-yellow-700', icon: '🥇', shadow: 'shadow-yellow-900/15', ring: 'ring-yellow-200/30', btnBg: 'bg-gradient-to-r from-yellow-500 to-amber-600', btnHover: 'hover:from-yellow-400 hover:to-amber-500', badgeColor: 'bg-gradient-to-r from-yellow-500 to-amber-600', label: 'Oro' },
+                default: { gradient: 'from-teal-500 to-teal-700', bg: 'bg-teal-50', border: 'border-teal-200/60', lightBg: 'bg-teal-50/40', accent: 'text-teal-700', icon: '🎯', shadow: 'shadow-teal-900/10', ring: 'ring-teal-200/30', btnBg: 'bg-teal-700', btnHover: 'hover:bg-teal-600', badgeColor: 'bg-teal-600', label: 'Estándar' },
+              };
+              const tierConfig = tierConfigs[tier] || tierConfigs.default;
+
+              return (
+                <div
+                  key={pkg.id}
+                  className={`group relative bg-white rounded-3xl p-[1px] transition-all duration-500 hover:shadow-2xl ${tier === 'gold' ? 'bg-gradient-to-b from-yellow-300 via-yellow-200 to-transparent shadow-xl shadow-yellow-900/20' : `ring-1 ring-inset ${tierConfig.ring} shadow-lg ${tierConfig.shadow}`}`}
                 >
-                  Elegir Pack
-                </button>
-              </div>
-            ))}
+                  {/* Inner Card */}
+                  <div className={`relative bg-white rounded-[23px] p-6 sm:p-7 flex flex-col h-full ${tier === 'gold' ? 'ring-1 ring-inset ring-yellow-200/50' : ''}`}>
+                    
+                    {/* Popular Badge - Solo para Plata (el del medio) */}
+                    {tier === 'silver' && (
+                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-slate-700 to-slate-800 text-white text-[9px] font-black tracking-[0.2em] px-4 py-1.5 rounded-full uppercase shadow-lg shadow-slate-900/30 z-10 whitespace-nowrap border border-white/10">
+                        ⭐ MÁS POPULAR
+                      </div>
+                    )}
+
+                    {/* Icono y Título */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`w-11 h-11 ${tierConfig.bg} rounded-2xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform duration-300 shadow-inner ${tierConfig.border}`}>
+                        <span>{tierConfig.icon}</span>
+                      </div>
+                      <div>
+                        <h3 className="text-base font-black font-jakarta text-renta-950 leading-tight">{pkg.nombre}</h3>
+                        <p className={`text-[10px] font-bold tracking-wider ${tierConfig.accent} mt-0.5`}>
+                          {pkg.puntos.toLocaleString()} Puntos de Visibilidad
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Precio */}
+                    <div className="mb-5">
+                      <p className="text-[9px] font-bold text-renta-400 uppercase tracking-[0.2em] mb-1">Inversión</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-black font-jakarta text-renta-950 tracking-tight">{formatCurrency(pkg.precio)}</span>
+                        <span className="text-xs font-bold text-renta-400">/ único</span>
+                      </div>
+                    </div>
+
+                    {/* Barra de Valor Proporcional */}
+                    <div className={`p-4 ${tierConfig.lightBg} rounded-2xl ${tierConfig.border} mb-5 flex-1`}>
+                      <div className="flex items-center gap-2 mb-2.5">
+                        <div className="flex-1 h-2 bg-renta-200/50 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full bg-gradient-to-r ${tierConfig.gradient} transition-all duration-700 group-hover:opacity-80`} style={{ width: `${(pkg.puntos / (catalog?.packages?.[catalog.packages.length - 1]?.puntos || pkg.puntos)) * 100}%` }} />
+                        </div>
+                        <span className={`text-[10px] font-black ${tierConfig.accent}`}>{pkg.puntos} pts</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Zap className={`h-3 w-3 ${tierConfig.accent}`} />
+                        <span className="text-[10px] font-bold text-renta-500">
+                          {tier === 'bronze' ? 'Ideal para empezar' : tier === 'silver' ? 'El balance perfecto' : tier === 'gold' ? 'Máximo rendimiento' : 'Gran valor'}
+
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Botón */}
+                    <button
+                      onClick={() => comprarPuntos(pkg.puntos, Number(pkg.precio))}
+                      className={`w-full ${tierConfig.btnBg} text-white rounded-2xl py-3.5 text-xs font-black uppercase tracking-widest ${tierConfig.btnHover} transition-all duration-300 active:scale-[0.97] shadow-lg ${tierConfig.shadow} flex items-center justify-center gap-2 group/btn`}
+                    >
+                      Elegir este Pack
+                      <ArrowRight className="h-3.5 w-3.5 opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all duration-300" />
+                    </button>
+
+                    {/* Info extra */}
+                    <div className="mt-3 flex items-center justify-center gap-1">
+                      <span className="text-[8px] font-bold text-renta-400 uppercase tracking-wider">
+                        {(pkg.puntos / Number(pkg.precio)).toFixed(2)} pts / {country_code === 'MX' ? '$' : '$'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Custom Points */}
@@ -429,6 +516,218 @@ export function MarketplacePage() {
                   </button>
                 </div>
              </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Content Area: Partners ── */}
+      {activeTab === 'partners' && (
+        <div className="animate-fade-in-up space-y-6">
+          {/* Hero Section */}
+          <div className="bg-gradient-to-br from-renta-950 via-renta-900 to-renta-950 rounded-3xl p-8 sm:p-12 text-white overflow-hidden relative">
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute -top-20 -right-20 w-80 h-80 bg-amber-400 rounded-full blur-[100px]" />
+              <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-renta-400 rounded-full blur-[100px]" />
+            </div>
+            <div className="relative z-10 max-w-3xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest mb-5 border border-white/10">
+                <Store className="h-3.5 w-3.5" /> Red de Partners Zonatia
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-black font-jakarta tracking-tight leading-tight mb-4">
+                Servicios Profesionales para Impulsar tu Inmobiliaria
+              </h2>
+              <p className="text-renta-300/90 text-sm sm:text-base leading-relaxed max-w-2xl font-inter">
+                Conectamos tu inmobiliaria con los mejores profesionales del sector inmobiliario. 
+                Desde fotografía profesional y home staging, hasta asesoría legal y marketing digital. 
+                Potencia tus propiedades, destaca en el mercado y cierra más negocios.
+              </p>
+            </div>
+          </div>
+
+          {/* Partner Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {/* Card: Fotografía Profesional */}
+            <div className="bg-white rounded-2xl border border-admin-border p-6 hover:shadow-lg hover:border-renta-300 transition-all duration-300 group">
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <span className="text-3xl">📸</span>
+              </div>
+              <h3 className="text-lg font-bold font-jakarta text-renta-950 mb-2">Fotografía Profesional</h3>
+              <p className="text-sm text-renta-600 font-inter leading-relaxed mb-4">
+                Captura la esencia de cada propiedad con imágenes de calidad premium. 
+                Tours virtuales 360°, video tour, fotografía con drone y contenido para redes sociales.
+              </p>
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600">
+                <BadgeCheck className="h-4 w-4" /> 
+                <span>Hasta 3 partners disponibles en tu zona</span>
+              </div>
+            </div>
+
+            {/* Card: Home Staging & Decoración */}
+            <div className="bg-white rounded-2xl border border-admin-border p-6 hover:shadow-lg hover:border-renta-300 transition-all duration-300 group">
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <span className="text-3xl">🏡</span>
+              </div>
+              <h3 className="text-lg font-bold font-jakarta text-renta-950 mb-2">Home Staging & Decoración</h3>
+              <p className="text-sm text-renta-600 font-inter leading-relaxed mb-4">
+                Prepara tus propiedades para la venta con técnicas de home staging. 
+                Asesoramiento en decoración, mobiliario temporal, y puesta en valor de espacios.
+              </p>
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600">
+                <BadgeCheck className="h-4 w-4" /> 
+                <span>Profesionales certificados</span>
+              </div>
+            </div>
+
+            {/* Card: Marketing Digital */}
+            <div className="bg-white rounded-2xl border border-admin-border p-6 hover:shadow-lg hover:border-renta-300 transition-all duration-300 group">
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <span className="text-3xl">📱</span>
+              </div>
+              <h3 className="text-lg font-bold font-jakarta text-renta-950 mb-2">Marketing Digital Inmobiliario</h3>
+              <p className="text-sm text-renta-600 font-inter leading-relaxed mb-4">
+                Estrategias de marketing digital especializadas para el sector inmobiliario. 
+                Campañas en redes sociales, SEM, SEO local, y generación de leads calificados.
+              </p>
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600">
+                <BadgeCheck className="h-4 w-4" /> 
+                <span>Resultados medibles garantizados</span>
+              </div>
+            </div>
+
+            {/* Card: Asesoría Legal */}
+            <div className="bg-white rounded-2xl border border-admin-border p-6 hover:shadow-lg hover:border-renta-300 transition-all duration-300 group">
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <span className="text-3xl">⚖️</span>
+              </div>
+              <h3 className="text-lg font-bold font-jakarta text-renta-950 mb-2">Asesoría Legal Inmobiliaria</h3>
+              <p className="text-sm text-renta-600 font-inter leading-relaxed mb-4">
+                Soporte legal completo para tus operaciones. Revisión de contratos, 
+                estudios de títulos, aspectos regulatorios, y representación en negociaciones.
+              </p>
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600">
+                <BadgeCheck className="h-4 w-4" /> 
+                <span>Especialistas en derecho inmobiliario</span>
+              </div>
+            </div>
+
+            {/* Card: Tasaciones y Valuaciones */}
+            <div className="bg-white rounded-2xl border border-admin-border p-6 hover:shadow-lg hover:border-renta-300 transition-all duration-300 group">
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-teal-50 to-teal-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <span className="text-3xl">📊</span>
+              </div>
+              <h3 className="text-lg font-bold font-jakarta text-renta-950 mb-2">Tasaciones y Valuaciones</h3>
+              <p className="text-sm text-renta-600 font-inter leading-relaxed mb-4">
+                Servicio de tasación profesional con avalúos precisos del mercado actual. 
+                Informes detallados para compra-venta, hipotecas, y sucesiones.
+              </p>
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600">
+                <BadgeCheck className="h-4 w-4" /> 
+                <span>Matriculados y certificados</span>
+              </div>
+            </div>
+
+            {/* Card: Inspecciones Técnicas */}
+            <div className="bg-white rounded-2xl border border-admin-border p-6 hover:shadow-lg hover:border-renta-300 transition-all duration-300 group">
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-rose-50 to-rose-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <span className="text-3xl">🔍</span>
+              </div>
+              <h3 className="text-lg font-bold font-jakarta text-renta-950 mb-2">Inspecciones Técnicas</h3>
+              <p className="text-sm text-renta-600 font-inter leading-relaxed mb-4">
+                Inspecciones integrales de propiedades. Diagnóstico de estructuras, 
+                instalaciones, humedades, eficiencia energética y más. ¡Transparencia total para tu cliente!
+              </p>
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600">
+                <BadgeCheck className="h-4 w-4" /> 
+                <span>Informes técnicos detallados</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Benefits Section */}
+          <div className="bg-gradient-to-br from-renta-50 to-white rounded-3xl border border-renta-100 p-8 sm:p-10">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-black font-jakarta text-renta-950 mb-2">Beneficios de usar Partners Zonatia</h3>
+              <p className="text-sm text-renta-500 font-inter">Todo lo que ganas al integrar servicios profesionales en tu operación diaria.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="text-center p-4">
+                <div className="h-12 w-12 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <Rocket className="h-6 w-6 text-emerald-600" />
+                </div>
+                <h4 className="text-sm font-bold font-jakarta text-renta-950 mb-1">Mayor Velocidad de Venta</h4>
+                <p className="text-xs text-renta-500 font-inter leading-relaxed">Propiedades con fotos profesionales y home staging se venden hasta 3x más rápido.</p>
+              </div>
+
+              <div className="text-center p-4">
+                <div className="h-12 w-12 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <span className="text-xl">💰</span>
+                </div>
+                <h4 className="text-sm font-bold font-jakarta text-renta-950 mb-1">Mejor Precio de Venta</h4>
+                <p className="text-xs text-renta-500 font-inter leading-relaxed">Propiedades bien presentadas logran un valor de venta hasta 15% superior.</p>
+              </div>
+
+              <div className="text-center p-4">
+                <div className="h-12 w-12 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <Shield className="h-6 w-6 text-blue-600" />
+                </div>
+                <h4 className="text-sm font-bold font-jakarta text-renta-950 mb-1">Tranquilidad Legal</h4>
+                <p className="text-xs text-renta-500 font-inter leading-relaxed">Operaciones respaldadas por asesoría legal especializada. Minimiza riesgos.</p>
+              </div>
+
+              <div className="text-center p-4">
+                <div className="h-12 w-12 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <BadgeCheck className="h-6 w-6 text-purple-600" />
+                </div>
+                <h4 className="text-sm font-bold font-jakarta text-renta-950 mb-1">Diferenciación Competitiva</h4>
+                <p className="text-xs text-renta-500 font-inter leading-relaxed">Destaca frente a otras inmobiliarias ofreciendo servicios de valor agregado.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* How it Works */}
+          <div className="bg-white rounded-3xl border border-admin-border p-8 sm:p-10">
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-renta-50 rounded-full border border-renta-100 text-renta-700 text-[10px] font-bold uppercase tracking-widest mb-3">
+                <Zap className="h-3 w-3" /> Así funciona
+              </div>
+              <h3 className="text-2xl font-black font-jakarta text-renta-950">¿Cómo contratar un Partner?</h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+              <div className="text-center relative">
+                <div className="h-14 w-14 bg-renta-950 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl font-black font-jakarta shadow-xl shadow-renta-950/20">1</div>
+                <h4 className="text-sm font-bold font-jakarta text-renta-950 mb-2">Explora el Directorio</h4>
+                <p className="text-xs text-renta-500 font-inter leading-relaxed">Navega por las categorías de servicios y encuentra el partner ideal para cada necesidad.</p>
+              </div>
+              <div className="text-center relative">
+                <div className="h-14 w-14 bg-renta-950 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl font-black font-jakarta shadow-xl shadow-renta-950/20">2</div>
+                <h4 className="text-sm font-bold font-jakarta text-renta-950 mb-2">Conecta Directamente</h4>
+                <p className="text-xs text-renta-500 font-inter leading-relaxed">Comunícate con el partner, solicita presupuesto y coordina los detalles del servicio.</p>
+              </div>
+              <div className="text-center">
+                <div className="h-14 w-14 bg-renta-950 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl font-black font-jakarta shadow-xl shadow-renta-950/20">3</div>
+                <h4 className="text-sm font-bold font-jakarta text-renta-950 mb-2">Potencia tu Propiedad</h4>
+                <p className="text-xs text-renta-500 font-inter leading-relaxed">Una vez realizado el servicio, tu propiedad estará lista para destacar y venderse más rápido.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="bg-gradient-to-br from-renta-950 to-renta-900 rounded-3xl p-8 sm:p-12 text-center text-white">
+            <h3 className="text-2xl sm:text-3xl font-black font-jakarta mb-3">¿Eres un profesional y quieres ser Partner?</h3>
+            <p className="text-renta-300/90 text-sm sm:text-base max-w-2xl mx-auto mb-6 font-inter">
+              Únete a la red de partners Zonatia y ofrece tus servicios a cientos de inmobiliarias en toda Latinoamérica. 
+              Amplía tu cartera de clientes y haz crecer tu negocio.
+            </p>
+            <a
+              href="/partners/apply"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-white text-renta-950 px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-renta-100 transition-all shadow-xl hover:shadow-2xl active:scale-[0.98]"
+            >
+              Quiero ser Partner <ExternalLink className="h-4 w-4" />
+            </a>
           </div>
         </div>
       )}

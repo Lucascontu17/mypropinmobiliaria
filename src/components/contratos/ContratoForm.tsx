@@ -209,6 +209,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
         } else {
           console.log('🆕 Creando nuevo registro de inquilino local...', sinCuenta ? '(SOLO FICHA)' : '');
           // @ts-expect-error - Eden Treaty dynamic path
+          const password = (data.nuevo_inquilino as any)?.password || '';
           const { data: response, error: inqError } = await eden.admin.inquilinos.post({
             nombre: data.nuevo_inquilino.nombre,
             dni: data.nuevo_inquilino.dni,
@@ -216,7 +217,8 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
             celular: data.nuevo_inquilino.celular,
             dni_url: finalDniUrl,
             country_code: country_code!,
-            sin_cuenta: sinCuenta
+            sin_cuenta: sinCuenta,
+            password: password || undefined
           });
 
           if (inqError) {
@@ -567,19 +569,34 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                           {errors.nuevo_inquilino?.email && !sinCuenta && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.email.message}</p>}
                         </div>
 
+                        {/* Password */}
+                        {!sinCuenta && !foundClient && (
+                          <div className="col-span-2 space-y-1">
+                            <label className="text-[10px] font-bold text-renta-600 uppercase">Contraseña (para el panel de inquilinos)</label>
+                            <input 
+                              {...register('nuevo_inquilino.password')} 
+                              type="password"
+                              autoComplete="new-password"
+                              className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none" 
+                              placeholder="Mínimo 6 caracteres" 
+                            />
+                            {errors.nuevo_inquilino?.password && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.password.message}</p>}
+                          </div>
+                        )}
+
                         <div className="col-span-2 space-y-1">
-                          <label className="text-[10px] font-bold text-renta-600 uppercase">Celular (E.164)</label>
-                          <Controller
-                            name="nuevo_inquilino.celular"
-                            control={control}
-                            render={({ field: { value, onChange } }) => (
-                              <CountryPhoneSelector
-                                value={value}
-                                onChange={onChange}
-                              />
-                            )}
-                          />
-                        </div>
+                           <label className="text-[10px] font-bold text-renta-600 uppercase">Celular (E.164)</label>
+                           <Controller
+                             name="nuevo_inquilino.celular"
+                             control={control}
+                             render={({ field: { value, onChange } }) => (
+                               <CountryPhoneSelector
+                                 value={value}
+                                 onChange={onChange}
+                               />
+                             )}
+                           />
+                         </div>
 
                         <div className="space-y-1 pt-2 col-span-2">
                            <FileUploadField 
