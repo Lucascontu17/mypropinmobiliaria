@@ -44,7 +44,31 @@ export function PropiedadFormPage() {
         // @ts-expect-error - Eden Treaty dynamic path
         const { data: propRes, error: propErr } = await client.admin.propiedades[id].get();
         if (!propErr && propRes?.data) {
-          setProperty(propRes.data);
+          // 🔧 NORMALIZE: la BD puede tener nulls que Zod no tolera
+          const raw = propRes.data as Record<string, any>;
+          const normalized = {
+            ...raw,
+            imagenes: Array.isArray(raw.imagenes) ? raw.imagenes : [],
+            mts2: raw.mts2 ?? '0',
+            habitaciones: raw.habitaciones ?? 0,
+            ambientes: raw.ambientes ?? 1,
+            banos: raw.banos ?? 0,
+            antiguedad: raw.antiguedad ?? 0,
+            cocheras: raw.cocheras ?? 0,
+            latitud: raw.latitud ?? null,
+            longitud: raw.longitud ?? null,
+            provincia: raw.provincia ?? '',
+            ciudad: raw.ciudad ?? '',
+            barrio: raw.barrio ?? '',
+            titulo: raw.titulo ?? '',
+            descripcion: raw.descripcion ?? '',
+            valor_alquiler: raw.valor_alquiler ?? '0',
+            valor_venta: raw.valor_venta ?? '0',
+            valor_expensas: raw.valor_expensas ?? '',
+            valor_abl: raw.valor_abl ?? '',
+            tipo_abl: raw.tipo_abl ?? null,
+          };
+          setProperty(normalized);
         } else {
           // BUG #M-8 fix: si la propiedad no existe, informar y redirigir
           console.error('[PropiedadFormPage] Property not found:', propErr);

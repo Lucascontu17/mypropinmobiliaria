@@ -5,9 +5,9 @@ import { z } from 'zod';
  * Diseñado para la v3.4.5 de mypropDB.
  */
 
-// Custom file validation en frontend para asegurar que sean archivos
+// Custom file validation: File para nuevas subidas, string para URLs existentes desde la API
 const isBrowser = typeof window !== 'undefined';
-const fileSchema = isBrowser ? z.instanceof(File) : z.any();
+const fileSchema = isBrowser ? z.union([z.instanceof(File), z.string()]) : z.any();
 
 export const propertySchema = z.object({
   uid_prop: z.string().uuid().optional(), // Creado por backend
