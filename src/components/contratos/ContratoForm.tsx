@@ -436,7 +436,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                </h3>
 
                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-renta-900">Propiedad DISPONIBLE <span className="text-red-500">*</span></label>
+                   <label className="text-sm font-semibold text-renta-900">Seleccionar Propiedad <span className="text-red-500">*</span></label>
                   <select 
                     {...register('uid_propiedad')}
                     className={cn(
@@ -450,7 +450,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                     ))}
                   </select>
                   {errors.uid_propiedad && <p className="text-xs text-red-500 font-medium">{errors.uid_propiedad.message}</p>}
-                  <p className="text-[10px] text-renta-500">Solo se listan inmuebles con estado "DISPONIBLE".</p>
+                  <p className="text-[10px] text-renta-500">Se listan propiedades Disponibles, en Venta o Alquiladas (para anidar contrato).</p>
                </div>
 
                <div className="space-y-2 pt-1">

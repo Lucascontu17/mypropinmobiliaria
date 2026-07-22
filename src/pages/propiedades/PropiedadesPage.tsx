@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phone, Rocket, X, Loader2, Trophy } from 'lucide-react';
+import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phone, Rocket, X, Loader2, Trophy, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useEden } from '@/services/eden';
@@ -327,6 +327,41 @@ export function PropiedadesPage() {
                          >
                            <Edit2 className="h-4 w-4" />
                          </button>
+                         {/* Botón Eliminar — Solo para superadmin */}
+                         {hasPermission(['superadmin']) && (
+                           <button
+                             onClick={async () => {
+                               const direccion = p?.direccion || p?.titulo || 'esta propiedad';
+                               const confirmar = window.confirm(`¿Estás seguro de eliminar "${direccion}"?\n\nEsta acción no se puede deshacer.`);
+                               if (!confirmar) return;
+
+                               try {
+                                 // @ts-expect-error - Eden Treaty dynamic path
+                                 const { data, error: deleteError } = await eden.admin.propiedades[p.uid_prop].delete();
+
+                                 if (deleteError) {
+                                   const msg = deleteError?.value?.error || 'Error al eliminar propiedad';
+                                   toast.error('Error', { description: msg });
+                                   return;
+                                 }
+
+                                 toast.success('Propiedad eliminada', {
+                                   description: `${direccion} ha sido eliminada correctamente.`
+                                 });
+
+                                 // Eliminar de la lista local
+                                 setProperties(prev => prev.filter(prop => prop.uid_prop !== p.uid_prop));
+                               } catch (err: any) {
+                                 toast.error('Error inesperado', {
+                                   description: err?.message || 'No se pudo eliminar la propiedad'
+                                 });
+                               }
+                             }}
+                             className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                           >
+                             <Trash2 className="h-4 w-4" />
+                           </button>
+                         )}
                        </div>
                      </td>
                    </tr>

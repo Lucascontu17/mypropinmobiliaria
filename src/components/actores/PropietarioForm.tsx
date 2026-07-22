@@ -55,7 +55,12 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
 
   const [searchCode, setSearchCode] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [sinCuenta, setSinCuenta] = useState(false);
+  // 🧠 Inicializar sinCuenta según si el propietario YA tiene cuenta Zonatia o no
+  // Si está en edición y no tiene client_number → no tiene cuenta → sinCuenta = true
+  // Si está en creación → sinCuenta = false (se espera email por defecto)
+  const [sinCuenta, setSinCuenta] = useState(
+    initialData ? !(initialData as any)?.client_number : false
+  );
 
   const handleSearchClient = async () => {
     if (!searchCode || searchCode.length < 3) {
@@ -264,7 +269,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
         <div className="space-y-1.5">
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-semibold text-renta-900">Email</label>
-            {!initialData && !watch('client_number') && (
+            {(!initialData || !(initialData as any)?.client_number) && !watch('client_number') && (
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input 
                   type="checkbox" 
@@ -284,15 +289,15 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
           <input
             {...register('email')}
             type="email"
-            disabled={!!initialData || !!watch('client_number') || sinCuenta}
+            disabled={!!watch('client_number') || sinCuenta}
             className={cn(
               "w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
-              (!!initialData || !!watch('client_number') || sinCuenta) ? "bg-renta-50 text-renta-400 cursor-not-allowed border-admin-border-subtle" : 
+              (!!watch('client_number') || sinCuenta) ? "bg-renta-50 text-renta-400 cursor-not-allowed border-admin-border-subtle" : 
               errors.email ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
             )}
             placeholder={sinCuenta ? "Email no requerido" : "propietario@email.com"}
           />
-          {(!!initialData || !!watch('client_number')) && (
+          {!!watch('client_number') && (
             <p className="text-[10px] text-renta-400 font-medium italic">
               El email no puede modificarse una vez vinculado a una cuenta Zonatia.
             </p>
