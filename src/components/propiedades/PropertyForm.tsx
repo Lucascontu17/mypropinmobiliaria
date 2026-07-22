@@ -699,6 +699,7 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-renta-900">Dirección Exacta <span className="text-red-500">*</span></label>
                 <div 
+                  key={initialData?.direccion || 'new'}
                   ref={setAddressContainerRef}
                   className={cn(
                     "min-h-[42px] rounded-xl border bg-white transition-all overflow-visible z-[60] relative",
