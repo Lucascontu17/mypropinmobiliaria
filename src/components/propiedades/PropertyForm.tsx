@@ -195,7 +195,7 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
   // --- Google Maps Autocomplete Implementation ---
   const autocompleteRef = useRef<any>(null);
 
-  const initAutocomplete = useCallback(async (container: HTMLDivElement) => {
+  const initAutocomplete = useCallback(async (container: HTMLDivElement, initialDireccion?: string) => {
     if (!window.google || autocompleteRef.current) return;
 
     try {
@@ -204,7 +204,7 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
       
       // 🐛 FIX: Al editar una propiedad, el PlaceAutocompleteElement se crea vacío.
       // Usamos defaultValue para que refleje la dirección guardada.
-      const currentDireccion = watch('direccion') || initialData?.direccion || '';
+      const currentDireccion = initialDireccion || watch('direccion') || '';
       const pac = new PlaceAutocompleteElement({
         defaultValue: currentDireccion,
       });
@@ -284,12 +284,16 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
 
   const setAddressContainerRef = useCallback((node: HTMLDivElement | null) => {
     if (node) {
+      // 🐛 FIX DIRECCIÓN VACÍA: Al editar, los datos iniciales pueden llegar
+      // DESPUÉS de que el autocomplete se monta. Pasamos initialData?.direccion
+      // para que el defaultValue se establezca correctamente desde el inicio.
+      const direccionInicial = initialData?.direccion || '';
       if (window.google) {
-        initAutocomplete(node);
+        initAutocomplete(node, direccionInicial);
       } else {
         const interval = setInterval(() => {
           if (window.google) {
-            initAutocomplete(node);
+            initAutocomplete(node, direccionInicial);
             clearInterval(interval);
           }
         }, 500);
@@ -297,6 +301,20 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
       }
     }
   }, [initAutocomplete]);
+
+  // 🐛 FIX DIRECCIÓN VACÍA (v2): El callback ref NO se re-ejecuta cuando
+  // initialData llega de forma asíncrona. Este efecto actualiza el input
+  // visual de Google Maps cuando la dirección viene del servidor.
+  useEffect(() => {
+    const pac = autocompleteRef.current;
+    if (pac?.inputElement && initialData?.direccion) {
+      if (!pac.inputElement.value || pac.inputElement.value !== initialData.direccion) {
+        console.log('[AUTOCOMPLETE] Syncing dirección after async load:', initialData.direccion);
+        pac.inputElement.value = initialData.direccion;
+        setValue('direccion', initialData.direccion, { shouldValidate: true });
+      }
+    }
+  }, [initialData?.direccion, setValue]);
 
   useEffect(() => {
     return () => {

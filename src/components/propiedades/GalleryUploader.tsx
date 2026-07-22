@@ -33,8 +33,8 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
 
   const handleFiles = (newFiles: File[]) => {
 
-    // Prevent adding more than 20
-    const totalFiles = [...files, ...newFiles].slice(0, 20);
+    // Prevent adding more than 60
+    const totalFiles = [...files, ...newFiles].slice(0, 60);
     setValue(name, totalFiles, { shouldValidate: true });
   };
 
@@ -67,12 +67,12 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
       data-shepherd="gallery-uploader"
       className="space-y-3">
       <div className="flex justify-between items-center mb-1">
-        <label className="text-sm font-semibold text-renta-900">{t('gallery_label', 'Catálogo de Imágenes (4 a 20 requeridas para publicar)')}</label>
+        <label className="text-sm font-semibold text-renta-900">{t('gallery_label', 'Catálogo de Imágenes (4 a 60 requeridas para publicar)')}</label>
         <span className={cn(
           "text-xs font-bold px-2 py-1 rounded-full",
-          files.length >= 4 && files.length <= 20 ? "bg-green-100 text-green-700" : "bg-amber-50 text-amber-600"
+          files.length >= 4 && files.length <= 60 ? "bg-green-100 text-green-700" : "bg-amber-50 text-amber-600"
         )}>
-          {files.length}/{t('gallery_max', '20 Máx.')}
+          {files.length}/{t('gallery_max', '60 Máx.')}
         </span>
       </div>
 

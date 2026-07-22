@@ -45,7 +45,7 @@ export const propertySchema = z.object({
   // Multimedia
   imagenes: z.array(fileSchema)
     .min(0)
-    .max(20, "El límite máximo es 20 imágenes por propiedad."),
+    .max(60, "El límite máximo es 60 imágenes por propiedad."),
 
   // Detalles Técnicos (v1.9.0 Bunker Expansion)
   mts2: z.coerce.string().min(1, "La superficie es requerida"),
