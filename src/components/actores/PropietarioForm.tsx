@@ -105,20 +105,30 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
     }
 
     try {
-      const payload = {
+      const ownerId = (initialData as any)?.id;
+      // Construir payload base
+      const basePayload: Record<string, any> = {
         nombre: data.nombre,
-        email: sinCuenta ? "" : (data.email || ""),
         dni: data.dni,
         celular: data.celular,
         cbu: data.cbu || undefined,
         commission_type: data.comision_tipo as any,
         commission_value: data.comision_valor ? Number(data.comision_valor) : undefined,
         client_number: data.client_number || undefined,
-        sin_cuenta: sinCuenta,
-        password: data.password || undefined
       };
+      
+      // Email: en edición siempre se envía; en creación respeta el flag sinCuenta
+      basePayload.email = ownerId ? (data.email || "") : (sinCuenta ? "" : (data.email || ""));
+      
+      // sin_cuenta y password solo se envían en creación (POST), no en edición (PUT)
+      // porque el schema del PUT no los contempla y Elysia rechazaría campos extra
+      if (!ownerId) {
+        basePayload.sin_cuenta = sinCuenta;
+        basePayload.password = data.password || undefined;
+      }
 
-      const ownerId = (initialData as any)?.id;
+      const payload = basePayload;
+
       let response;
       let error;
 
@@ -289,10 +299,10 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
           <input
             {...register('email')}
             type="email"
-            disabled={!!watch('client_number') || sinCuenta}
+            disabled={!!watch('client_number')}
             className={cn(
               "w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
-              (!!watch('client_number') || sinCuenta) ? "bg-renta-50 text-renta-400 cursor-not-allowed border-admin-border-subtle" : 
+              !!watch('client_number') ? "bg-renta-50 text-renta-400 cursor-not-allowed border-admin-border-subtle" : 
               errors.email ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
             )}
             placeholder={sinCuenta ? "Email no requerido" : "propietario@email.com"}
