@@ -55,11 +55,18 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
 
   const [searchCode, setSearchCode] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+
+  // 🧠 Indicador real de "tiene cuenta Zonatia": clerk_id (no client_number)
+  // client_number se asigna a TODOS los que tienen email, incluso sin cuenta real.
+  // clerk_id solo existe cuando el usuario realmente se registró en Zonatia.
+  // Por eso: si tiene clerk_id → NO se puede editar el email.
+  // Si NO tiene clerk_id → se puede editar el email libremente.
+  
   // 🧠 Inicializar sinCuenta según si el propietario YA tiene cuenta Zonatia o no
-  // Si está en edición y no tiene client_number → no tiene cuenta → sinCuenta = true
+  // Si está en edición y no tiene clerk_id → no tiene cuenta → sinCuenta = true
   // Si está en creación → sinCuenta = false (se espera email por defecto)
   const [sinCuenta, setSinCuenta] = useState(
-    initialData ? !(initialData as any)?.client_number : false
+    initialData ? !(initialData as any)?.clerk_id : false
   );
 
   const handleSearchClient = async () => {
@@ -255,7 +262,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
         </div>
 
         {/* Password */}
-        {!initialData && !sinCuenta && !watch('client_number') && (
+        {!initialData && !sinCuenta && !watch('clerk_id') && (
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-renta-900">Contraseña</label>
             <input
@@ -279,7 +286,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
         <div className="space-y-1.5">
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-semibold text-renta-900">Email</label>
-            {(!initialData || !(initialData as any)?.client_number) && !watch('client_number') && (
+            {(!initialData || !(initialData as any)?.clerk_id) && (
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input 
                   type="checkbox" 
@@ -299,15 +306,15 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
           <input
             {...register('email')}
             type="email"
-            disabled={!!watch('client_number')}
+            disabled={!!watch('clerk_id')}
             className={cn(
               "w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
-              !!watch('client_number') ? "bg-renta-50 text-renta-400 cursor-not-allowed border-admin-border-subtle" : 
+              !!watch('clerk_id') ? "bg-renta-50 text-renta-400 cursor-not-allowed border-admin-border-subtle" : 
               errors.email ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
             )}
             placeholder={sinCuenta ? "Email no requerido" : "propietario@email.com"}
           />
-          {!!watch('client_number') && (
+          {!!watch('clerk_id') && (
             <p className="text-[10px] text-renta-400 font-medium italic">
               El email no puede modificarse una vez vinculado a una cuenta Zonatia.
             </p>
