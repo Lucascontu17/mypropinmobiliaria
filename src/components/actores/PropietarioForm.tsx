@@ -124,15 +124,20 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
         client_number: data.client_number || undefined,
       };
       
-      // Email: en edición siempre se envía; en creación respeta el flag sinCuenta
-      basePayload.email = ownerId ? (data.email || "") : (sinCuenta ? "" : (data.email || ""));
+      // Email: se envía siempre tal cual lo ingresó el usuario
+      // El email puede cargarse incluso en "Solo Ficha" — la cuenta Clerk solo se crea si hay password
+      basePayload.email = data.email || "";
       
-      // sin_cuenta y password solo se envían en creación (POST), no en edición (PUT)
-      // porque el schema del PUT no los contempla y Elysia rechazaría campos extra
-      if (!ownerId) {
-        basePayload.sin_cuenta = sinCuenta;
-        basePayload.password = data.password || undefined;
+      // sin_cuenta: se envía siempre (tanto en POST como PUT) para actualizar el estado de la cuenta
+      basePayload.sin_cuenta = sinCuenta;
+      
+      // Password: obligatorio cuando NO está en modo "Sin cuenta" y se quiere crear/actualizar la cuenta
+      // Se envía en POST y PUT (si se proporcionó una contraseña)
+      if (!sinCuenta && data.password) {
+        basePayload.password = data.password;
       }
+      
+      // Clerk ID no se envía, se usa solo como indicador local para deshabilitar el email
 
       const payload = basePayload;
 
@@ -261,8 +266,8 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
           {errors.cbu && <p className="text-xs text-red-500 font-medium">{errors.cbu.message}</p>}
         </div>
 
-        {/* Password */}
-        {!initialData && !sinCuenta && !watch('clerk_id') && (
+        {/* Password — visible en creación y en edición cuando NO tiene cuenta y se destilda "Sin cuenta" */}
+        {!sinCuenta && !watch('clerk_id') && (
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-renta-900">Contraseña</label>
             <input
@@ -293,7 +298,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
                   checked={sinCuenta}
                   onChange={(e) => {
                     setSinCuenta(e.target.checked);
-                    if (e.target.checked) setValue('email', '');
+                    // NO se limpia el email — el usuario puede poner correo incluso en "Solo Ficha"
                   }}
                   className="rounded border-admin-border text-renta-900 focus:ring-renta-900"
                 />
@@ -312,7 +317,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
               !!watch('clerk_id') ? "bg-renta-50 text-renta-400 cursor-not-allowed border-admin-border-subtle" : 
               errors.email ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
             )}
-            placeholder={sinCuenta ? "Email no requerido" : "propietario@email.com"}
+            placeholder={sinCuenta ? "Email (opcional, solo ficha)" : "propietario@email.com"}
           />
           {!!watch('clerk_id') && (
             <p className="text-[10px] text-renta-400 font-medium italic">
