@@ -48,7 +48,11 @@ export function PropiedadFormPage() {
           const raw = propRes.data as Record<string, any>;
           const normalized = {
             ...raw,
+            // 🐛 FIX CAMPOS EN ROJO: Zod requiere estos campos y la BD puede devolver null
             imagenes: Array.isArray(raw.imagenes) ? raw.imagenes : [],
+            direccion: raw.direccion ?? '',
+            tipo_inmueble: raw.tipo_inmueble ?? 'otro',
+            moneda: raw.moneda ?? 'ARS',
             mts2: raw.mts2 ?? '0',
             habitaciones: raw.habitaciones ?? 0,
             ambientes: raw.ambientes ?? 1,

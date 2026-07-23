@@ -37,25 +37,52 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
   } = useForm<OwnerFormValues>({
     // @ts-expect-error - Eden Treaty dynamic path - Ignore type mismatch for coerced number in resolver
     resolver: zodResolver(ownerSchema),
-    defaultValues: initialData ? {
-      ...initialData,
-      comision_tipo: (initialData as any).commission_type || 'percent',
-      comision_valor: (initialData as any).commission_value || 0
-    } : {
+    defaultValues: initialData ? sanitizeInitialData(initialData) : {
       nombre: '',
       dni: '',
       celular: '',
       email: '',
       cbu: '',
       client_number: '',
-      comision_tipo: 'percent',
-      comision_valor: 0
+      comision_tipo: 'percent' as const,
+      comision_valor: 0,
+      password: '',
+      clerk_id: '',
     }
   });
 
+  // 🛡️ Sanitiza valores null/undefined de la API a string vacío para evitar que Zod rechace la validación
+  function sanitizeInitialData(data: any): OwnerFormValues {
+    const n = (v: any) => v ?? '';
+    return {
+      nombre: n(data.nombre),
+      dni: n(data.dni),
+      celular: n(data.celular),
+      email: n(data.email),
+      cbu: n(data.cbu),
+      client_number: n(data.client_number),
+      comision_tipo: data.commission_type || 'percent',
+      comision_valor: data.commission_value ?? 0,
+      password: n(data.password),
+      clerk_id: n(data.clerk_id),
+    };
+  }
+
   const [searchCode, setSearchCode] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [sinCuenta, setSinCuenta] = useState(false);
+
+  // 🧠 Indicador real de "tiene cuenta Zonatia": clerk_id (no client_number)
+  // client_number se asigna a TODOS los que tienen email, incluso sin cuenta real.
+  // clerk_id solo existe cuando el usuario realmente se registró en Zonatia.
+  // Por eso: si tiene clerk_id → NO se puede editar el email.
+  // Si NO tiene clerk_id → se puede editar el email libremente.
+  
+  // 🧠 Inicializar sinCuenta según si el propietario YA tiene cuenta Zonatia o no
+  // Si está en edición y no tiene clerk_id → no tiene cuenta → sinCuenta = true
+  // Si está en creación → sinCuenta = false (se espera email por defecto)
+  const [sinCuenta, setSinCuenta] = useState(
+    initialData ? !(initialData as any)?.clerk_id : false
+  );
 
   const handleSearchClient = async () => {
     if (!searchCode || searchCode.length < 3) {
@@ -100,20 +127,35 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
     }
 
     try {
-      const payload = {
+      const ownerId = (initialData as any)?.id;
+      // Construir payload base
+      const basePayload: Record<string, any> = {
         nombre: data.nombre,
-        email: sinCuenta ? "" : (data.email || ""),
         dni: data.dni,
         celular: data.celular,
         cbu: data.cbu || undefined,
         commission_type: data.comision_tipo as any,
         commission_value: data.comision_valor ? Number(data.comision_valor) : undefined,
         client_number: data.client_number || undefined,
-        sin_cuenta: sinCuenta,
-        password: data.password || undefined
       };
+      
+      // Email: se envía siempre tal cual lo ingresó el usuario
+      // El email puede cargarse incluso en "Solo Ficha" — la cuenta Clerk solo se crea si hay password
+      basePayload.email = data.email || "";
+      
+      // sin_cuenta: se envía siempre (tanto en POST como PUT) para actualizar el estado de la cuenta
+      basePayload.sin_cuenta = sinCuenta;
+      
+      // Password: obligatorio cuando NO está en modo "Sin cuenta" y se quiere crear/actualizar la cuenta
+      // Se envía en POST y PUT (si se proporcionó una contraseña)
+      if (!sinCuenta && data.password) {
+        basePayload.password = data.password;
+      }
+      
+      // Clerk ID no se envía, se usa solo como indicador local para deshabilitar el email
 
-      const ownerId = (initialData as any)?.id;
+      const payload = basePayload;
+
       let response;
       let error;
 
@@ -135,15 +177,25 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
         throw new Error(error.value?.message || error.value?.error || 'Error al guardar propietario');
       }
 
+      // 🚨 Advertir si se creó cuenta: el email queda bloqueado permanentemente
+      const seCreoCuenta = !sinCuenta && data.password;
       const clientCode = response?.client_number;
-      toast.success('Propietario Guardado', {
-        description: sinCuenta 
-          ? `${data.nombre} registrado como ficha local (sin cuenta Zonatia). Se le asignará un ID de cliente cuando se cree su cuenta.`
-          : clientCode 
-            ? `${data.nombre} registrado con código ${clientCode}.`
-            : `${data.nombre} ha sido registrado con éxito.`,
-        duration: 6000
-      });
+      
+      if (seCreoCuenta) {
+        toast.success('Propietario Guardado — Cuenta Creada', {
+          description: `${data.nombre} registrado con código ${clientCode || ''}. ⚠️ El email ${data.email} quedó vinculado permanentemente a la cuenta de Zonatia y NO podrá modificarse después.`,
+          duration: 8000
+        });
+      } else {
+        toast.success('Propietario Guardado', {
+          description: sinCuenta 
+            ? `${data.nombre} registrado como ficha local (sin cuenta Zonatia). Se le asignará un ID de cliente cuando se cree su cuenta.`
+            : clientCode 
+              ? `${data.nombre} registrado con código ${clientCode}.`
+              : `${data.nombre} ha sido registrado con éxito.`,
+          duration: 6000
+        });
+      }
 
       if (onSuccess) onSuccess();
     } catch (error) {
@@ -155,7 +207,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm">
+    <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-6 font-inter bg-white p-6 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm">
       <div className="flex justify-between items-center border-b border-admin-border-subtle pb-4">
         <h2 className="text-xl font-bold font-jakarta text-renta-950">
           {initialData ? 'Editar Propietario' : 'Nuevo Propietario'}
@@ -239,60 +291,75 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
           {errors.cbu && <p className="text-xs text-red-500 font-medium">{errors.cbu.message}</p>}
         </div>
 
-        {/* Password */}
-        {!initialData && !sinCuenta && !watch('client_number') && (
-          <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-renta-900">Contraseña</label>
-            <input
-              {...register('password')}
-              type="password"
-              autoComplete="new-password"
-              className={cn(
-                "w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
-                errors.password ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
-              )}
-              placeholder="Mínimo 6 caracteres"
-            />
-            {errors.password && <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>}
-            <p className="text-[10px] text-renta-400 font-medium italic">
-              El propietario usará esta contraseña y su email para ingresar al panel de propietarios.
-            </p>
-          </div>
-        )}
+          {/* Password — SOLO visible cuando NO está en "Sin cuenta" y NO tiene clerk_id */}
+          {!sinCuenta && !watch('clerk_id') && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-renta-900">Contraseña</label>
+              <input
+                {...register('password')}
+                type="password"
+                autoComplete="new-password"
+                className={cn(
+                  "w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
+                  errors.password ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                )}
+                placeholder="Mínimo 6 caracteres"
+              />
+              {errors.password && <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>}
+              <p className="text-[10px] text-renta-400 font-medium italic">
+                Al completar la contraseña se creará la cuenta de acceso del propietario en Zonatia.
+                El propietario usará su email y esta contraseña para ingresar al panel de propietarios.
+              </p>
+            </div>
+          )}
 
         {/* Email */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-semibold text-renta-900">Email</label>
-            {!initialData && !watch('client_number') && (
-              <label className="flex items-center gap-2 cursor-pointer group">
-                <input 
-                  type="checkbox" 
-                  checked={sinCuenta}
-                  onChange={(e) => {
-                    setSinCuenta(e.target.checked);
-                    if (e.target.checked) setValue('email', '');
-                  }}
-                  className="rounded border-admin-border text-renta-900 focus:ring-renta-900"
-                />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-renta-500 group-hover:text-renta-900 transition-colors">
-                  Sin cuenta (Solo Ficha)
-                </span>
-              </label>
+            {(!initialData || !(initialData as any)?.clerk_id) && (
+              <div className="flex flex-col items-end gap-1">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input 
+                    type="checkbox" 
+                    checked={sinCuenta}
+                    onChange={(e) => {
+                      setSinCuenta(e.target.checked);
+                      // NO se limpia el email — el usuario puede poner correo incluso en "Solo Ficha"
+                    }}
+                    className="rounded border-admin-border text-renta-900 focus:ring-renta-900"
+                  />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-renta-500 group-hover:text-renta-900 transition-colors">
+                    Sin cuenta (Solo Ficha)
+                  </span>
+                </label>
+                {/* 📘 Texto explicativo: aclara la diferencia entre ficha y cuenta con acceso */}
+                <div className={cn(
+                  "text-[9px] leading-tight text-right max-w-[220px] px-2 py-1 rounded-md transition-all",
+                  sinCuenta 
+                    ? "bg-amber-50 text-amber-700 border border-amber-200" 
+                    : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                )}>
+                  {sinCuenta 
+                    ? "🟡 Solo guarda la ficha. No tendrá acceso al sistema. Se puede crear la cuenta después agregando una contraseña."
+                    : "🟢 Se creará una cuenta con acceso. Complete la contraseña para habilitar el ingreso del propietario a Zonatia."
+                  }
+                </div>
+              </div>
             )}
           </div>
           <input
             {...register('email')}
             type="email"
-            disabled={!!initialData || !!watch('client_number') || sinCuenta}
+            disabled={!!watch('clerk_id')}
             className={cn(
               "w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
-              (!!initialData || !!watch('client_number') || sinCuenta) ? "bg-renta-50 text-renta-400 cursor-not-allowed border-admin-border-subtle" : 
+              !!watch('clerk_id') ? "bg-renta-50 text-renta-400 cursor-not-allowed border-admin-border-subtle" : 
               errors.email ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
             )}
-            placeholder={sinCuenta ? "Email no requerido" : "propietario@email.com"}
+            placeholder={sinCuenta ? "Email (opcional, solo ficha)" : "propietario@email.com"}
           />
-          {(!!initialData || !!watch('client_number')) && (
+          {!!watch('clerk_id') && (
             <p className="text-[10px] text-renta-400 font-medium italic">
               El email no puede modificarse una vez vinculado a una cuenta Zonatia.
             </p>

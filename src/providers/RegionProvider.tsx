@@ -108,27 +108,66 @@ export function RegionProvider({ children }: RegionProviderProps) {
 
       /**
        * formatInputNumber(value) — Formats a number with thousands separators for use in text inputs.
+       * Soporta tanto números en formato local (input del usuario) como en formato BD (343242.00).
        */
       formatInputNumber: (value: number | string | undefined | null): string => {
         if (value === undefined || value === null || value === '') return '';
         const strValue = value.toString().replace(/[^0-9.,-]/g, '');
         if (!strValue) return '';
         
-        // Use a simple formatter that only adds thousands separators
-        const parts = strValue.split(activeCountry === 'AR' ? ',' : '.');
-        const integerPart = parts[0].replace(/[^0-9-]/g, '');
-        const decimalPart = parts[1];
+        if (activeCountry === 'AR') {
+          // AR: Separador miles = '.' , separador decimal = ','
+          // La BD puede devolver "343242.00" (formato estándar con punto decimal)
+          // Detectamos automáticamente el formato:
+          
+          let numericValue: number;
+          
+          if (strValue.includes(',')) {
+            // ✅ Formato LOCAL: "343.242,50" (punto = miles, coma = decimal)
+            numericValue = parseFloat(strValue.replace(/\./g, '').replace(',', '.'));
+          } else if (strValue.includes('.')) {
+            // Puede ser BD ("343242.00") o formateado ("343.242")
+            const dotCount = (strValue.match(/\./g) || []).length;
+            if (dotCount > 1) {
+              // Múltiples puntos → es formato con separadores de miles
+              numericValue = parseFloat(strValue.replace(/\./g, ''));
+            } else if (/\.\d{0,2}$/.test(strValue)) {
+              // Un solo punto seguido de 0-2 dígitos al final → BD format
+              numericValue = parseFloat(strValue);
+            } else {
+              // Un solo punto con +2 dígitos → separador de miles
+              numericValue = parseFloat(strValue.replace(/\./g, ''));
+            }
+          } else {
+            // Número plano sin separadores: "343242"
+            numericValue = parseFloat(strValue);
+          }
+          
+          if (isNaN(numericValue)) return '';
+          
+          return new Intl.NumberFormat(config.currency_locale, {
+            useGrouping: true,
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          }).format(numericValue);
+        } else {
+          // MX/US: Separador miles = ',' , separador decimal = '.'
+          const parts = strValue.split('.');
+          const integerPart = parts[0].replace(/[^0-9-]/g, '');
+          const decimalPart = parts[1];
 
-        const formattedInteger = new Intl.NumberFormat(config.currency_locale, {
-          useGrouping: true,
-          minimumFractionDigits: 0,
-        }).format(Number(integerPart));
+          const formattedInteger = new Intl.NumberFormat(config.currency_locale, {
+            useGrouping: true,
+            minimumFractionDigits: 0,
+          }).format(Number(integerPart));
 
-        if (decimalPart !== undefined) {
-           return formattedInteger + (activeCountry === 'AR' ? ',' : '.') + decimalPart.slice(0, 2);
+          if (decimalPart !== undefined) {
+             return formattedInteger + '.' + decimalPart.slice(0, 2);
+          }
+          return formattedInteger;
         }
-        return formattedInteger;
       },
+
 
       /**
        * parseInputNumber(value) — Removes thousands separators and normalizes decimal separator.

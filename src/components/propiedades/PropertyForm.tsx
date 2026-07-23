@@ -72,9 +72,13 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
   useEffect(() => {
     if (initialData) {
       console.log("[PROPERTY-FORM] Resetting with initialData:", initialData);
+      // 🐛 FIX: Levantar flag para que el efecto de prevStatusRef no interprete
+      // el cambio de status como una acción manual del usuario.
+      pendingResetRef.current = true;
       reset(initialData);
     }
   }, [initialData, reset]);
+
 
   const onSubmit = async (data: PropertyFormData) => {
     try {
@@ -191,16 +195,18 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
   // --- Google Maps Autocomplete Implementation ---
   const autocompleteRef = useRef<any>(null);
 
-  const initAutocomplete = useCallback(async (container: HTMLDivElement) => {
+  const initAutocomplete = useCallback(async (container: HTMLDivElement, initialDireccion?: string) => {
     if (!window.google || autocompleteRef.current) return;
 
     try {
       // @ts-expect-error - Eden Treaty dynamic path
       const { PlaceAutocompleteElement } = await google.maps.importLibrary('places');
       
+      // 🐛 FIX: Al editar una propiedad, el PlaceAutocompleteElement se crea vacío.
+      // Usamos defaultValue para que refleje la dirección guardada.
+      const currentDireccion = initialDireccion || watch('direccion') || '';
       const pac = new PlaceAutocompleteElement({
-        // Quitamos la restricción dura de región para probar si es lo que bloquea los resultados
-        // includedRegionCodes: [currentMoneda === 'ARS' ? 'AR' : currentMoneda === 'MXN' ? 'MX' : 'AR'],
+        defaultValue: currentDireccion,
       });
 
       // Inyección de estilos para que calce en el diseño premium (Zonatia Style)
@@ -221,8 +227,13 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
           });
           // Asegurar estilos del input interno
           pac.inputElement.style.padding = '10px 16px';
+          // 🔁 Forzar el valor inicial en el input visual de Google si no se aplicó
+          if (currentDireccion && !pac.inputElement.value) {
+            pac.inputElement.value = currentDireccion;
+          }
         }
       }, 100);
+
       
       container.appendChild(pac);
       autocompleteRef.current = pac;
@@ -273,12 +284,16 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
 
   const setAddressContainerRef = useCallback((node: HTMLDivElement | null) => {
     if (node) {
+      // 🐛 FIX DIRECCIÓN VACÍA: Al editar, los datos iniciales pueden llegar
+      // DESPUÉS de que el autocomplete se monta. Pasamos initialData?.direccion
+      // para que el defaultValue se establezca correctamente desde el inicio.
+      const direccionInicial = initialData?.direccion || '';
       if (window.google) {
-        initAutocomplete(node);
+        initAutocomplete(node, direccionInicial);
       } else {
         const interval = setInterval(() => {
           if (window.google) {
-            initAutocomplete(node);
+            initAutocomplete(node, direccionInicial);
             clearInterval(interval);
           }
         }, 500);
@@ -286,6 +301,20 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
       }
     }
   }, [initAutocomplete]);
+
+  // 🐛 FIX DIRECCIÓN VACÍA (v2): El callback ref NO se re-ejecuta cuando
+  // initialData llega de forma asíncrona. Este efecto actualiza el input
+  // visual de Google Maps cuando la dirección viene del servidor.
+  useEffect(() => {
+    const pac = autocompleteRef.current;
+    if (pac?.inputElement && initialData?.direccion) {
+      if (!pac.inputElement.value || pac.inputElement.value !== initialData.direccion) {
+        console.log('[AUTOCOMPLETE] Syncing dirección after async load:', initialData.direccion);
+        pac.inputElement.value = initialData.direccion;
+        setValue('direccion', initialData.direccion, { shouldValidate: true });
+      }
+    }
+  }, [initialData?.direccion, setValue]);
 
   useEffect(() => {
     return () => {
@@ -327,18 +356,29 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
     }
   };
 
-  // Bug #2 Fix: Solo limpiar título/descripción si el usuario CAMBIA el status
-  // manualmente a no-DISPONIBLE durante la edición, NO en el montaje inicial.
-  // Esto evita borrar los campos al editar una propiedad ALQUILADA/VENDIDA/VENTA
-  // que ya tenía título y descripción guardados.
+  // 🐛 FIX BUG #2 (v3.9.0): No limpiar título/descripción durante la carga inicial
+  // El default del form es status='DISPONIBLE', pero al editar una propiedad con
+  // status ALQUILADA/VENDIDA, el reset() cambia el status y el efecto lo detecta
+  // como un cambio de usuario, borrando los campos. Usamos pendingResetRef para
+  // distinguir cambios del reset() vs cambios manuales del usuario.
+  const pendingResetRef = useRef(false);
   const prevStatusRef = useRef(currentStatus);
   useEffect(() => {
     if (prevStatusRef.current === 'DISPONIBLE' && currentStatus !== 'DISPONIBLE') {
+      if (pendingResetRef.current) {
+        // Este cambio viene del reset() de carga inicial, NO del usuario.
+        // Consumimos el flag y actualizamos el ref sin limpiar los campos.
+        pendingResetRef.current = false;
+        prevStatusRef.current = currentStatus;
+        return;
+      }
+      // Cambio manual del usuario: limpiar título y descripción
       setValue('titulo', null as any);
       setValue('descripcion', null as any);
     }
     prevStatusRef.current = currentStatus;
   }, [currentStatus, setValue]);
+
 
   const { onChange: rStatusOnChange, ...rStatusRest } = register('status');
 
@@ -659,6 +699,7 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-renta-900">Dirección Exacta <span className="text-red-500">*</span></label>
                 <div 
+                  key={initialData?.direccion || 'new'}
                   ref={setAddressContainerRef}
                   className={cn(
                     "min-h-[42px] rounded-xl border bg-white transition-all overflow-visible z-[60] relative",

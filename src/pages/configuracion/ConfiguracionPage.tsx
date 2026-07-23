@@ -31,7 +31,7 @@ export function ConfiguracionPage() {
   const { role, nombre: nombreInmoActual, logo_url: logoInmoActual } = useInmobiliaria();
   const { t, country_code, flag, isAuditOverride, setAuditRegion, config } = useRegion();
   const { resetTour } = useShepherd();
-  const { client } = useEden();
+  const { client, token, isReady } = useEden();
   const { mutate } = useSWRConfig();
   const { hasAddon } = useActiveAddons();
 
@@ -57,6 +57,7 @@ export function ConfiguracionPage() {
 
   // Cargar configuración de notificaciones desde la API
   useEffect(() => {
+    if (!isReady) return; // Esperar a que el token esté disponible
     const cargarConfig = async () => {
       try {
         const { data: response } = await client.admin.me.get();
@@ -71,7 +72,7 @@ export function ConfiguracionPage() {
       }
     };
     cargarConfig();
-  }, []);
+  }, [isReady, client, config.phone_prefix]);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -125,7 +126,6 @@ export function ConfiguracionPage() {
       const formData = new FormData();
       formData.append('file', logoSelectedFile);
       formData.append('folder', 'logos');
-      const token = (await client.admin.me.get()).data?.token || '';
       const response = await fetch(`${BASE_URL}/api/v1/admin/upload-file`, {
         method: 'POST',
         headers: {

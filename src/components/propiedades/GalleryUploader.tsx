@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { UploadCloud, X, AlertCircle } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { UploadCloud, X, AlertCircle, ImageOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFormContext } from 'react-hook-form';
 import { useRegion } from '@/hooks/useRegion';
@@ -15,6 +15,8 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
   const { t } = useRegion();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isHovered, setIsHovered] = useState(false);
+  // 🐛 FIX IMG ROTAS: Rastrear qué imágenes locales fallaron al cargar (404 legacy)
+  const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
 
   const files = watch(name) as File[] || [];
   const error = errors[name]?.message as string;
@@ -33,8 +35,8 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
 
   const handleFiles = (newFiles: File[]) => {
 
-    // Prevent adding more than 20
-    const totalFiles = [...files, ...newFiles].slice(0, 20);
+    // Prevent adding more than 60
+    const totalFiles = [...files, ...newFiles].slice(0, 60);
     setValue(name, totalFiles, { shouldValidate: true });
   };
 
@@ -67,12 +69,12 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
       data-shepherd="gallery-uploader"
       className="space-y-3">
       <div className="flex justify-between items-center mb-1">
-        <label className="text-sm font-semibold text-renta-900">{t('gallery_label', 'Catálogo de Imágenes (4 a 20 requeridas para publicar)')}</label>
+        <label className="text-sm font-semibold text-renta-900">{t('gallery_label', 'Catálogo de Imágenes (4 a 60 requeridas para publicar)')}</label>
         <span className={cn(
           "text-xs font-bold px-2 py-1 rounded-full",
-          files.length >= 4 && files.length <= 20 ? "bg-green-100 text-green-700" : "bg-amber-50 text-amber-600"
+          files.length >= 4 && files.length <= 60 ? "bg-green-100 text-green-700" : "bg-amber-50 text-amber-600"
         )}>
-          {files.length}/{t('gallery_max', '20 Máx.')}
+          {files.length}/{t('gallery_max', '60 Máx.')}
         </span>
       </div>
 
@@ -130,6 +132,7 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
           {files.map((file, idx) => {
             const isFile = file instanceof File;
+            const isBroken = brokenImages.has(idx);
             let previewUrl = isFile ? URL.createObjectURL(file) : String(file);
             
             if (!isFile && previewUrl.startsWith('/')) {
@@ -138,17 +141,25 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
 
             return (
               <div key={idx} className="relative group rounded-xl overflow-hidden shadow-sm ring-1 ring-inset ring-admin-border border-transparent aspect-[4/3] bg-renta-100">
-                <img 
-                  src={previewUrl} 
-                  alt={`Preview ${idx}`} 
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                  onLoad={() => {
-                    if (isFile) {
-                      // URL.revokeObjectURL(previewUrl); // Careful: if we revoke here, it might disappear on re-render. 
-                      // Better to cleanup on unmount or just let it be if it's few images.
-                    }
-                  }}
-                />
+                {isBroken ? (
+                  // 🐛 FIX IMG ROTAS: Mostrar placeholder cuando la imagen no existe (404)
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 text-gray-400">
+                    <ImageOff className="h-8 w-8 mb-1 opacity-50" />
+                    <span className="text-[10px] font-medium">Imagen no disponible</span>
+                  </div>
+                ) : (
+                  <img 
+                    src={previewUrl} 
+                    alt={`Preview ${idx}`} 
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    onError={() => {
+                      // 🐛 FIX IMG ROTAS: Marcar como rota para no intentar cargar de nuevo
+                      // Esto previene los errores 404 en consola y los GLOBAL-ERROR del servidor
+                      console.warn(`[GALLERY] Image ${idx} failed to load (404/broken): ${previewUrl.substring(0, 80)}`);
+                      setBrokenImages(prev => new Set(prev).add(idx));
+                    }}
+                  />
+                )}
               <button 
                 type="button"
                 onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
@@ -156,7 +167,7 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
               >
                 <X className="h-4 w-4" />
               </button>
-              {idx === 0 && ( // First image acts as cover
+              {idx === 0 && !isBroken && ( // First image acts as cover (solo si no está rota)
                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
                    <p className="text-[10px] uppercase font-bold text-white tracking-widest">{t('gallery_cover', 'Portada')}</p>
                  </div>

@@ -29,10 +29,15 @@ export function ContratoFormPage() {
 
       if (!resProps.error && resProps.data) {
         const propsArray = Array.isArray(resProps.data) ? resProps.data : (resProps.data as any).propiedades || [];
-        // Filtrar solo las disponibles para nuevos contratos
-        const disponibles = propsArray.filter((p: any) => p.status === 'DISPONIBLE' || p.status === 'VENTA');
+        // 🐛 FIX: Incluir ALQUILADA para que el usuario pueda anidar un contrato
+        // a una propiedad que ya marcó manualmente como alquilada (NO disponible).
+        // Flujo: PropiedadForm (status=ALQUILADA) → ContratoFormPage (seleccionable)
+        const disponibles = propsArray.filter((p: any) => 
+          p.status === 'DISPONIBLE' || p.status === 'VENTA' || p.status === 'ALQUILADA'
+        );
         setPropiedades(disponibles);
       }
+
 
       if (!resInqs.error && resInqs.data) {
         setInquilinos((resInqs.data as any)?.data?.inquilinos ?? (resInqs.data as any)?.inquilinos ?? resInqs.data ?? []);

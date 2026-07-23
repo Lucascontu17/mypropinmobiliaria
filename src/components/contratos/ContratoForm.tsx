@@ -213,7 +213,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
           const { data: response, error: inqError } = await eden.admin.inquilinos.post({
             nombre: data.nuevo_inquilino.nombre,
             dni: data.nuevo_inquilino.dni,
-            email: sinCuenta ? '' : data.nuevo_inquilino.email,
+            email: data.nuevo_inquilino.email || "",
             celular: data.nuevo_inquilino.celular,
             dni_url: finalDniUrl,
             country_code: country_code!,
@@ -228,9 +228,19 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
           
           console.log('✅ Inquilino creado:', response);
           finalUidInquilino = response?.data?.id || response?.id;
-          toast.success(sinCuenta ? 'Inquilino registrado como Solo Ficha' : 'Inquilino creado con éxito', {
-            description: sinCuenta ? `${data.nuevo_inquilino.nombre} fue registrado sin cuenta Zonatia.` : undefined
-          });
+          
+          // 🚨 Advertir si se creó cuenta: el email queda bloqueado permanentemente
+          const seCreoCuenta = !sinCuenta && password;
+          if (seCreoCuenta) {
+            toast.success('Inquilino Creado — Cuenta Creada', {
+              description: `${data.nuevo_inquilino.nombre} fue creado con acceso. ⚠️ El email ${data.nuevo_inquilino.email} quedó vinculado permanentemente a la cuenta de Zonatia y NO podrá modificarse después.`,
+              duration: 8000
+            });
+          } else {
+            toast.success(sinCuenta ? 'Inquilino registrado como Solo Ficha' : 'Inquilino creado con éxito', {
+              description: sinCuenta ? `${data.nuevo_inquilino.nombre} fue registrado sin cuenta Zonatia.` : undefined
+            });
+          }
         }
       }
 
@@ -436,7 +446,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                </h3>
 
                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-renta-900">Propiedad DISPONIBLE <span className="text-red-500">*</span></label>
+                   <label className="text-sm font-semibold text-renta-900">Seleccionar Propiedad <span className="text-red-500">*</span></label>
                   <select 
                     {...register('uid_propiedad')}
                     className={cn(
@@ -450,7 +460,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                     ))}
                   </select>
                   {errors.uid_propiedad && <p className="text-xs text-red-500 font-medium">{errors.uid_propiedad.message}</p>}
-                  <p className="text-[10px] text-renta-500">Solo se listan inmuebles con estado "DISPONIBLE".</p>
+                  <p className="text-[10px] text-renta-500">Se listan propiedades Disponibles, en Venta o Alquiladas (para anidar contrato).</p>
                </div>
 
                <div className="space-y-2 pt-1">
@@ -484,30 +494,44 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                   ) : (
                     <div className="space-y-4 p-4 rounded-xl border border-renta-200 bg-white shadow-inner animate-fade-in">
                       {/* Sin Cuenta Toggle */}
-                      <div className="flex items-center justify-between bg-amber-50/60 p-3 rounded-xl border border-amber-200">
-                        <div className="flex items-center gap-2">
-                          <UserX className={cn("w-4 h-4", sinCuenta ? "text-amber-600" : "text-slate-400")} />
-                          <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-renta-700">Sin cuenta (Solo Ficha)</span>
-                            <p className="text-[9px] text-renta-500 leading-tight mt-0.5">Registrar inquilino sin cuenta Zonatia. Se le asignará un ID cuando cree su cuenta.</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between bg-amber-50/60 p-3 rounded-xl border border-amber-200">
+                          <div className="flex items-center gap-2">
+                            <UserX className={cn("w-4 h-4", sinCuenta ? "text-amber-600" : "text-slate-400")} />
+                            <div>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-renta-700">Sin cuenta (Solo Ficha)</span>
+                              <p className="text-[9px] text-renta-500 leading-tight mt-0.5">Registrar inquilino sin cuenta Zonatia. Se le asignará un ID cuando cree su cuenta.</p>
+                            </div>
                           </div>
+                          <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input 
+                              type="checkbox" 
+                              className="sr-only peer" 
+                              checked={sinCuenta}
+                              onChange={(e) => {
+                                setSinCuenta(e.target.checked);
+                                if (e.target.checked) {
+                                  setFoundClient(null);
+                                  setClientSearch('');
+                                  // NO se limpia el email — el usuario puede poner correo incluso en "Solo Ficha"
+                                }
+                              }}
+                            />
+                            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                          </label>
                         </div>
-                        <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                          <input 
-                            type="checkbox" 
-                            className="sr-only peer" 
-                            checked={sinCuenta}
-                            onChange={(e) => {
-                              setSinCuenta(e.target.checked);
-                              if (e.target.checked) {
-                                setFoundClient(null);
-                                setClientSearch('');
-                                setValue('nuevo_inquilino.email', '');
-                              }
-                            }}
-                          />
-                          <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
-                        </label>
+                        {/* 📘 Texto explicativo dinámico */}
+                        <div className={cn(
+                          "text-[9px] leading-tight px-2.5 py-1.5 rounded-md transition-all border",
+                          sinCuenta 
+                            ? "bg-amber-50 text-amber-700 border-amber-200" 
+                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        )}>
+                          {sinCuenta 
+                            ? "🟡 Solo guarda la ficha. No tendrá acceso al sistema. Se puede crear la cuenta después agregando email y contraseña desde el panel de inquilinos."
+                            : "🟢 Se creará una cuenta con acceso. Complete la contraseña para habilitar el ingreso del inquilino a Zonatia."
+                          }
+                        </div>
                       </div>
 
                       {/* Lookup Component (Atomic Port) — Hidden when sinCuenta */}
@@ -559,14 +583,13 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                           <label className="text-[10px] font-bold text-renta-600 uppercase">Email</label>
                           <input 
                             {...register('nuevo_inquilino.email')} 
-                            disabled={sinCuenta}
                             className={cn(
                               "w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-renta-200 outline-none",
-                              sinCuenta && "bg-renta-50 text-renta-400 cursor-not-allowed"
+                              "text-renta-950"
                             )} 
-                            placeholder={sinCuenta ? "No requerido" : "inquilino@email.com"} 
+                            placeholder="inquilino@email.com" 
                           />
-                          {errors.nuevo_inquilino?.email && !sinCuenta && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.email.message}</p>}
+                          {errors.nuevo_inquilino?.email && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.email.message}</p>}
                         </div>
 
                         {/* Password */}
@@ -581,6 +604,10 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                               placeholder="Mínimo 6 caracteres" 
                             />
                             {errors.nuevo_inquilino?.password && <p className="text-[10px] text-red-500">{errors.nuevo_inquilino.password.message}</p>}
+                            <p className="text-[9px] text-renta-400 font-medium italic">
+                              Al completar la contraseña se creará la cuenta de acceso del inquilino en Zonatia.
+                              El inquilino usará su email y esta contraseña para ingresar a su panel.
+                            </p>
                           </div>
                         )}
 

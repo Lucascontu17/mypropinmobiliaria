@@ -19,8 +19,9 @@ export const ownerSchema = z.object({
   email: z.string().email('Formato de email inválido').optional().or(z.literal('')),
   celular: z.string()
     .regex(e164Regex, 'El celular debe tener formato internacional (Ej: +549...)'),
-  cbu: z.string().min(5, 'CBU/Alias incompleto').optional().or(z.literal('')),
+  cbu: z.string().optional().or(z.literal('')),
   client_number: z.string().optional().or(z.literal('')),
+  clerk_id: z.string().optional().or(z.literal('')),
   comision_tipo: z.enum(['percent', 'fixed']),
   comision_valor: z.coerce.number()
     .min(0, 'La comisión no puede ser un valor negativo'),
