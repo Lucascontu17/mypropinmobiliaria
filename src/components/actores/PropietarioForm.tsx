@@ -162,15 +162,25 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
         throw new Error(error.value?.message || error.value?.error || 'Error al guardar propietario');
       }
 
+      // 🚨 Advertir si se creó cuenta: el email queda bloqueado permanentemente
+      const seCreoCuenta = !sinCuenta && data.password;
       const clientCode = response?.client_number;
-      toast.success('Propietario Guardado', {
-        description: sinCuenta 
-          ? `${data.nombre} registrado como ficha local (sin cuenta Zonatia). Se le asignará un ID de cliente cuando se cree su cuenta.`
-          : clientCode 
-            ? `${data.nombre} registrado con código ${clientCode}.`
-            : `${data.nombre} ha sido registrado con éxito.`,
-        duration: 6000
-      });
+      
+      if (seCreoCuenta) {
+        toast.success('Propietario Guardado — Cuenta Creada', {
+          description: `${data.nombre} registrado con código ${clientCode || ''}. ⚠️ El email ${data.email} quedó vinculado permanentemente a la cuenta de Zonatia y NO podrá modificarse después.`,
+          duration: 8000
+        });
+      } else {
+        toast.success('Propietario Guardado', {
+          description: sinCuenta 
+            ? `${data.nombre} registrado como ficha local (sin cuenta Zonatia). Se le asignará un ID de cliente cuando se cree su cuenta.`
+            : clientCode 
+              ? `${data.nombre} registrado con código ${clientCode}.`
+              : `${data.nombre} ha sido registrado con éxito.`,
+          duration: 6000
+        });
+      }
 
       if (onSuccess) onSuccess();
     } catch (error) {
@@ -266,46 +276,61 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
           {errors.cbu && <p className="text-xs text-red-500 font-medium">{errors.cbu.message}</p>}
         </div>
 
-        {/* Password — visible en creación y en edición cuando NO tiene cuenta y se destilda "Sin cuenta" */}
-        {!sinCuenta && !watch('clerk_id') && (
-          <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-renta-900">Contraseña</label>
-            <input
-              {...register('password')}
-              type="password"
-              autoComplete="new-password"
-              className={cn(
-                "w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
-                errors.password ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
-              )}
-              placeholder="Mínimo 6 caracteres"
-            />
-            {errors.password && <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>}
-            <p className="text-[10px] text-renta-400 font-medium italic">
-              El propietario usará esta contraseña y su email para ingresar al panel de propietarios.
-            </p>
-          </div>
-        )}
+          {/* Password — SOLO visible cuando NO está en "Sin cuenta" y NO tiene clerk_id */}
+          {!sinCuenta && !watch('clerk_id') && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-renta-900">Contraseña</label>
+              <input
+                {...register('password')}
+                type="password"
+                autoComplete="new-password"
+                className={cn(
+                  "w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950",
+                  errors.password ? "border-red-400 focus:border-red-400 focus:ring-red-400/50" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                )}
+                placeholder="Mínimo 6 caracteres"
+              />
+              {errors.password && <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>}
+              <p className="text-[10px] text-renta-400 font-medium italic">
+                Al completar la contraseña se creará la cuenta de acceso del propietario en Zonatia.
+                El propietario usará su email y esta contraseña para ingresar al panel de propietarios.
+              </p>
+            </div>
+          )}
 
         {/* Email */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-semibold text-renta-900">Email</label>
             {(!initialData || !(initialData as any)?.clerk_id) && (
-              <label className="flex items-center gap-2 cursor-pointer group">
-                <input 
-                  type="checkbox" 
-                  checked={sinCuenta}
-                  onChange={(e) => {
-                    setSinCuenta(e.target.checked);
-                    // NO se limpia el email — el usuario puede poner correo incluso en "Solo Ficha"
-                  }}
-                  className="rounded border-admin-border text-renta-900 focus:ring-renta-900"
-                />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-renta-500 group-hover:text-renta-900 transition-colors">
-                  Sin cuenta (Solo Ficha)
-                </span>
-              </label>
+              <div className="flex flex-col items-end gap-1">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input 
+                    type="checkbox" 
+                    checked={sinCuenta}
+                    onChange={(e) => {
+                      setSinCuenta(e.target.checked);
+                      // NO se limpia el email — el usuario puede poner correo incluso en "Solo Ficha"
+                    }}
+                    className="rounded border-admin-border text-renta-900 focus:ring-renta-900"
+                  />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-renta-500 group-hover:text-renta-900 transition-colors">
+                    Sin cuenta (Solo Ficha)
+                  </span>
+                </label>
+                {/* 📘 Texto explicativo: aclara la diferencia entre ficha y cuenta con acceso */}
+                <div className={cn(
+                  "text-[9px] leading-tight text-right max-w-[220px] px-2 py-1 rounded-md transition-all",
+                  sinCuenta 
+                    ? "bg-amber-50 text-amber-700 border border-amber-200" 
+                    : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                )}>
+                  {sinCuenta 
+                    ? "🟡 Solo guarda la ficha. No tendrá acceso al sistema. Se puede crear la cuenta después agregando una contraseña."
+                    : "🟢 Se creará una cuenta con acceso. Complete la contraseña para habilitar el ingreso del propietario a Zonatia."
+                  }
+                </div>
+              </div>
             )}
           </div>
           <input
