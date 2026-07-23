@@ -152,7 +152,18 @@ export function InquilinosPage() {
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
                         <span className="text-renta-900 font-medium">{t?.celular || 'No registrado'}</span>
-                        <span className="text-xs text-renta-500">{t?.email || 'Sin email'}</span>
+                        {t?.email ? (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-xs text-renta-500">{t.email}</span>
+                            {!t?.clerk_id && (
+                              <span className="text-[9px] font-medium text-amber-600 bg-amber-50 px-1.5 py-[1px] rounded-full border border-amber-200 whitespace-nowrap">
+                                Sin usuario
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-renta-500">Sin email</span>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">

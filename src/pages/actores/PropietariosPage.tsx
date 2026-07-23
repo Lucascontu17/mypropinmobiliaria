@@ -165,7 +165,14 @@ export function PropietariosPage() {
                       <div className="flex flex-col items-start gap-1">
                         <span className="text-renta-900 font-medium">{p?.celular || 'No registrado'}</span>
                         {p?.email ? (
-                          <span className="text-xs text-renta-500">{p.email}</span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-xs text-renta-500">{p.email}</span>
+                            {!p?.clerk_id && (
+                              <span className="text-[9px] font-medium text-amber-600 bg-amber-50 px-1.5 py-[1px] rounded-full border border-amber-200 whitespace-nowrap">
+                                Sin usuario
+                              </span>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200 shadow-sm">Sin Cuenta</span>
                         )}
