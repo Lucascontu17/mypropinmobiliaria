@@ -37,21 +37,36 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
   } = useForm<OwnerFormValues>({
     // @ts-expect-error - Eden Treaty dynamic path - Ignore type mismatch for coerced number in resolver
     resolver: zodResolver(ownerSchema),
-    defaultValues: initialData ? {
-      ...initialData,
-      comision_tipo: (initialData as any).commission_type || 'percent',
-      comision_valor: (initialData as any).commission_value || 0
-    } : {
+    defaultValues: initialData ? sanitizeInitialData(initialData) : {
       nombre: '',
       dni: '',
       celular: '',
       email: '',
       cbu: '',
       client_number: '',
-      comision_tipo: 'percent',
-      comision_valor: 0
+      comision_tipo: 'percent' as const,
+      comision_valor: 0,
+      password: '',
+      clerk_id: '',
     }
   });
+
+  // 🛡️ Sanitiza valores null/undefined de la API a string vacío para evitar que Zod rechace la validación
+  function sanitizeInitialData(data: any): OwnerFormValues {
+    const n = (v: any) => v ?? '';
+    return {
+      nombre: n(data.nombre),
+      dni: n(data.dni),
+      celular: n(data.celular),
+      email: n(data.email),
+      cbu: n(data.cbu),
+      client_number: n(data.client_number),
+      comision_tipo: data.commission_type || 'percent',
+      comision_valor: data.commission_value ?? 0,
+      password: n(data.password),
+      clerk_id: n(data.clerk_id),
+    };
+  }
 
   const [searchCode, setSearchCode] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -192,7 +207,7 @@ export function PropietarioForm({ initialData, onSuccess, onCancel }: Propietari
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm">
+    <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-6 font-inter bg-white p-6 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm">
       <div className="flex justify-between items-center border-b border-admin-border-subtle pb-4">
         <h2 className="text-xl font-bold font-jakarta text-renta-950">
           {initialData ? 'Editar Propietario' : 'Nuevo Propietario'}

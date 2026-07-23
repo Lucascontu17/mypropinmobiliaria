@@ -18,24 +18,25 @@ export function PropietariosPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { client: eden, isReady } = useEden();
 
-  useEffect(() => {
-    const fetchPropietarios = async () => {
-      if (!isReady) return;
-      try {
-        setIsLoading(true);
-        const { data, error } = await eden.admin.owners.get();
-        if (error) {
-           console.error("Error fetching propietarios:", error);
-        } else {
-           // @ts-expect-error - Eden Treaty dynamic path
-           setPropietarios(data?.owners ?? []);
-        }
-      } catch (err) {
-        console.error("Critical error fetching propietarios:", err);
-      } finally {
-        setIsLoading(false);
+  const fetchPropietarios = async () => {
+    if (!isReady) return;
+    try {
+      setIsLoading(true);
+      const { data, error } = await eden.admin.owners.get();
+      if (error) {
+         console.error("Error fetching propietarios:", error);
+      } else {
+         // @ts-expect-error - Eden Treaty dynamic path
+         setPropietarios(data?.owners ?? []);
       }
-    };
+    } catch (err) {
+      console.error("Critical error fetching propietarios:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPropietarios();
   }, [eden, isReady]);
 
@@ -240,7 +241,7 @@ export function PropietariosPage() {
               onCancel={() => setIsFormOpen(false)} 
               onSuccess={() => {
                  setIsFormOpen(false);
-                 // Trigger refresh by some means or just let useEffect handle it if we add a deps
+                 fetchPropietarios();
               }} 
             />
           </div>
