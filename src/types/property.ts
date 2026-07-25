@@ -23,9 +23,9 @@ export const propertySchema = z.object({
   tipo_inmueble: z.enum(["departamento", "casa", "ph", "terreno", "habitacion", "local", "galpon", "oficina", "otro"] as const, {
     message: "Debe seleccionar un tipo de inmueble."
   }),
-  piso: z.string().optional(),
-  departamento_unidad: z.string().optional(),
-  interno: z.string().optional(),
+  piso: z.string().optional().nullable(),
+  departamento_unidad: z.string().optional().nullable(),
+  interno: z.string().optional().nullable(),
   operacion: z.enum(["alquiler", "venta"]).default("alquiler"),
   moneda: z.enum(["ARS", "MXN", "USD"]).default("ARS"),
   valor_venta: z.coerce.string().optional(),
