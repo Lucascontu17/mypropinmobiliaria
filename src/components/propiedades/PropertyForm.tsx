@@ -714,7 +714,6 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-renta-900">Dirección Exacta <span className="text-red-500">*</span></label>
                 <div 
-                  key={initialData?.uid_prop || 'new'}
                   ref={setAddressContainerRef}
                   className={cn(
                     "min-h-[42px] rounded-xl border bg-white transition-all overflow-visible z-[60] relative",
@@ -1020,14 +1019,9 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium space-y-1">
             <p className="font-semibold">Corrija los siguientes campos para poder guardar:</p>
             <ul className="list-disc list-inside space-y-0.5">
-              {errors.titulo && <li><strong>Título:</strong> {errors.titulo.message}</li>}
-              {errors.descripcion && <li><strong>Descripción:</strong> {errors.descripcion.message}</li>}
-              {errors.imagenes && <li><strong>Imágenes:</strong> {(errors.imagenes as any).message}</li>}
-              {errors.direccion && <li><strong>Dirección:</strong> {errors.direccion.message}</li>}
-              {errors.owner_id && <li><strong>Propietario:</strong> {errors.owner_id.message}</li>}
-              {errors.tipo_inmueble && <li><strong>Tipo de Inmueble:</strong> {errors.tipo_inmueble.message}</li>}
-              {errors.mts2 && <li><strong>Superficie:</strong> {errors.mts2.message}</li>}
-              {errors.valor_alquiler && <li><strong>Valor Alquiler:</strong> {errors.valor_alquiler.message}</li>}
+              {Object.entries(errors).map(([field, err]: [string, any]) => (
+                <li key={field}><strong>{field}:</strong> {err?.message?.toString() || "Error de validación"}</li>
+              ))}
               {/* Campos ocultos por status no-DISPONIBLE */}
               {(errors.titulo || errors.descripcion) && currentStatus !== 'DISPONIBLE' && (
                 <li className="text-amber-700 font-semibold">⚠️ La propiedad está en estado "{currentStatus}" pero tiene errores en Título/Descripción. Cambia el estado a "Disponible" para verlos y corregirlos, o guarda primero en estado actual.</li>
