@@ -160,6 +160,14 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
         });
       }
 
+      // ⚠️ AVISO DE TEXTOS FALTANTES:
+      if (currentStatus === 'DISPONIBLE' && (!data.titulo?.trim() || !data.descripcion?.trim())) {
+         toast.warning("Faltan textos descriptivos", {
+           description: "Guardado exitoso. Sin embargo, recuerda que sin Título y Descripción la propiedad no será visible para los clientes en el portal público.",
+           duration: 8000,
+         });
+      }
+
       toast.success("Propiedad ingresada correctamente al inventario.", {
         icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
       });
