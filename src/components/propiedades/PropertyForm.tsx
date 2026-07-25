@@ -194,6 +194,9 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
 
   // --- Google Maps Autocomplete Implementation ---
   const autocompleteRef = useRef<any>(null);
+  // 🐛 FIX DIRECCIÓN ASYNC: Guardamos referencia al nodo container para
+  // poder re-inicializar el autocomplete cuando lleguen los datos del servidor.
+  const addressContainerNodeRef = useRef<HTMLDivElement | null>(null);
 
   const initAutocomplete = useCallback(async (container: HTMLDivElement, initialDireccion?: string) => {
     if (!window.google || autocompleteRef.current) return;
@@ -283,10 +286,11 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
   }, [setValue, currentMoneda]);
 
   const setAddressContainerRef = useCallback((node: HTMLDivElement | null) => {
+    addressContainerNodeRef.current = node;
     if (node) {
-      // 🐛 FIX DIRECCIÓN VACÍA: Al editar, los datos iniciales pueden llegar
-      // DESPUÉS de que el autocomplete se monta. Pasamos initialData?.direccion
-      // para que el defaultValue se establezca correctamente desde el inicio.
+      // En este punto initialData puede ser null (carga async).
+      // Solo pasamos la dirección si ya llegó; el efecto de abajo
+      // se encargará de rellenarla cuando llegue desde el servidor.
       const direccionInicial = initialData?.direccion || '';
       if (window.google) {
         initAutocomplete(node, direccionInicial);
@@ -300,21 +304,32 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
         setTimeout(() => clearInterval(interval), 5000);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initAutocomplete]);
 
-  // 🐛 FIX DIRECCIÓN VACÍA (v2): El callback ref NO se re-ejecuta cuando
-  // initialData llega de forma asíncrona. Este efecto actualiza el input
-  // visual de Google Maps cuando la dirección viene del servidor.
+  // 🐛 FIX DIRECCIÓN VACÍA (v3): El callback ref NO se re-ejecuta cuando
+  // initialData llega de forma asíncrona. Este efecto:
+  //  1. Si el PlaceAutocompleteElement ya fue montado → sincroniza el inputElement visual.
+  //  2. Si aún no fue montado (Google Maps todavía cargando) → lo inicializa ahora
+  //     usando el nodo guardado en addressContainerNodeRef.
   useEffect(() => {
+    if (!initialData?.direccion) return;
+
     const pac = autocompleteRef.current;
-    if (pac?.inputElement && initialData?.direccion) {
+    if (pac?.inputElement) {
+      // Caso 1: PAC ya montado, solo sincronizar el valor visual
       if (!pac.inputElement.value || pac.inputElement.value !== initialData.direccion) {
         console.log('[AUTOCOMPLETE] Syncing dirección after async load:', initialData.direccion);
         pac.inputElement.value = initialData.direccion;
         setValue('direccion', initialData.direccion, { shouldValidate: true });
       }
+    } else if (addressContainerNodeRef.current) {
+      // Caso 2: PAC aún no fue montado (datos llegaron antes que Google Maps)
+      // → montar ahora con la dirección correcta
+      console.log('[AUTOCOMPLETE] Mounting PAC late with dirección:', initialData.direccion);
+      initAutocomplete(addressContainerNodeRef.current, initialData.direccion);
     }
-  }, [initialData?.direccion, setValue]);
+  }, [initialData?.direccion, setValue, initAutocomplete]);
 
   useEffect(() => {
     return () => {
@@ -699,7 +714,7 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-renta-900">Dirección Exacta <span className="text-red-500">*</span></label>
                 <div 
-                  key={initialData?.direccion || 'new'}
+                  key={initialData?.uid_prop || 'new'}
                   ref={setAddressContainerRef}
                   className={cn(
                     "min-h-[42px] rounded-xl border bg-white transition-all overflow-visible z-[60] relative",
@@ -1002,8 +1017,22 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
 
         {/* Debug UI feedback for User Architect */}
         {Object.keys(errors).length > 0 && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
-             Corrija los campos en rojo para poder guardar el inventario.
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium space-y-1">
+            <p className="font-semibold">Corrija los siguientes campos para poder guardar:</p>
+            <ul className="list-disc list-inside space-y-0.5">
+              {errors.titulo && <li><strong>Título:</strong> {errors.titulo.message}</li>}
+              {errors.descripcion && <li><strong>Descripción:</strong> {errors.descripcion.message}</li>}
+              {errors.imagenes && <li><strong>Imágenes:</strong> {(errors.imagenes as any).message}</li>}
+              {errors.direccion && <li><strong>Dirección:</strong> {errors.direccion.message}</li>}
+              {errors.owner_id && <li><strong>Propietario:</strong> {errors.owner_id.message}</li>}
+              {errors.tipo_inmueble && <li><strong>Tipo de Inmueble:</strong> {errors.tipo_inmueble.message}</li>}
+              {errors.mts2 && <li><strong>Superficie:</strong> {errors.mts2.message}</li>}
+              {errors.valor_alquiler && <li><strong>Valor Alquiler:</strong> {errors.valor_alquiler.message}</li>}
+              {/* Campos ocultos por status no-DISPONIBLE */}
+              {(errors.titulo || errors.descripcion) && currentStatus !== 'DISPONIBLE' && (
+                <li className="text-amber-700 font-semibold">⚠️ La propiedad está en estado "{currentStatus}" pero tiene errores en Título/Descripción. Cambia el estado a "Disponible" para verlos y corregirlos, o guarda primero en estado actual.</li>
+              )}
+            </ul>
           </div>
         )}
 
