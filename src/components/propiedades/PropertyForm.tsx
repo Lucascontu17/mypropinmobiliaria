@@ -430,8 +430,11 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-renta-900">
+                  <label className="text-sm font-semibold text-renta-900 flex items-center gap-1.5">
                     {currentOperacion === 'alquiler' ? 'Valor Alquiler' : 'Valor de Venta'}
+                    {currentOperacion === 'alquiler' && currentStatus === 'ALQUILADA' && (
+                      <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium">🔒 No editable</span>
+                    )}
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase z-10">{currentMoneda}</span>
@@ -443,9 +446,11 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
                           placeholder="0.00"
                           value={field.value}
                           onChange={field.onChange}
+                          disabled={currentOperacion === 'alquiler' && currentStatus === 'ALQUILADA'}
                           className={cn(
                             "w-full rounded-xl border bg-white pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 text-renta-950 font-bold",
-                            (currentOperacion === 'alquiler' ? errors.valor_alquiler : errors.valor_venta) ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                            (currentOperacion === 'alquiler' ? errors.valor_alquiler : errors.valor_venta) ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200",
+                            (currentOperacion === 'alquiler' && currentStatus === 'ALQUILADA') && "bg-gray-100 text-gray-400 cursor-not-allowed"
                           )}
                         />
                       )}

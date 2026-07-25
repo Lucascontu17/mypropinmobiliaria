@@ -117,41 +117,6 @@ export function ConfiguracionPage() {
     setLogoError(null);
   };
 
-  const handleLogoUpload = async () => {
-    if (!logoSelectedFile) return;
-    setIsLogoUploading(true);
-    setLogoError(null);
-    const region = localStorage.getItem('zonatia_audit_region') || 'AR';
-    try {
-      const formData = new FormData();
-      formData.append('file', logoSelectedFile);
-      formData.append('folder', 'logos');
-      const response = await fetch(`${BASE_URL}/api/v1/admin/upload-file`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'x-region': region,
-        },
-        body: formData,
-      });
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || 'Error al subir el archivo');
-      }
-      const uploadRes = await response.json();
-      if (!uploadRes?.url) throw new Error('No se recibió la URL del archivo');
-      setLogoUrl(uploadRes.url);
-      setLogoSelectedFile(null);
-      if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
-      setLogoPreviewUrl(null);
-      toast.success('Logo subido correctamente. No olvides guardar los cambios.');
-    } catch (err: any) {
-      setLogoError(err.message || 'Error inesperado');
-    } finally {
-      setIsLogoUploading(false);
-    }
-  };
-
   // Sincronizar el estado local cuando los datos de la API se carguen asincrónicamente
   useEffect(() => {
     if (logoInmoActual) {
@@ -169,24 +134,70 @@ export function ConfiguracionPage() {
       setErrorTelefono('');
       
       setIsSaving(true);
+      setLogoError(null);
+      
+      // Si hay un logo nuevo seleccionado, subirlo a R2 primero
+      let newLogoUrl = logoUrl;
+      if (logoSelectedFile) {
+        const region = localStorage.getItem('zonatia_audit_region') || 'AR';
+        const formData = new FormData();
+        formData.append('file', logoSelectedFile);
+        formData.append('folder', 'logos');
+        
+        const uploadResponse = await fetch(`${BASE_URL}/api/v1/admin/upload-file`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'x-region': region,
+          },
+          body: formData,
+        });
+        
+        if (!uploadResponse.ok) {
+          const errData = await uploadResponse.json().catch(() => ({}));
+          throw new Error(errData.error || 'Error al subir el archivo');
+        }
+        
+        const uploadRes = await uploadResponse.json();
+        if (!uploadRes?.url) throw new Error('No se recibió la URL del archivo');
+        newLogoUrl = uploadRes.url;
+      }
       
       // Actualizar branding y configuración de notificaciones TODO junto
       const payload: Record<string, any> = {};
       
       if (nombreAgencia !== nombreInmoActual) payload.nombre = nombreAgencia;
-      if (logoUrl !== logoInmoActual) payload.logo_url = logoUrl || null;
+      if (newLogoUrl !== logoInmoActual) payload.logo_url = newLogoUrl || null;
       
       // Siempre enviar las preferencias de notificación (vienen de los toggles)
       payload.enviar_whatsapp_rollover = whatsappActivo;
       payload.enviar_email_onboarding = emailActivo;
       payload.twilio_phone = telefono;
       
-      const { error } = await client.admin.me.put(payload);
+      const { error, data: putData } = await client.admin.me.put(payload);
 
       if (error) {
-        toast.error("Error al guardar la configuración: " + error.value);
+        // Extraer mensaje legible del error (puede ser string, objeto, o Response)
+        let errorMsg = 'Error desconocido';
+        if (typeof error.value === 'string') {
+          errorMsg = error.value;
+        } else if (error.value && typeof error.value === 'object') {
+          // Intentar extraer mensaje de diferentes formatos de respuesta de Elysia
+          const ev = error.value as any;
+          errorMsg = ev.error || ev.message || ev.detail || JSON.stringify(ev);
+        }
+        console.error('[Config] PUT /admin/me error:', error);
+        toast.error("Error al guardar la configuración: " + errorMsg);
         setIsSaving(false);
         return;
+      }
+      
+      // Si el logo se subió exitosamente y se guardó en DB, limpiar el estado local del archivo
+      if (logoSelectedFile) {
+        setLogoUrl(newLogoUrl);
+        setLogoSelectedFile(null);
+        if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
+        setLogoPreviewUrl(null);
       }
       
       // Force refresh all useInmobiliaria hooks
@@ -199,6 +210,8 @@ export function ConfiguracionPage() {
     } catch (e) {
        if (e instanceof z.ZodError) {
          setErrorTelefono(e.issues[0]?.message || 'Número inválido.');
+       } else if (e instanceof Error) {
+         setLogoError(e.message || 'Error inesperado');
        }
        setIsSaving(false);
     }
@@ -463,37 +476,22 @@ export function ConfiguracionPage() {
                          o hacé clic para seleccionar (JPG, PNG, WebP. Max 5MB)
                        </p>
                      </div>
-                  ) : (
-                     <div className="flex items-center gap-3 max-w-md">
-                        <button
-                          type="button"
-                          onClick={clearLogoSelection}
-                          disabled={isLogoUploading}
-                          className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-renta-600 bg-renta-50 rounded-xl hover:bg-renta-100 transition-colors disabled:opacity-50"
-                        >
-                          <X className="h-3 w-3" />
-                          Cambiar archivo
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleLogoUpload}
-                          disabled={isLogoUploading || !logoSelectedFile}
-                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-white bg-gradient-to-r from-renta-600 to-renta-700 rounded-xl hover:from-renta-700 hover:to-renta-800 transition-all disabled:opacity-60"
-                        >
-                          {isLogoUploading ? (
-                            <>
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                              Subiendo...
-                            </>
-                          ) : (
-                            <>
-                              <UploadCloud className="h-3 w-3" />
-                              Subir Logo
-                            </>
-                          )}
-                        </button>
-                     </div>
-                  )}
+                   ) : (
+                      <div className="flex items-center gap-3 max-w-md">
+                         <button
+                           type="button"
+                           onClick={clearLogoSelection}
+                           disabled={isSaving}
+                           className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-renta-600 bg-renta-50 rounded-xl hover:bg-renta-100 transition-colors disabled:opacity-50"
+                         >
+                           <X className="h-3 w-3" />
+                           Cambiar archivo
+                         </button>
+                         <p className="text-[10px] text-renta-500">
+                           El logo se subirá al guardar las preferencias.
+                         </p>
+                      </div>
+                   )}
                   {logoError && (
                     <div className="flex items-start gap-2 p-3 bg-red-50 rounded-xl border border-red-200 max-w-md">
                       <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
