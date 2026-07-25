@@ -160,6 +160,14 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
         });
       }
 
+      // ⚠️ AVISO DE TEXTOS FALTANTES:
+      if (currentStatus === 'DISPONIBLE' && (!data.titulo?.trim() || !data.descripcion?.trim())) {
+         toast.warning("Faltan textos descriptivos", {
+           description: "Guardado exitoso. Sin embargo, recuerda que sin Título y Descripción la propiedad no será visible para los clientes en el portal público.",
+           duration: 8000,
+         });
+      }
+
       toast.success("Propiedad ingresada correctamente al inventario.", {
         icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
       });
@@ -192,82 +200,46 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
   // Se abre automáticamente al marcar VENDIDA
   const [lastStatusChange, setLastStatusChange] = useState<string | null>(null);
 
-  // --- Google Maps Autocomplete Implementation ---
-  const autocompleteRef = useRef<any>(null);
 
-  const initAutocomplete = useCallback(async (container: HTMLDivElement, initialDireccion?: string) => {
-    if (!window.google || autocompleteRef.current) return;
+  // --- Google Maps Autocomplete (Legacy Places API) ---
+  // Usamos la API legacy para adjuntarla a un <input> normal de HTML.
+  // El PlaceAutocompleteElement (Web Component) tenía problemas con su
+  // shadow DOM que bloqueaban la edición del campo en modo edición.
+  const autocompleteRef = useRef<any>(null);
+  const addressInputRef = useRef<HTMLInputElement | null>(null);
+
+  const initAutocomplete = useCallback((node: HTMLInputElement) => {
+    // @ts-expect-error - window.google puede no estar tipado
+    if (!window.google?.maps?.places || autocompleteRef.current) return;
 
     try {
-      // @ts-expect-error - Eden Treaty dynamic path
-      const { PlaceAutocompleteElement } = await google.maps.importLibrary('places');
-      
-      // 🐛 FIX: Al editar una propiedad, el PlaceAutocompleteElement se crea vacío.
-      // Usamos defaultValue para que refleje la dirección guardada.
-      const currentDireccion = initialDireccion || watch('direccion') || '';
-      const pac = new PlaceAutocompleteElement({
-        defaultValue: currentDireccion,
+      // @ts-expect-error - Legacy Places API
+      const ac = new window.google.maps.places.Autocomplete(node, {
+        types: ['address'],
+        fields: ['formatted_address', 'geometry', 'address_components']
       });
 
-      // Inyección de estilos para que calce en el diseño premium (Zonatia Style)
-      pac.style.setProperty('--gmpx-font-family-base', 'Inter, sans-serif');
-      pac.style.setProperty('--gmpx-font-size-base', '0.875rem');
-      pac.style.setProperty('--gmpx-color-surface', '#ffffff');
-      pac.style.setProperty('--gmpx-color-on-surface', '#102324');
-      pac.style.setProperty('--gmpx-color-primary', '#102324');
-      pac.style.width = '100%';
-      
-      // Sincronizar el valor escrito con react-hook-form
-      // Usamos el inputElement interno para asegurar que capturamos el evento
-      setTimeout(() => {
-        if (pac.inputElement) {
-          pac.inputElement.addEventListener('input', (e: any) => {
-            const val = e.target.value;
-            setValue('direccion', val, { shouldValidate: val.length > 5 });
-          });
-          // Asegurar estilos del input interno
-          pac.inputElement.style.padding = '10px 16px';
-          // 🔁 Forzar el valor inicial en el input visual de Google si no se aplicó
-          if (currentDireccion && !pac.inputElement.value) {
-            pac.inputElement.value = currentDireccion;
-          }
-        }
-      }, 100);
-
-      
-      container.appendChild(pac);
-      autocompleteRef.current = pac;
-
-      pac.addEventListener('gmp-select', async (event: any) => {
-        const place = event.placePrediction.toPlace();
-        
-        // Fetch specific fields (Places API New protocol)
-        await place.fetchFields({
-          fields: ['location', 'formattedAddress', 'addressComponents', 'viewport']
-        });
-
-        if (!place.location) {
+      ac.addListener('place_changed', () => {
+        const place = ac.getPlace();
+        if (!place.geometry?.location) {
           toast.error("No se pudo obtener la ubicación precisa para esta dirección.");
           return;
         }
 
-        const address = place.formattedAddress || '';
+        const address = place.formatted_address || node.value;
         setValue('direccion', address, { shouldValidate: true });
+        setValue('latitud', place.geometry.location.lat(), { shouldValidate: true });
+        setValue('longitud', place.geometry.location.lng(), { shouldValidate: true });
 
-        // Extract coordinates
-        setValue('latitud', place.location.lat(), { shouldValidate: true });
-        setValue('longitud', place.location.lng(), { shouldValidate: true });
-
-        // Extract address components (City, Province, Neighborhood)
         let provincia = '', ciudad = '', barrio = '';
-        place.addressComponents?.forEach(comp => {
+        place.address_components?.forEach((comp: any) => {
           const types = comp.types;
-          if (types.includes('administrative_area_level_1')) provincia = comp.longText;
+          if (types.includes('administrative_area_level_1')) provincia = comp.long_name;
           if (types.includes('locality') || types.includes('administrative_area_level_2')) {
-            if (!ciudad || types.includes('locality')) ciudad = comp.longText;
+            if (!ciudad || types.includes('locality')) ciudad = comp.long_name;
           }
           if (types.includes('sublocality') || types.includes('neighborhood')) {
-            barrio = comp.longText;
+            barrio = comp.long_name;
           }
         });
 
@@ -277,49 +249,38 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
 
         toast.success("Dirección verificada con éxito.");
       });
-    } catch (err) {
-      console.error("Error al inicializar PlaceAutocompleteElement:", err);
-    }
-  }, [setValue, currentMoneda]);
 
-  const setAddressContainerRef = useCallback((node: HTMLDivElement | null) => {
-    if (node) {
-      // 🐛 FIX DIRECCIÓN VACÍA: Al editar, los datos iniciales pueden llegar
-      // DESPUÉS de que el autocomplete se monta. Pasamos initialData?.direccion
-      // para que el defaultValue se establezca correctamente desde el inicio.
-      const direccionInicial = initialData?.direccion || '';
-      if (window.google) {
-        initAutocomplete(node, direccionInicial);
-      } else {
-        const interval = setInterval(() => {
-          if (window.google) {
-            initAutocomplete(node, direccionInicial);
-            clearInterval(interval);
-          }
-        }, 500);
-        setTimeout(() => clearInterval(interval), 5000);
-      }
+      autocompleteRef.current = ac;
+    } catch (err) {
+      console.error("Error al inicializar Autocomplete:", err);
+    }
+  }, [setValue]);
+
+  const setAddressInputRef = useCallback((node: HTMLInputElement | null) => {
+    addressInputRef.current = node;
+    if (!node) return;
+
+    // @ts-expect-error - window.google puede no estar tipado
+    if (window.google?.maps?.places) {
+      initAutocomplete(node);
+    } else {
+      const interval = setInterval(() => {
+        // @ts-expect-error - window.google puede no estar tipado
+        if (window.google?.maps?.places) {
+          initAutocomplete(node);
+          clearInterval(interval);
+        }
+      }, 500);
+      setTimeout(() => clearInterval(interval), 10000);
     }
   }, [initAutocomplete]);
 
-  // 🐛 FIX DIRECCIÓN VACÍA (v2): El callback ref NO se re-ejecuta cuando
-  // initialData llega de forma asíncrona. Este efecto actualiza el input
-  // visual de Google Maps cuando la dirección viene del servidor.
-  useEffect(() => {
-    const pac = autocompleteRef.current;
-    if (pac?.inputElement && initialData?.direccion) {
-      if (!pac.inputElement.value || pac.inputElement.value !== initialData.direccion) {
-        console.log('[AUTOCOMPLETE] Syncing dirección after async load:', initialData.direccion);
-        pac.inputElement.value = initialData.direccion;
-        setValue('direccion', initialData.direccion, { shouldValidate: true });
-      }
-    }
-  }, [initialData?.direccion, setValue]);
-
+  // Cleanup al desmontar
   useEffect(() => {
     return () => {
-      if (window.google && autocompleteRef.current) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      if (autocompleteRef.current) {
+        // @ts-expect-error - window.google puede no estar tipado
+        window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
         autocompleteRef.current = null;
       }
     };
@@ -698,15 +659,17 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
               
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-renta-900">Dirección Exacta <span className="text-red-500">*</span></label>
-                <div 
-                  key={initialData?.direccion || 'new'}
-                  ref={setAddressContainerRef}
+                <input
+                  ref={setAddressInputRef}
+                  type="text"
+                  value={watch('direccion') || ''}
+                  onChange={(e) => setValue('direccion', e.target.value, { shouldValidate: e.target.value.length > 5 })}
                   className={cn(
-                    "min-h-[42px] rounded-xl border bg-white transition-all overflow-visible z-[60] relative",
+                    "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950",
                     errors.direccion ? "border-red-400" : "border-admin-border"
                   )}
+                  placeholder="Ej: Av. Corrientes 1234, Buenos Aires"
                 />
-                <input type="hidden" {...register('direccion')} />
                 {errors.direccion && <p className="text-xs text-red-500 font-medium">{errors.direccion.message}</p>}
               </div>
 
@@ -1002,8 +965,17 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
 
         {/* Debug UI feedback for User Architect */}
         {Object.keys(errors).length > 0 && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
-             Corrija los campos en rojo para poder guardar el inventario.
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium space-y-1">
+            <p className="font-semibold">Corrija los siguientes campos para poder guardar:</p>
+            <ul className="list-disc list-inside space-y-0.5">
+              {Object.entries(errors).map(([field, err]: [string, any]) => (
+                <li key={field}><strong>{field}:</strong> {err?.message?.toString() || "Error de validación"}</li>
+              ))}
+              {/* Campos ocultos por status no-DISPONIBLE */}
+              {(errors.titulo || errors.descripcion) && currentStatus !== 'DISPONIBLE' && (
+                <li className="text-amber-700 font-semibold">⚠️ La propiedad está en estado "{currentStatus}" pero tiene errores en Título/Descripción. Cambia el estado a "Disponible" para verlos y corregirlos, o guarda primero en estado actual.</li>
+              )}
+            </ul>
           </div>
         )}
 
