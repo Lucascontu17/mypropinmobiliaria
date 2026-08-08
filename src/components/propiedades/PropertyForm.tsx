@@ -1,0 +1,1060 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { FormProvider, useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { propertySchema, type PropertyFormData } from '@/types/property';
+import { Save, X, Home, Map, Zap, DollarSign, Loader2, CheckCircle2, Tag, RefreshCw, UserPlus, Sparkles, BarChart3 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useRegion } from '@/hooks/useRegion';
+import { NumericInput } from '@/components/common/NumericInput';
+import { useActiveAddons } from '@/hooks/useActiveAddons';
+import { useApi } from '@/hooks/useApi';
+import { GalleryUploader } from './GalleryUploader';
+import { MapPicker } from './MapPicker';
+import { toast } from 'sonner';
+import { AcmButton } from './AcmButton';
+import { AcmPanel } from './AcmPanel';
+import { CloseSaleModal, type AcmResult } from './CloseSaleModal';
+
+interface ProveedorOpcion {
+  id: string;
+  nombre: string;
+}
+
+interface PropertyFormProps {
+  initialData?: Partial<PropertyFormData>;
+  owners: ProveedorOpcion[];
+  tenantId: string;
+  onSubmitSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, onCancel }: PropertyFormProps) {
+  const { currency_code } = useRegion();
+  const { hasAddon, getAddonPrice } = useActiveAddons();
+  const { apiFetch } = useApi();
+  const hasAiCopilot = hasAddon('Zonatia AI Copilot');
+  const aiPrice = getAddonPrice('Zonatia AI Copilot');
+
+  const methods = useForm<PropertyFormData>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(propertySchema) as any,
+    defaultValues: initialData || {
+      owner_id: '',
+      direccion: '',
+      status: 'DISPONIBLE',
+      valor_alquiler: '0',
+      imagenes: [],
+      // Detalles Técnicos (v1.9.0)
+      mts2: '0',
+      habitaciones: 0,
+      ambientes: 1,
+      banos: 0,
+      antiguedad: 0,
+      cocheras: 0,
+      // 1:1 Parity Columns
+      has_luz: false,
+      has_gas: false,
+      has_agua: false,
+      has_expensas: false,
+      has_abl: false,
+      moneda: currency_code as any,
+      operacion: 'alquiler',
+      valor_venta: '0',
+      provincia: '',
+      ciudad: '',
+      barrio: ''
+    }
+  });
+
+  const { register, handleSubmit, formState: { errors, isSubmitting }, watch, setValue, reset } = methods;
+
+  // Actualizar formulario cuando cargan los datos iniciales (Edit Mode)
+  useEffect(() => {
+    if (initialData) {
+      console.log("[PROPERTY-FORM] Resetting with initialData:", initialData);
+      // 🐛 FIX: Levantar flag para que el efecto de prevStatusRef no interprete
+      // el cambio de status como una acción manual del usuario.
+      pendingResetRef.current = true;
+      reset(initialData);
+    }
+  }, [initialData, reset]);
+
+
+  const onSubmit = async (data: PropertyFormData) => {
+    try {
+      // 🚨 MUX SECURITY (ZERO LEAKS): Force inmobiliaria_id
+      // 🔄 LÓGICA DE TRANSICIÓN: Vendida -> Alquiler (Requested by User)
+      const isTransition = data.operacion === 'venta' && data.status === 'VENDIDA' && gestionaAlquiler;
+      
+      const payload = {
+        ...data,
+        inmobiliaria_id: tenantId,
+        ...(isTransition ? {
+          operacion: 'alquiler',
+          status: 'DISPONIBLE',
+          // valor_alquiler ya fue actualizado vía setValue
+        } : {})
+      };
+
+      const { imagenes, ...rest } = payload;
+
+      // Separar archivos nuevos de URLs existentes
+      const newFiles = imagenes.filter((img: any) => img instanceof File);
+      const existingUrls = imagenes.filter((img: any) => typeof img === 'string');
+
+      // 🛠️ PERSISTENCIA EN EL BÚNKERA (v3.5.0 protocol)
+      const hasNewFiles = newFiles.length > 0;
+      let response: any;
+      
+      const isEditing = Boolean(initialData?.uid_prop);
+      const endpoint = isEditing ? `/admin/propiedades/${initialData?.uid_prop}` : '/admin/propiedades';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      // Añadimos las URLs existentes a la data para que el backend las conserve
+      const dataWithExistingImages = { ...rest, imagenes: existingUrls };
+
+      if (hasNewFiles) {
+        console.log(`[PROPIEDAD-FORM] Submitting via FormData (${method}) with ${newFiles.length} new files:`, dataWithExistingImages);
+        const fd = new FormData();
+        fd.append('data', JSON.stringify(dataWithExistingImages));
+        newFiles.forEach((file) => fd.append('imagenes', file));
+        
+        // Use raw fetch for FormData - Eden Treaty doesn't handle multipart properly
+        response = await apiFetch(endpoint, {
+          method,
+          body: fd,
+        });
+      } else {
+        console.log(`[PROPIEDAD-FORM] Submitting via JSON (${method}):`, dataWithExistingImages);
+        response = await apiFetch(endpoint, {
+          method,
+          body: JSON.stringify(dataWithExistingImages),
+        });
+      }
+
+      if (!methods.getValues('latitud') || !methods.getValues('longitud')) {
+        toast.warning("Atención: No se han detectado coordenadas geográficas.", {
+          description: "La propiedad se guardará, pero no aparecerá en las búsquedas 'Cerca de mí' en el portal público. Intenta seleccionar la dirección de las sugerencias de Google.",
+          duration: 6000
+        });
+      }
+
+      if (response && response.success === false) {
+        const errorMsg = response?.error || "Error desconocido";
+        console.error("[PROPIEDAD-SUBMIT] Error:", errorMsg);
+        toast.error("Error al persistir en El Búnker: " + (typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg));
+        return;
+      }
+
+      // ⚠️ AVISO DE FOTOS FALTANTES: Si guardó con menos de 4 imágenes, advertir
+      const imageCount = data.imagenes?.length || 0;
+      if (imageCount < 4 && currentStatus === 'DISPONIBLE') {
+        toast.warning(`Faltan imágenes para publicar`, {
+          description: `Has subido ${imageCount} de 4 imágenes mínimas. La propiedad está como "Disponible" pero NO será publicada en el portal hasta que tenga al menos 4 fotos.`,
+          duration: 8000,
+        });
+      } else if (imageCount < 4) {
+        toast.info("Recuerda las imágenes para publicar", {
+          description: `La propiedad se guardó con ${imageCount} imágenes. Cuando quieras publicarla, necesitarás al menos 4 fotos. Puedes agregarlas editando la propiedad más tarde.`,
+          duration: 6000,
+        });
+      }
+
+      // ⚠️ AVISO DE TEXTOS FALTANTES:
+      if (currentStatus === 'DISPONIBLE' && (!data.titulo?.trim() || !data.descripcion?.trim())) {
+         toast.warning("Faltan textos descriptivos", {
+           description: "Guardado exitoso. Sin embargo, recuerda que sin Título y Descripción la propiedad no será visible para los clientes en el portal público.",
+           duration: 8000,
+         });
+      }
+
+      toast.success("Propiedad ingresada correctamente al inventario.", {
+        icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+      });
+
+      if (onSubmitSuccess) onSubmitSuccess();
+    } catch (error) {
+      toast.error("Error de conectividad con el servidor.");
+      console.error('Error al guardar propiedad:', error);
+    }
+  };
+
+  const currentStatus = watch('status');
+  const currentOperacion = watch('operacion');
+  const currentMoneda = watch('moneda');
+
+  // Estado local para el flujo de transformación Venta -> Alquiler
+  const [gestionaAlquiler, setGestionaAlquiler] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<string | null>(null);
+  
+  // AI Copilot State
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [aiTone, setAiTone] = useState('Lujoso y Profesional');
+
+  // ACM State
+  const [acmData, setAcmData] = useState<AcmResult | null>(null);
+  const [acmIsLoading, setAcmIsLoading] = useState(false);
+  const [acmError, setAcmError] = useState<string | undefined>(undefined);
+  const [acmPanelOpen, setAcmPanelOpen] = useState(false);
+  const [closeSaleModalOpen, setCloseSaleModalOpen] = useState(false);
+  // Se abre automáticamente al marcar VENDIDA
+  const [lastStatusChange, setLastStatusChange] = useState<string | null>(null);
+
+
+  // --- Google Maps Autocomplete (Legacy Places API) ---
+  // Usamos la API legacy para adjuntarla a un <input> normal de HTML.
+  // El PlaceAutocompleteElement (Web Component) tenía problemas con su
+  // shadow DOM que bloqueaban la edición del campo en modo edición.
+  const autocompleteRef = useRef<any>(null);
+  const addressInputRef = useRef<HTMLInputElement | null>(null);
+
+  const initAutocomplete = useCallback((node: HTMLInputElement) => {
+    // @ts-expect-error - window.google puede no estar tipado
+    if (!window.google?.maps?.places || autocompleteRef.current) return;
+
+    try {
+      // @ts-expect-error - Legacy Places API
+      const ac = new window.google.maps.places.Autocomplete(node, {
+        types: ['address'],
+        fields: ['formatted_address', 'geometry', 'address_components']
+      });
+
+      ac.addListener('place_changed', () => {
+        const place = ac.getPlace();
+        if (!place.geometry?.location) {
+          toast.error("No se pudo obtener la ubicación precisa para esta dirección.");
+          return;
+        }
+
+        const address = place.formatted_address || node.value;
+        setValue('direccion', address, { shouldValidate: true });
+        setValue('latitud', place.geometry.location.lat(), { shouldValidate: true });
+        setValue('longitud', place.geometry.location.lng(), { shouldValidate: true });
+
+        let provincia = '', ciudad = '', barrio = '';
+        place.address_components?.forEach((comp: any) => {
+          const types = comp.types;
+          if (types.includes('administrative_area_level_1')) provincia = comp.long_name;
+          if (types.includes('locality') || types.includes('administrative_area_level_2')) {
+            if (!ciudad || types.includes('locality')) ciudad = comp.long_name;
+          }
+          if (types.includes('sublocality') || types.includes('neighborhood')) {
+            barrio = comp.long_name;
+          }
+        });
+
+        if (provincia) setValue('provincia', provincia);
+        if (ciudad) setValue('ciudad', ciudad);
+        if (barrio) setValue('barrio', barrio);
+
+        toast.success("Dirección verificada con éxito.");
+      });
+
+      autocompleteRef.current = ac;
+    } catch (err) {
+      console.error("Error al inicializar Autocomplete:", err);
+    }
+  }, [setValue]);
+
+  const setAddressInputRef = useCallback((node: HTMLInputElement | null) => {
+    addressInputRef.current = node;
+    if (!node) return;
+
+    // @ts-expect-error - window.google puede no estar tipado
+    if (window.google?.maps?.places) {
+      initAutocomplete(node);
+    } else {
+      const interval = setInterval(() => {
+        // @ts-expect-error - window.google puede no estar tipado
+        if (window.google?.maps?.places) {
+          initAutocomplete(node);
+          clearInterval(interval);
+        }
+      }, 500);
+      setTimeout(() => clearInterval(interval), 10000);
+    }
+  }, [initAutocomplete]);
+
+  // Cleanup al desmontar
+  useEffect(() => {
+    return () => {
+      if (autocompleteRef.current) {
+        // @ts-expect-error - window.google puede no estar tipado
+        window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
+        autocompleteRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleGenerateAiCopy = async () => {
+    const currentData = watch();
+    if (!currentData.tipo_inmueble || !currentData.mts2 || !currentData.valor_alquiler) {
+        toast.error("Faltan datos básicos", { description: "Por favor completa al menos el tipo de inmueble, superficie y valor para que la IA tenga contexto." });
+        return;
+    }
+
+    setIsGeneratingAi(true);
+    try {
+        const response: any = await apiFetch('/ai/generate-copy', {
+            method: 'POST',
+            body: JSON.stringify({
+                propertyData: currentData,
+                tono: aiTone
+            })
+        });
+
+        if (response?.success && response?.data) {
+            setValue('titulo', response.data.titulo, { shouldValidate: true, shouldDirty: true });
+            setValue('descripcion', response.data.descripcion, { shouldValidate: true, shouldDirty: true });
+            toast.success("¡Textos generados con éxito!", { icon: '✨' });
+        } else {
+            throw new Error(response?.error || 'Error desconocido al generar copy');
+        }
+    } catch (error: any) {
+        toast.error("Error de la IA", { description: error.message });
+    } finally {
+        setIsGeneratingAi(false);
+    }
+  };
+
+  // 🐛 FIX BUG #2 (v3.9.0): No limpiar título/descripción durante la carga inicial
+  // El default del form es status='DISPONIBLE', pero al editar una propiedad con
+  // status ALQUILADA/VENDIDA, el reset() cambia el status y el efecto lo detecta
+  // como un cambio de usuario, borrando los campos. Usamos pendingResetRef para
+  // distinguir cambios del reset() vs cambios manuales del usuario.
+  const pendingResetRef = useRef(false);
+  const prevStatusRef = useRef(currentStatus);
+  useEffect(() => {
+    if (prevStatusRef.current === 'DISPONIBLE' && currentStatus !== 'DISPONIBLE') {
+      if (pendingResetRef.current) {
+        // Este cambio viene del reset() de carga inicial, NO del usuario.
+        // Consumimos el flag y actualizamos el ref sin limpiar los campos.
+        pendingResetRef.current = false;
+        prevStatusRef.current = currentStatus;
+        return;
+      }
+      // Cambio manual del usuario: limpiar título y descripción
+      setValue('titulo', null as any);
+      setValue('descripcion', null as any);
+    }
+    prevStatusRef.current = currentStatus;
+  }, [currentStatus, setValue]);
+
+
+  const { onChange: rStatusOnChange, ...rStatusRest } = register('status');
+
+  return (
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-inter bg-white p-6 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm max-w-5xl mx-auto">
+        <div className="flex justify-between items-center border-b border-admin-border-subtle pb-4">
+          <h2 className="text-xl font-bold font-jakarta text-renta-950 flex items-center gap-2">
+            <Home className="h-5 w-5 text-renta-600" />
+            {initialData ? 'Editar Ficha Técnica' : 'Alta de Inventario Patrimonial'}
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Columna Izquierda: Datos Básicos y Geografía */}
+          <div className="space-y-6">
+            <div className="bg-renta-50/30 p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent space-y-4">
+              <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-3">
+                <DollarSign className="h-4 w-4" /> Datos Comerciales
+              </h3>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-renta-900">Tipo de Operación <span className="text-red-500">*</span></label>
+                  <select 
+                    {...register('operacion')}
+                    className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950 font-bold"
+                  >
+                    <option value="alquiler">🔑 Alquiler</option>
+                    <option value="venta">💰 Venta</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-renta-900">Divisa de Negocio <span className="text-red-500">*</span></label>
+                  <select 
+                    {...register('moneda')}
+                    className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950"
+                  >
+                    <option value={currency_code}>{currency_code} (Local)</option>
+                    <option value="USD">USD (Dólares)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-renta-900">Tipo de Inmueble <span className="text-red-500">*</span></label>
+                <select 
+                  {...register('tipo_inmueble')}
+                  className={cn(
+                    "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950",
+                    errors.tipo_inmueble ? "border-red-400" : "border-admin-border"
+                  )}
+                >
+                  <option value="">-- Seleccionar Tipo --</option>
+                  <option value="departamento">🏢 Departamento</option>
+                  <option value="casa">🏡 Casa</option>
+                  <option value="ph">🏘️ PH</option>
+                  <option value="local">🏬 Local</option>
+                  <option value="galpon">🏭 Galpón</option>
+                  <option value="oficina">🏢 Oficina</option>
+                  <option value="terreno">🌱 Terreno</option>
+                  <option value="habitacion">🛌 Habitación</option>
+                  <option value="otro">❓ Otro</option>
+                </select>
+                {errors.tipo_inmueble && <p className="text-xs text-red-500 font-medium">{errors.tipo_inmueble.message}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-renta-900">Propietario Vinculado <span className="text-red-500">*</span></label>
+                <select 
+                  {...register('owner_id')}
+                  className={cn(
+                    "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950",
+                    errors.owner_id ? "border-red-400" : "border-admin-border"
+                  )}
+                >
+                  <option value="">-- Seleccionar Propietario Vidu --</option>
+                  {owners?.map(owner => (
+                    <option key={owner.id} value={owner.id}>
+                      {owner.nombre || 'Sin nombre'}
+                    </option>
+                  ))}
+                </select>
+                {errors.owner_id && <p className="text-xs text-red-500 font-medium">{errors.owner_id.message}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-renta-900 flex items-center gap-1.5">
+                    {currentOperacion === 'alquiler' ? 'Valor Alquiler' : 'Valor de Venta'}
+                    {currentOperacion === 'alquiler' && currentStatus === 'ALQUILADA' && (
+                      <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium">🔒 No editable</span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase z-10">{currentMoneda}</span>
+                    <Controller
+                      control={methods.control}
+                      name={currentOperacion === 'alquiler' ? 'valor_alquiler' : 'valor_venta'}
+                      render={({ field }) => (
+                        <NumericInput
+                          placeholder="0.00"
+                          value={field.value}
+                          onChange={field.onChange}
+                          disabled={currentOperacion === 'alquiler' && currentStatus === 'ALQUILADA'}
+                          className={cn(
+                            "w-full rounded-xl border bg-white pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 text-renta-950 font-bold",
+                            (currentOperacion === 'alquiler' ? errors.valor_alquiler : errors.valor_venta) ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200",
+                            (currentOperacion === 'alquiler' && currentStatus === 'ALQUILADA') && "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          )}
+                        />
+                      )}
+                    />
+                  </div>
+                  {/* ACM Button: disponible solo para operación de venta */}
+                  {currentOperacion === 'venta' && (
+                    <div className="mt-2">
+                      <AcmButton
+                        tipo_inmueble={watch('tipo_inmueble')}
+                        operacion={currentOperacion}
+                        barrio={watch('barrio')}
+                        ambientes={watch('ambientes')}
+                        mts2={watch('mts2')}
+                        onResults={(data: any) => {
+                          if (data?.error) {
+                            setAcmError(data.error);
+                          } else {
+                            setAcmData(data as AcmResult);
+                            setAcmPanelOpen(true);
+                            setAcmError(undefined);
+                          }
+                        }}
+                        disabled={false}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-renta-900 text-right block">Estado del Inmueble</label>
+                  <select 
+                    {...rStatusRest}
+                    value={currentStatus}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (initialData && currentStatus !== 'DISPONIBLE' && val === 'DISPONIBLE') {
+                        setPendingStatusChange(val);
+                      } else {
+                        rStatusOnChange(e);
+                      }
+                      // 🏆 AUTO-TRIGGER ACM CLOSE SALE: Si se marca VENDIDA, abrir modal para aportar cierre
+                      if (val === 'VENDIDA' && currentOperacion === 'venta' && initialData?.uid_prop) {
+                        setTimeout(() => setCloseSaleModalOpen(true), 300);
+                      }
+                    }}
+                    className={cn(
+                      "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none font-bold focus:ring-1",
+                      currentStatus === 'DISPONIBLE' && "text-green-700 bg-green-50 border-green-200",
+                      currentStatus === 'ALQUILADA' && "text-blue-700 bg-blue-50 border-blue-200",
+                      currentStatus === 'RESERVADA' && "text-yellow-700 bg-yellow-50 border-yellow-200",
+                      currentStatus === 'VENDIDA' && "text-gray-700 bg-gray-50 border-gray-300",
+                      currentStatus === 'VENTA' && "text-orange-700 bg-orange-50 border-orange-200"
+                    )}
+                  >
+                    {currentOperacion === 'alquiler' ? (
+                      <>
+                        <option value="DISPONIBLE">🟢 Disponible</option>
+                        <option value="ALQUILADA">🔴 No Disponible (Alquilada)</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="DISPONIBLE">🟢 Disponible (Publicar)</option>
+                        <option value="RESERVADA">🟡 Reservado</option>
+                        <option value="VENDIDA">⚫ Vendido</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+              </div>
+
+              {/* FLUJO DINÁMICO: "VENDIDO" -> ¿TRANSICIÓN A ALQUILER? */}
+              {currentOperacion === 'venta' && currentStatus === 'VENDIDA' && (
+                <div className="mt-4 p-4 rounded-xl border-2 border-dashed border-admin-border bg-slate-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                       <RefreshCw className="h-4 w-4 text-renta-600 animate-spin-slow" />
+                       <h4 className="text-xs font-bold text-renta-900 uppercase tracking-wider">Cierre de Venta y Transmisión</h4>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                       <span className="text-[10px] font-bold text-renta-500">¿PASAR A GESTIÓN DE ALQUILER?</span>
+                       <input 
+                         type="checkbox" 
+                         checked={gestionaAlquiler} 
+                         onChange={(e) => {
+                            setGestionaAlquiler(e.target.checked);
+                            if (e.target.checked) {
+                              toast.info("Modo Transmisión Activado", {
+                                description: "La propiedad se convertirá automáticamente a Alquiler al guardar."
+                              });
+                            }
+                         }} 
+                         className="w-4 h-4 rounded text-renta-600" 
+                       />
+                    </label>
+                  </div>
+
+                  {gestionaAlquiler && (
+                    <div className="space-y-4 pt-2 border-t border-admin-border-subtle">
+                        <div className="space-y-1.5">
+                           <label className="text-[10px] font-bold text-renta-700 uppercase flex items-center gap-1">
+                              <UserPlus className="h-3 w-3" /> Nuevo Propietario (Titular Adquiriente)
+                           </label>
+                           <select 
+                             className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent bg-white px-3 py-2 text-xs"
+                             onChange={(e) => setValue('owner_id', e.target.value)}
+                           >
+                              <option value="">-- Seleccionar Comprador --</option>
+                              {owners?.map(o => <option key={o.id} value={o.id}>{o.nombre || 'Sin nombre'}</option>)}
+                           </select>
+                        </div>
+                        <div className="space-y-1.5">
+                           <label className="text-[10px] font-bold text-renta-700 uppercase">Valor de Alquiler Inicial</label>
+                           <div className="relative">
+                              <span className="absolute left-2.5 top-1.5 text-[10px] text-renta-500 font-bold uppercase">{currentMoneda}</span>
+                              <NumericInput 
+                                placeholder="0.00"
+                                value={watch('valor_alquiler')}
+                                onChange={(val) => setValue('valor_alquiler', val.toString())}
+                                className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent bg-white pl-6 pr-3 py-1.5 text-xs font-bold"
+                              />
+                           </div>
+                        </div>
+                        <div className="bg-emerald-50 p-2.5 rounded-lg border border-emerald-100 flex items-center gap-2">
+                           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                           <p className="text-[9px] text-emerald-800 leading-tight">
+                              Al guardar, la propiedad será cargada como <strong>DISPONIBLE</strong> en modo <strong>ALQUILER</strong> 
+                              bajo la titularidad del nuevo propietario seleccionado.
+                           </p>
+                        </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* SECCIÓN DE PUBLICACIÓN CONDICIONAL */}
+            {currentStatus === 'DISPONIBLE' && (
+              <div id="datos-publicacion" className="bg-blue-50/30 p-5 rounded-2xl border border-blue-200 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+                   <h3 className="text-sm font-jakarta font-bold text-blue-900 flex items-center gap-2">
+                      <Tag className="h-4 w-4" /> Datos de Publicación (Landing Page)
+                   </h3>
+                   <div className="flex flex-col items-end gap-1">
+                     <div className="flex items-center gap-2">
+                        <select 
+                          value={aiTone}
+                          onChange={(e) => setAiTone(e.target.value)}
+                          disabled={!hasAiCopilot}
+                          className="text-xs border-blue-200 bg-white rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-300 text-blue-900 font-medium disabled:opacity-50"
+                        >
+                           <option value="Lujoso y Profesional">💎 Lujoso</option>
+                           <option value="Dinámico y Juvenil">🚀 Dinámico</option>
+                           <option value="Formal y Descriptivo">📋 Formal</option>
+                           <option value="Directo y Comercial">🎯 Comercial</option>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={handleGenerateAiCopy}
+                          disabled={isGeneratingAi || !hasAiCopilot}
+                          className={cn(
+                            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-all",
+                            hasAiCopilot 
+                              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700" 
+                              : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          )}
+                        >
+                           {isGeneratingAi ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                           {isGeneratingAi ? 'Pensando...' : hasAiCopilot ? 'Generar con IA' : 'IA Bloqueada'}
+                        </button>
+                     </div>
+                     {hasAiCopilot ? (
+                       <p className="text-[9px] text-blue-600/70 font-medium italic">
+                         ✨ Costo por uso: {currentMoneda} {aiPrice} (se cargará a tu cuenta)
+                       </p>
+                     ) : (
+                       <p className="text-[9px] text-gray-400 font-medium">
+                         Activa el Asistente de IA en el Marketplace para usar esta función.
+                       </p>
+                     )}
+                   </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-1.5">
+                     <label className="text-sm font-semibold text-blue-900">Título Atractivo <span className="text-red-500">*</span></label>
+                     <input 
+                       {...register('titulo')} 
+                       className={cn("w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950 font-semibold", errors.titulo ? "border-red-400" : "border-blue-200 focus:border-blue-400 focus:ring-blue-100")} 
+                       placeholder="Ej: Espectacular Semipiso con Vista al Río" 
+                     />
+                     {errors.titulo && <p className="text-xs text-red-500 font-medium">{errors.titulo.message}</p>}
+                  </div>
+                  <div className="space-y-1.5">
+                     <label className="text-sm font-semibold text-blue-900">Descripción Detallada <span className="text-red-500">*</span></label>
+                     <textarea 
+                       {...register('descripcion')} 
+                       rows={4} 
+                       className={cn("w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950", errors.descripcion ? "border-red-400" : "border-blue-200 focus:border-blue-400 focus:ring-blue-100")} 
+                       placeholder="Describe las mejores características de la propiedad..." 
+                     />
+                     {errors.descripcion && <p className="text-xs text-red-500 font-medium">{errors.descripcion.message}</p>}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-renta-50/30 p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent space-y-4">
+              <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-3">
+                <Map className="h-4 w-4" /> Geoespacial
+              </h3>
+              
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-renta-900">Dirección Exacta <span className="text-red-500">*</span></label>
+                <input
+                  ref={setAddressInputRef}
+                  type="text"
+                  value={watch('direccion') || ''}
+                  onChange={(e) => setValue('direccion', e.target.value, { shouldValidate: e.target.value.length > 5 })}
+                  className={cn(
+                    "w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:border-renta-300 focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950",
+                    errors.direccion ? "border-red-400" : "border-admin-border"
+                  )}
+                  placeholder="Ej: Av. Corrientes 1234, Buenos Aires"
+                />
+                {errors.direccion && <p className="text-xs text-red-500 font-medium">{errors.direccion.message}</p>}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-renta-500 uppercase tracking-wider">Provincia / Estado</label>
+                  <input
+                    {...register('provincia')}
+                    className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent bg-white px-3 py-1.5 text-xs focus:ring-1 focus:ring-renta-200 text-renta-900"
+                    placeholder="Auto-fill..."
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-renta-500 uppercase tracking-wider">Ciudad</label>
+                  <input
+                    {...register('ciudad')}
+                    className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent bg-white px-3 py-1.5 text-xs focus:ring-1 focus:ring-renta-200 text-renta-900"
+                    placeholder="Auto-fill..."
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-renta-500 uppercase tracking-wider">Barrio / Colonia</label>
+                  <input
+                    {...register('barrio')}
+                    className="w-full rounded-lg ring-1 ring-inset ring-admin-border border-transparent bg-white px-3 py-1.5 text-xs focus:ring-1 focus:ring-renta-200 text-renta-900"
+                    placeholder="Auto-fill..."
+                  />
+                </div>
+              </div>
+
+              <MapPicker />
+            </div>
+
+            {/* Nueva Sección: Detalles Técnicos (Luxury Minimalist) */}
+            <div className="bg-white p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent space-y-4 shadow-sm">
+              <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-3 tracking-tight">
+                <div className="bg-renta-100 p-1 rounded-md">
+                   <Home className="h-4 w-4 text-renta-600" />
+                </div>
+                Especificaciones Técnicas
+              </h3>
+
+              {watch('tipo_inmueble') === 'departamento' && (
+                <div className="grid grid-cols-2 gap-4 pb-2">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Piso</label>
+                    <input
+                      {...register('piso')}
+                      type="text"
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      placeholder="Ej: 2"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Departamento</label>
+                    <input
+                      {...register('departamento_unidad')}
+                      type="text"
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      placeholder="Ej: B"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {watch('tipo_inmueble') === 'ph' && (
+                <div className="grid grid-cols-1 gap-4 pb-2">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Interno</label>
+                    <input
+                      {...register('interno')}
+                      type="text"
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      placeholder="Ej: PB, 1er Piso al fondo"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Superficie Total (m²)</label>
+                  <Controller
+                    control={methods.control}
+                    name="mts2"
+                    render={({ field }) => (
+                      <NumericInput
+                        placeholder="0.00"
+                        value={field.value}
+                        onChange={field.onChange}
+                        className={cn(
+                          "w-full rounded-xl border bg-admin-surface px-4 py-2 text-sm font-inter focus:ring-1 focus:ring-renta-200 transition-all text-renta-950",
+                          errors.mts2 ? "border-red-400" : "border-admin-border focus:border-renta-300"
+                        )}
+                      />
+                    )}
+                  />
+                  {errors.mts2 && <p className="text-[10px] text-red-500 font-medium">{errors.mts2.message}</p>}
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 col-span-2">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Ambientes</label>
+                    <select
+                      {...register('ambientes', { valueAsNumber: true })}
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950 cursor-pointer"
+                    >
+                      <option value={1}>1</option>
+                      <option value={2}>2</option>
+                      <option value={3}>3</option>
+                      <option value={4}>4</option>
+                      <option value={5}>4 o más de 4</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Habitaciones</label>
+                    <input
+                      {...register('habitaciones', { valueAsNumber: true })}
+                      type="number"
+                      min="0"
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                    />
+                  </div>
+                   <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Baños</label>
+                    <input
+                      {...register('banos', { valueAsNumber: true })}
+                      type="number"
+                      min="0"
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 col-span-2">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Cocheras</label>
+                    <input
+                      {...register('cocheras', { valueAsNumber: true })}
+                      type="number"
+                      min="0"
+                      className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold font-jakarta text-renta-600 uppercase tracking-wider">Antigüedad</label>
+                    <div className="relative">
+                       <input
+                        {...register('antiguedad', { valueAsNumber: true })}
+                        type="number"
+                        min="0"
+                        className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-admin-surface px-4 py-2 text-sm font-inter focus:border-renta-300 focus:ring-1 focus:ring-renta-200 transition-all text-renta-950"
+                      />
+                      <span className="absolute right-3 top-2 text-[10px] text-renta-400 font-bold">AÑOS</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Columna Derecha: Multimedia y Servicios */}
+          <div className="space-y-6">
+            <div className="bg-renta-50/30 p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent">
+               <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-4">
+                  <Zap className="h-4 w-4" /> Configuración de Servicios
+               </h3>
+               
+               <div className="space-y-3">
+                 {[
+                   { key: 'has_luz', label: 'Energía Eléctrica (Luz)' },
+                   { key: 'has_gas', label: 'Gas Natural' },
+                   { key: 'has_agua', label: 'Agua Corriente' },
+                   { key: 'has_expensas', label: 'Expensas Comunes' },
+                   { key: 'has_abl', label: 'Impuesto ABL / Municipal' }
+                 ].map((servicio) => (
+                    <div key={servicio.key} className="space-y-2">
+                      <label className="flex items-center gap-3 p-3 bg-white rounded-xl ring-1 ring-inset ring-admin-border border-transparent-subtle cursor-pointer hover:bg-renta-50 transition-colors">
+                        <input 
+                          type="checkbox"
+                          {...register(servicio.key as keyof PropertyFormData)}
+                          className="w-4 h-4 text-renta-600 rounded border-gray-300 focus:ring-renta-500"
+                        />
+                        <span className="text-sm font-semibold text-renta-900">{servicio.label}</span>
+                      </label>
+                      
+                      {/* Despliegue condicional para Expensas */}
+                      {servicio.key === 'has_expensas' && watch('has_expensas') && (
+                        <div className="pl-4 pr-3 py-1 animate-in fade-in slide-in-from-top-1">
+                          <label className="text-[10px] font-bold text-renta-700 uppercase tracking-wider mb-1.5 block">
+                            Valor Mensual de Expensas <span className="text-red-500">*</span>
+                          </label>
+                           <div className="relative">
+                             <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase z-10">{currentMoneda}</span>
+                             <Controller
+                               control={methods.control}
+                               name="valor_expensas"
+                               render={({ field }) => (
+                                 <NumericInput
+                                   placeholder="0.00"
+                                   value={field.value}
+                                   onChange={field.onChange}
+                                   className={cn(
+                                     "w-full rounded-xl border bg-white pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 text-renta-950 font-bold",
+                                     errors.valor_expensas ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                                   )}
+                                 />
+                               )}
+                             />
+                           </div>
+                          {errors.valor_expensas && <p className="text-[10px] text-red-500 font-medium mt-1">{errors.valor_expensas.message}</p>}
+                        </div>
+                      )}
+
+                      {/* Despliegue condicional para ABL */}
+                      {servicio.key === 'has_abl' && watch('has_abl') && (
+                        <div className="pl-4 pr-3 py-1 animate-in fade-in slide-in-from-top-1 space-y-3">
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-renta-700 uppercase tracking-wider mb-1 block">
+                              Modalidad de ABL <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              {...register('tipo_abl', { required: watch('has_abl') ? "Seleccione la modalidad" : false })}
+                              className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950 font-bold"
+                            >
+                              <option value="">-- Seleccionar --</option>
+                              <option value="fijo">Monto Fijo Mensual</option>
+                              <option value="variable">Monto Variable (A cargar cada mes)</option>
+                            </select>
+                            {errors.tipo_abl && <p className="text-[10px] text-red-500 font-medium">{errors.tipo_abl.message}</p>}
+                          </div>
+                          
+                          {watch('tipo_abl') === 'fijo' && (
+                            <div className="animate-in fade-in slide-in-from-top-1">
+                              <label className="text-[10px] font-bold text-renta-700 uppercase tracking-wider mb-1.5 block">
+                                Valor Fijo Mensual de ABL <span className="text-red-500">*</span>
+                              </label>
+                              <div className="relative">
+                                <span className="absolute left-3 top-2.5 text-[10px] text-renta-500 font-bold uppercase z-10">{currentMoneda}</span>
+                                <Controller
+                                  control={methods.control}
+                                  name="valor_abl"
+                                  render={({ field }) => (
+                                    <NumericInput
+                                      placeholder="0.00"
+                                      value={field.value}
+                                      onChange={field.onChange}
+                                      className={cn(
+                                        "w-full rounded-xl border bg-white pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 text-renta-950 font-bold",
+                                        errors.valor_abl ? "border-red-400" : "border-admin-border focus:border-renta-300 focus:ring-renta-200"
+                                      )}
+                                    />
+                                  )}
+                                />
+                              </div>
+                              {errors.valor_abl && <p className="text-[10px] text-red-500 font-medium mt-1">{errors.valor_abl.message}</p>}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                 ))}
+               </div>
+            </div>
+
+            <div className="bg-renta-50/30 p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent">
+              <GalleryUploader name="imagenes" />
+            </div>
+          </div>
+
+        </div>
+
+        {/* Footer Actions */}
+        <div className="flex items-center justify-end gap-3 pt-5 border-t border-admin-border-subtle mt-4">
+          {onCancel && (
+            <button 
+              type="button" 
+              onClick={onCancel}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
+            >
+              <X className="h-4 w-4" /> Cancelar
+            </button>
+          )}
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-renta-950 text-white text-sm font-semibold hover:bg-renta-800 disabled:opacity-50 transition-colors shadow-lg shadow-renta-950/20"
+          >
+            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} 
+            {initialData ? 'Guardar Cambios' : 'Ingresar Propiedad'}
+          </button>
+        </div>
+
+        {/* Debug UI feedback for User Architect */}
+        {Object.keys(errors).length > 0 && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium space-y-1">
+            <p className="font-semibold">Corrija los siguientes campos para poder guardar:</p>
+            <ul className="list-disc list-inside space-y-0.5">
+              {Object.entries(errors).map(([field, err]: [string, any]) => (
+                <li key={field}><strong>{field}:</strong> {err?.message?.toString() || "Error de validación"}</li>
+              ))}
+              {/* Campos ocultos por status no-DISPONIBLE */}
+              {(errors.titulo || errors.descripcion) && currentStatus !== 'DISPONIBLE' && (
+                <li className="text-amber-700 font-semibold">⚠️ La propiedad está en estado "{currentStatus}" pero tiene errores en Título/Descripción. Cambia el estado a "Disponible" para verlos y corregirlos, o guarda primero en estado actual.</li>
+              )}
+            </ul>
+          </div>
+        )}
+
+      </form>
+
+      {/* Modal de Transición de Estado a DISPONIBLE */}
+      {pendingStatusChange && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-renta-950/60 backdrop-blur-sm animate-fade-in">
+           <div className="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl animate-slide-up">
+              <div className="flex items-center gap-3 mb-4 text-blue-600">
+                 <div className="p-3 bg-blue-50 rounded-full">
+                    <Tag className="w-6 h-6" />
+                 </div>
+                 <h3 className="text-xl font-jakarta font-bold text-renta-950">Publicar Propiedad</h3>
+              </div>
+              <p className="font-inter text-renta-600 mb-6 leading-relaxed">
+                Estás por cambiar el estado a <strong>Disponible</strong>. Esto publicará la propiedad en la Landing Page a la vista de los clientes. Por favor, asegúrate de rellenar o revisar el <strong>Título</strong>, la <strong>Descripción</strong> y tener al menos <strong>4 imágenes</strong> subidas.
+              </p>
+              <div className="flex justify-end gap-3 pt-4 border-t border-renta-100">
+                 <button 
+                   type="button" 
+                   onClick={() => setPendingStatusChange(null)} 
+                   className="px-5 py-2.5 text-sm font-semibold text-renta-600 hover:bg-renta-50 rounded-xl transition-colors"
+                 >
+                   Cancelar
+                 </button>
+                 <button 
+                   type="button" 
+                   onClick={() => {
+                      setValue('status', pendingStatusChange as any, { shouldValidate: true });
+                      setPendingStatusChange(null);
+                      setTimeout(() => {
+                         const element = document.getElementById('datos-publicacion');
+                         if (element) {
+                           element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                           element.classList.add('ring-4', 'ring-blue-100');
+                           setTimeout(() => element.classList.remove('ring-4', 'ring-blue-100'), 2000);
+                         }
+                      }, 150);
+                   }} 
+                   className="px-5 py-2.5 text-sm font-bold bg-renta-950 text-white rounded-xl hover:bg-renta-800 transition-colors shadow-md"
+                 >
+                   Entendido
+                 </button>
+              </div>
+           </div>
+        </div>
+      )}
+
+      {/* ACM Panel lateral */}
+      <AcmPanel
+        isOpen={acmPanelOpen}
+        onClose={() => setAcmPanelOpen(false)}
+        data={acmData}
+        isLoading={acmIsLoading}
+        error={acmError}
+        onOpenCloseSale={() => {
+          setAcmPanelOpen(false);
+          setTimeout(() => setCloseSaleModalOpen(true), 200);
+        }}
+      />
+
+      {/* CloseSale Modal */}
+      <CloseSaleModal
+        isOpen={closeSaleModalOpen}
+        onClose={() => setCloseSaleModalOpen(false)}
+        propiedadId={initialData?.uid_prop || ''}
+        acmData={acmData}
+        onCierreExitoso={(data) => {
+          console.log('[ACM] Cierre registrado:', data);
+          setCloseSaleModalOpen(false);
+        }}
+      />
+
+    </FormProvider>
+  );
+}

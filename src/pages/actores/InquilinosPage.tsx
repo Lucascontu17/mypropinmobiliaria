@@ -1,0 +1,212 @@
+import { useState, useEffect } from 'react';
+import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { useRegion } from '@/hooks/useRegion';
+import { Plus, Search, Users, Edit2, Trash2, FileText, X, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { InquilinoForm } from '@/components/actores/InquilinoForm';
+import { useEden } from '@/services/eden';
+import { toast } from 'sonner';
+import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
+
+export function InquilinosPage() {
+  const { hasPermission, inmobiliaria_id } = useInmobiliaria();
+  const { t } = useRegion();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingData, setEditingData] = useState<any | null>(null);
+  const [inquilinos, setInquilinos] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { client: api, isReady } = useEden();
+  
+  useEffect(() => {
+    const fetchInquilinos = async () => {
+      if (!isReady) return;
+      try {
+        setIsLoading(true);
+        const res = await api.admin.inquilinos.get();
+        // Defensive check for new backend structure
+        const lista = res.data?.inquilinos ?? [];
+        setInquilinos(lista);
+      } catch (err) {
+        console.error("Critical error fetching inquilinos:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchInquilinos();
+  }, [isReady, api]);
+
+  const filteredInquilinos = inquilinos.filter(p => 
+    (p.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni || '').includes(searchTerm)
+  );
+
+  const shepherdSteps: ShepherdStep[] = [
+    {
+      target: '[data-shepherd="inq-header"]',
+      title: t('tour_inq_header_title', 'Gestión de Inquilinos'),
+      content: t('tour_inq_header_desc', 'Administre aquí todos los locatarios de sus propiedades. Puede consultar su información de contacto, documentos y estado de cuenta. Desde esta sección podrá registrar nuevos inquilinos, editarlos y darles seguimiento.'),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-shepherd="inq-buscador"]',
+      title: t('tour_inq_buscador_title', 'Buscador de Inquilinos'),
+      content: t('tour_inq_buscador_desc', 'Utilice este campo para buscar rápidamente inquilinos por nombre o DNI. A medida que escribe, la tabla se filtra automáticamente para mostrar los resultados coincidentes.'),
+      placement: 'bottom',
+    },
+    {
+      target: '[data-shepherd="inq-tabla"]',
+      title: t('tour_inq_tabla_title', 'Listado y Acciones'),
+      content: t('tour_inq_tabla_desc', 'Cada fila representa un inquilino con su ID de plataforma, datos personales y contacto telefónico. Desde la columna de acciones puede editar sus datos o, si tiene permisos de superadministrador, eliminar el registro.'),
+      placement: 'top',
+    }
+  ];
+
+  return (
+    <div className="space-y-6">
+      <LocalShepherd steps={shepherdSteps} storageKey="enjoy_local_inquilinos" />
+
+      {/* ── Header ── */}
+      <div data-shepherd="inq-header" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
+        <div>
+          <h1 className="text-2xl font-bold text-renta-950 font-jakarta">{t('nav_inquilinos', 'Inquilinos')}</h1>
+          <p className="text-sm text-renta-600 font-inter mt-1">
+            {t('inquilinos_subtitulo', 'Gestión de locatarios y acceso a documentación digital.')}
+          </p>
+        </div>
+      </div>
+
+      {/* ── Toolbar ── */}
+      <div data-shepherd="inq-buscador" className="flex items-center gap-4 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+        <div className="relative flex-1 max-w-md">
+
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-renta-400" />
+          <input
+            type="text"
+            placeholder={t('inquilinos_buscar', 'Buscar por nombre o DNI...')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white pl-10 pr-4 py-2 text-sm text-renta-900 placeholder:text-renta-400 focus:border-renta-300 focus:ring-1 focus:ring-renta-200 outline-none transition-all"
+          />
+        </div>
+      </div>
+
+      {/* ── Data Table ── */}
+      <div data-shepherd="inq-tabla" className="rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-white shadow-sm overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm font-inter">
+            <thead className="bg-renta-50/50 text-renta-600 border-b border-admin-border">
+              <tr>
+                <th className="px-6 py-4 font-semibold">{t('inquilinos_th_id', 'ID Plataforma')}</th>
+                <th className="px-6 py-4 font-semibold">{t('inquilinos_th_nombre', 'Inquilino')}</th>
+                <th className="px-6 py-4 font-semibold">{t('inquilinos_th_dni', 'DNI')}</th>
+                <th className="px-6 py-4 font-semibold">{t('inquilinos_th_contacto', 'Contacto (E.164)')}</th>
+                <th className="px-6 py-4 font-semibold text-right">{t('inquilinos_th_acciones', 'Acciones')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-admin-border-subtle">
+              {isLoading ? (
+                [...Array(5)].map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="px-6 py-4"><div className="h-6 w-16 bg-renta-50 rounded border border-slate-100" /></td>
+                    <td className="px-6 py-4">
+                      <div className="space-y-2">
+                        <div className="h-4 w-32 bg-renta-50 rounded" />
+                        <div className="h-3 w-20 bg-renta-50 rounded" />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4"><div className="h-4 w-24 bg-renta-50 rounded" /></td>
+                    <td className="px-6 py-4">
+                      <div className="space-y-2">
+                        <div className="h-4 w-28 bg-renta-50 rounded" />
+                        <div className="h-3 w-36 bg-renta-50 rounded" />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right"><div className="h-8 w-8 bg-renta-50 rounded-lg ml-auto" /></td>
+                  </tr>
+                ))
+              ) : (filteredInquilinos?.length === 0) ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-renta-500">
+                    <Users className="mx-auto h-8 w-8 text-renta-200 mb-3" />
+                    {t('inquilinos_vacio', 'No se encontraron inquilinos.')}
+                  </td>
+                </tr>
+              ) : (
+                filteredInquilinos?.map((t) => (
+                  <tr key={t?.id} className="hover:bg-admin-surface-hover transition-colors">
+                    <td className="px-6 py-4">
+                      <span className="font-mono font-bold text-renta-950 bg-slate-100 px-2 py-1 rounded text-xs border border-slate-200">
+                        #{t?.client_number || 'N/A'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-renta-950">{t?.nombre || 'Sin nombre'}</span>
+                        {t?.status === 'CLIENT' && (
+                          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">Potencial Inquilino</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-renta-600">{t?.dni || '-'}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-renta-900 font-medium">{t?.celular || 'No registrado'}</span>
+                        {t?.email ? (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-xs text-renta-500">{t.email}</span>
+                            {!t?.clerk_id && (
+                              <span className="text-[9px] font-medium text-amber-600 bg-amber-50 px-1.5 py-[1px] rounded-full border border-amber-200 whitespace-nowrap">
+                                Sin usuario
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-renta-500">Sin email</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button 
+                          onClick={() => { setEditingData(t); setIsFormOpen(true); }}
+                          className="p-2 text-renta-400 hover:text-renta-700 hover:bg-renta-50 rounded-lg transition-colors"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        {hasPermission(['superadmin']) && (
+                          <button
+                            onClick={() => {
+                              toast.error('Función no disponible', {
+                                description: 'La eliminación de inquilinos se gestiona desde el backend.'
+                              });
+                            }}
+                            className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {isFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-renta-950/40 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <InquilinoForm 
+              initialData={editingData} 
+              onCancel={() => setIsFormOpen(false)} 
+              onSuccess={() => setIsFormOpen(false)} 
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,333 @@
+import { X, Calendar, User, Home, AlertTriangle, MessageSquare, Loader2, TrendingUp, ShieldCheck, Key, Clock, Percent } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
+interface Contrato {
+  id: string;
+  propiedad: string;
+  propietario: string;
+  inquilino: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  precio: number;
+  estado: string;
+  reglas_aumento?: {
+    aplicar_aumento: boolean;
+    tipo_aumento?: string;
+    periodicidad?: string;
+    porcentaje?: number;
+    monto_fijo?: number;
+  };
+  reglas_mora?: {
+    aplicar_mora: boolean;
+    periodicidad?: string;
+    porcentaje?: number;
+    dias_gracia?: number;
+  };
+  contrato_url?: string;
+  dni_url?: string;
+}
+
+interface ContratoDetailsModalProps {
+  contrato: Contrato;
+  onClose: () => void;
+  onFinalizar: (contratoId: string) => Promise<void>;
+  onReunion: (contratoId: string, target: 'inquilino' | 'propietario') => Promise<void>;
+}
+
+export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion }: ContratoDetailsModalProps) {
+  const [isFinishing, setIsFinishing] = useState(false);
+  const [isMeetingInq, setIsMeetingInq] = useState(false);
+  const [isMeetingProp, setIsMeetingProp] = useState(false);
+  
+  // Estados para el Double Check
+  const [confirmInq, setConfirmInq] = useState(false);
+  const [confirmProp, setConfirmProp] = useState(false);
+
+  const handleFinalizar = async () => {
+    if (!window.confirm('¿Está seguro que desea finalizar anticipadamente este contrato? Esta acción es irreversible.')) return;
+    setIsFinishing(true);
+    try {
+      await onFinalizar(contrato.id);
+    } finally {
+      setIsFinishing(false);
+    }
+  };
+
+  const handleReunion = async (target: 'inquilino' | 'propietario') => {
+    if (target === 'inquilino') {
+      if (!confirmInq) {
+        setConfirmInq(true);
+        setTimeout(() => {
+          setConfirmInq(prev => {
+            if (prev) toast.info('No se confirmó la solicitud de cita');
+            return false;
+          });
+        }, 3000);
+        return;
+      }
+      setIsMeetingInq(true);
+    } else {
+      if (!confirmProp) {
+        setConfirmProp(true);
+        setTimeout(() => {
+          setConfirmProp(prev => {
+            if (prev) toast.info('No se confirmó la solicitud de cita');
+            return false;
+          });
+        }, 3000);
+        return;
+      }
+      setIsMeetingProp(true);
+    }
+
+    try {
+      await onReunion(contrato.id, target);
+      setConfirmInq(false);
+      setConfirmProp(false);
+    } finally {
+      setIsMeetingInq(false);
+      setIsMeetingProp(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-renta-950/40 backdrop-blur-sm animate-in fade-in duration-300 overflow-y-auto">
+      <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[95vh]">
+        {/* Header */}
+        <div className="bg-renta-50 px-6 py-5 border-b border-admin-border-subtle flex justify-between items-center shrink-0">
+          <div>
+            <h2 className="text-xl font-bold font-jakarta text-renta-950 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-renta-600" />
+              Detalles del Contrato
+            </h2>
+            <p className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mt-0.5">Vigencia y Reglas Financieras</p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-2 text-renta-400 hover:text-renta-600 hover:bg-renta-100 rounded-full transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-6 flex-1 overflow-y-auto custom-scrollbar">
+          {/* Top Status & Main Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-renta-50/50 p-4 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent-subtle flex flex-col justify-center">
+              <span className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mb-1">Estado Actual</span>
+              <span className={cn(
+                "px-3 py-1 rounded-full text-xs font-bold font-jakarta border w-fit",
+                contrato.estado === 'ACTIVO' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-renta-100 text-renta-600 border-renta-200"
+              )}>
+                {contrato.estado}
+              </span>
+            </div>
+            <div className="bg-renta-50/50 p-4 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent-subtle flex flex-col justify-center">
+              <span className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mb-1">Valor del Alquiler</span>
+              <span className="text-lg font-black text-renta-950 font-jakarta">
+                ${contrato.precio.toLocaleString('es-AR')}
+              </span>
+            </div>
+          </div>
+
+          {/* Vínculos Principales */}
+          <div className="space-y-4">
+             <h3 className="text-xs font-bold text-renta-900 uppercase tracking-widest flex items-center gap-2 border-b border-admin-border-subtle pb-2">
+                <Home className="w-3.5 h-3.5" /> Actores y Propiedad
+             </h3>
+             <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-center gap-3 p-3 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-2xl shadow-sm">
+                   <div className="h-9 w-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                      <Home className="w-4 h-4" />
+                   </div>
+                   <div className="min-w-0">
+                      <p className="text-[10px] font-bold text-renta-400 uppercase tracking-tighter">Propiedad Alquilada</p>
+                      <p className="text-sm font-bold text-renta-950 truncate">{contrato.propiedad}</p>
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                   <div className="flex items-center gap-3 p-3 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-2xl shadow-sm">
+                      <div className="h-9 w-9 rounded-xl bg-renta-50 flex items-center justify-center text-renta-600 shrink-0">
+                         <Key className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                         <p className="text-[10px] font-bold text-renta-400 uppercase tracking-tighter">Propietario</p>
+                         <p className="text-sm font-bold text-renta-950 truncate">{contrato.propietario}</p>
+                      </div>
+                   </div>
+                   <div className="flex items-center gap-3 p-3 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-2xl shadow-sm">
+                      <div className="h-9 w-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                         <User className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                         <p className="text-[10px] font-bold text-renta-400 uppercase tracking-tighter">Locatario (Inquilino)</p>
+                         <p className="text-sm font-bold text-renta-950 truncate">{contrato.inquilino}</p>
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
+
+          {/* Fechas y Vigencia */}
+          <div className="space-y-4">
+             <h3 className="text-xs font-bold text-renta-900 uppercase tracking-widest flex items-center gap-2 border-b border-admin-border-subtle pb-2">
+                <Calendar className="w-3.5 h-3.5" /> Ciclo de Vida
+             </h3>
+             <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center text-center">
+                   <span className="text-[9px] font-black text-slate-400 uppercase mb-1">Inicio</span>
+                   <span className="text-sm font-bold text-slate-700">{contrato.fecha_inicio}</span>
+                </div>
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center text-center">
+                   <span className="text-[9px] font-black text-slate-400 uppercase mb-1">Finalización</span>
+                   <span className="text-sm font-bold text-slate-700">{contrato.fecha_fin}</span>
+                </div>
+             </div>
+          </div>
+
+          {/* Documentación Respaldatoria */}
+          {(contrato.contrato_url || contrato.dni_url) && (
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-renta-900 uppercase tracking-widest flex items-center gap-2 border-b border-admin-border-subtle pb-2">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Documentación Respaldatoria
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {contrato.contrato_url && (
+                  <a 
+                    href={contrato.contrato_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 bg-renta-50/50 hover:bg-renta-50 ring-1 ring-inset ring-renta-200 border-transparent rounded-2xl shadow-sm transition-colors group"
+                  >
+                    <div className="h-9 w-9 rounded-xl bg-renta-100 flex items-center justify-center text-renta-600 shrink-0 group-hover:bg-renta-200 transition-colors">
+                        <MessageSquare className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                        <p className="text-[10px] font-bold text-renta-500 uppercase tracking-tighter">PDF Oficial</p>
+                        <p className="text-sm font-bold text-renta-950 truncate">Ver Contrato Firmado</p>
+                    </div>
+                  </a>
+                )}
+                {contrato.dni_url && (
+                  <a 
+                    href={contrato.dni_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 bg-emerald-50/50 hover:bg-emerald-50 ring-1 ring-inset ring-emerald-200 border-transparent rounded-2xl shadow-sm transition-colors group"
+                  >
+                    <div className="h-9 w-9 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 group-hover:bg-emerald-200 transition-colors">
+                        <User className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                        <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">Identidad</p>
+                        <p className="text-sm font-bold text-emerald-950 truncate">Ver DNI Locatario</p>
+                    </div>
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Reglas Financieras */}
+          <div className="space-y-4">
+             <h3 className="text-xs font-bold text-renta-900 uppercase tracking-widest flex items-center gap-2 border-b border-admin-border-subtle pb-2">
+                <TrendingUp className="w-3.5 h-3.5" /> Motor de Rentabilidad
+             </h3>
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Aumentos */}
+                <div className="p-4 rounded-2xl border border-emerald-100 bg-emerald-50/30 space-y-2">
+                   <div className="flex items-center gap-2 text-emerald-700">
+                      <TrendingUp className="w-4 h-4" />
+                      <span className="text-xs font-bold uppercase">Aumentos</span>
+                   </div>
+                   {contrato.reglas_aumento?.aplicar_aumento ? (
+                     <div className="space-y-1">
+                        <p className="text-[11px] text-emerald-800 font-medium">
+                           Tipo: <span className="font-bold">{contrato.reglas_aumento.tipo_aumento?.replace(/_/g, ' ')}</span>
+                        </p>
+                        <p className="text-[11px] text-emerald-800 font-medium">
+                           Cada: <span className="font-bold">{contrato.reglas_aumento.periodicidad}</span>
+                        </p>
+                        {contrato.reglas_aumento.tipo_aumento === 'MONTO_FIJO' && contrato.reglas_aumento.monto_fijo ? (
+                           <p className="text-[11px] text-emerald-800 font-medium">
+                              Monto Fijo: <span className="font-bold">${contrato.reglas_aumento.monto_fijo.toLocaleString('es-AR')}</span>
+                           </p>
+                        ) : contrato.reglas_aumento.porcentaje && (
+                           <p className="text-[11px] text-emerald-800 font-medium">
+                              Tasa: <span className="font-bold">{contrato.reglas_aumento.porcentaje}%</span>
+                           </p>
+                        )}
+                     </div>
+                   ) : (
+                     <p className="text-[10px] text-emerald-600 font-medium italic">Sin aumentos configurados</p>
+                   )}
+                </div>
+
+                {/* Mora */}
+                <div className="p-4 rounded-2xl border border-amber-100 bg-amber-50/30 space-y-2">
+                   <div className="flex items-center gap-2 text-amber-700">
+                      <Clock className="w-4 h-4" />
+                      <span className="text-xs font-bold uppercase">Interés Moroso</span>
+                   </div>
+                   {contrato.reglas_mora?.aplicar_mora ? (
+                     <div className="space-y-1">
+                        <p className="text-[11px] text-amber-800 font-medium">
+                           Mora: <span className="font-bold">{contrato.reglas_mora.porcentaje}% {contrato.reglas_mora.periodicidad}</span>
+                        </p>
+                        <p className="text-[11px] text-amber-800 font-medium">
+                           Gracia: <span className="font-bold">{contrato.reglas_mora.dias_gracia} días</span>
+                        </p>
+                     </div>
+                   ) : (
+                     <p className="text-[10px] text-amber-600 font-medium italic">Sin intereses morosos</p>
+                   )}
+                </div>
+             </div>
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="bg-admin-surface p-6 border-t border-admin-border-subtle space-y-3 shrink-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button 
+              onClick={() => handleReunion('inquilino')}
+              disabled={isMeetingInq || contrato.estado !== 'ACTIVO'}
+              className={cn(
+                "flex items-center justify-center gap-2 py-3 rounded-xl font-bold font-jakarta transition shadow-lg disabled:opacity-50",
+                confirmInq ? "bg-amber-500 text-white shadow-amber-500/20" : "bg-renta-600 text-white shadow-renta-600/20 hover:bg-renta-700"
+              )}
+            >
+              {isMeetingInq ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
+              {confirmInq ? '¿Confirmar Cita?' : 'Citar Inquilino'}
+            </button>
+
+            <button 
+              onClick={() => handleReunion('propietario')}
+              disabled={isMeetingProp || contrato.estado !== 'ACTIVO'}
+              className={cn(
+                "flex items-center justify-center gap-2 py-3 rounded-xl font-bold font-jakarta transition shadow-lg disabled:opacity-50",
+                confirmProp ? "bg-amber-500 text-white shadow-amber-500/20" : "bg-renta-950 text-white shadow-renta-950/20 hover:bg-renta-800"
+              )}
+            >
+              {isMeetingProp ? <Loader2 className="w-4 h-4 animate-spin" /> : <User className="w-4 h-4" />}
+              {confirmProp ? '¿Confirmar Cita?' : 'Citar Propietario'}
+            </button>
+          </div>
+
+          <button 
+            onClick={handleFinalizar}
+            disabled={isFinishing || contrato.estado !== 'ACTIVO'}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-red-50 text-red-600 rounded-xl font-bold font-jakarta border border-red-200 hover:bg-red-100 transition disabled:opacity-50"
+          >
+            {isFinishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertTriangle className="w-4 h-4" />}
+            Finalizar Anticipadamente
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

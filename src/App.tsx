@@ -1,0 +1,182 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import { ClerkProvider } from '@/providers/ClerkProvider';
+import { RegionProvider } from '@/providers/RegionProvider';
+import { ShepherdProvider } from '@/providers/ShepherdProvider';
+import { AdminLayout } from '@/components/layout/AdminLayout';
+import { DashboardPage } from '@/pages/DashboardPage';
+import { LoginPage } from '@/pages/auth/LoginPage';
+import { RegisterPage } from '@/pages/auth/RegisterPage';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { PropietariosPage } from '@/pages/actores/PropietariosPage';
+import { InquilinosPage } from '@/pages/actores/InquilinosPage';
+import { PropiedadesPage } from '@/pages/propiedades/PropiedadesPage';
+import { PropiedadFormPage } from '@/pages/propiedades/PropiedadFormPage';
+import { ContratosPage } from '@/pages/contratos/ContratosPage';
+import { ContratoFormPage } from '@/pages/contratos/ContratoFormPage';
+import { CobranzasPage } from '@/pages/cobranzas/CobranzasPage';
+import { ProyeccionAumentosPage } from '@/pages/cobranzas/ProyeccionAumentosPage';
+import { MarketplacePage } from '@/pages/marketplace/MarketplacePage';
+import { ConfiguracionPage } from '@/pages/configuracion/ConfiguracionPage';
+import { EquipoPage } from '@/pages/equipo/EquipoPage';
+import { SuscripcionPage } from '@/pages/configuracion/SuscripcionPage';
+import { SupportPage } from '@/pages/support/SupportPage';
+import VisitasPage from '@/pages/VisitasPage';
+
+function App() {
+  return (
+    <ClerkProvider>
+      <RegionProvider>
+        <ShepherdProvider>
+          <BrowserRouter>
+            <Toaster position="top-right" expand={false} richColors closeButton />
+            <Routes>
+              {/* ── Auth Routes (Standalone) ── */}
+              <Route path="/login/*" element={<LoginPage />} />
+              <Route path="/registro/*" element={<RegisterPage />} />
+
+              {/* ── Búnker Routes (Protected & Layouted) ── */}
+              <Route 
+                element={
+                  <ProtectedRoute>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/" element={<DashboardPage />} />
+                
+                <Route 
+                  path="/propietarios" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin', 'vendedor']}>
+                      <PropietariosPage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/propiedades" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin', 'vendedor']}>
+                      <PropiedadesPage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/propiedades/:id" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin', 'vendedor']}>
+                      <PropiedadFormPage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/contratos" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin', 'vendedor']}>
+                      <ContratosPage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/visitas" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin', 'vendedor']}>
+                      <VisitasPage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/contratos/nuevo" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin', 'vendedor']}>
+                      <ContratoFormPage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/cobranzas" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
+                      <CobranzasPage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/cobranzas/aumentos" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
+                      <ProyeccionAumentosPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/inquilinos" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
+                      <InquilinosPage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/marketplace" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
+                      <MarketplacePage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/suscripcion" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
+                      <SuscripcionPage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/equipo" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
+                      <EquipoPage />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/configuracion" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin']}>
+                      <ConfiguracionPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/soporte" 
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin', 'vendedor']}>
+                      <SupportPage />
+                    </ProtectedRoute>
+                  } 
+                />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </ShepherdProvider>
+      </RegionProvider>
+    </ClerkProvider>
+  );
+}
+
+export default App;
