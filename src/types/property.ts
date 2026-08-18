@@ -68,6 +68,25 @@ export const propertySchema = z.object({
   status: z.enum(["DISPONIBLE", "ALQUILADA", "VENTA", "RESERVADA", "VENDIDA"]).default("DISPONIBLE"),
   titulo: z.string().optional().nullable(),
   descripcion: z.string().optional().nullable(),
+}).superRefine((data, ctx) => {
+  // Título y Descripción son obligatorios SOLO cuando la propiedad se publica (DISPONIBLE).
+  // En el resto de estados (ej. "No Disponible" / ALQUILADA) son opcionales.
+  if (data.status === 'DISPONIBLE') {
+    if (!data.titulo || data.titulo.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "El título es obligatorio para publicar en la Landing Page.",
+        path: ["titulo"]
+      });
+    }
+    if (!data.descripcion || data.descripcion.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "La descripción es obligatoria para publicar en la Landing Page.",
+        path: ["descripcion"]
+      });
+    }
+  }
 });
 
 export type PropertyFormData = z.infer<typeof propertySchema>;
