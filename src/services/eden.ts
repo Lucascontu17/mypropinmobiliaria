@@ -1,5 +1,5 @@
 import { treaty } from '@elysiajs/eden';
-import { useAuth, useUser } from '@/mock/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { useMemo, useState, useEffect } from 'react';
 
 // @ts-expect-error - mypropapi types not published to npm
