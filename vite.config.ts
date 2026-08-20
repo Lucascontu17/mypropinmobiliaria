@@ -70,6 +70,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@clerk/clerk-react": path.resolve(__dirname, "./src/mock/clerk-react.ts"),
+      "@clerk/shared": path.resolve(__dirname, "./src/mock/clerk-shared.ts"),
+      "@elysiajs/eden": path.resolve(__dirname, "./src/mock/empty.ts"),
     },
   },
   base: '/',

@@ -72,9 +72,6 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
   useEffect(() => {
     if (initialData) {
       console.log("[PROPERTY-FORM] Resetting with initialData:", initialData);
-      // 🐛 FIX: Levantar flag para que el efecto de prevStatusRef no interprete
-      // el cambio de status como una acción manual del usuario.
-      pendingResetRef.current = true;
       reset(initialData);
     }
   }, [initialData, reset]);
@@ -316,30 +313,6 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
         setIsGeneratingAi(false);
     }
   };
-
-  // 🐛 FIX BUG #2 (v3.9.0): No limpiar título/descripción durante la carga inicial
-  // El default del form es status='DISPONIBLE', pero al editar una propiedad con
-  // status ALQUILADA/VENDIDA, el reset() cambia el status y el efecto lo detecta
-  // como un cambio de usuario, borrando los campos. Usamos pendingResetRef para
-  // distinguir cambios del reset() vs cambios manuales del usuario.
-  const pendingResetRef = useRef(false);
-  const prevStatusRef = useRef(currentStatus);
-  useEffect(() => {
-    if (prevStatusRef.current === 'DISPONIBLE' && currentStatus !== 'DISPONIBLE') {
-      if (pendingResetRef.current) {
-        // Este cambio viene del reset() de carga inicial, NO del usuario.
-        // Consumimos el flag y actualizamos el ref sin limpiar los campos.
-        pendingResetRef.current = false;
-        prevStatusRef.current = currentStatus;
-        return;
-      }
-      // Cambio manual del usuario: limpiar título y descripción
-      setValue('titulo', null as any);
-      setValue('descripcion', null as any);
-    }
-    prevStatusRef.current = currentStatus;
-  }, [currentStatus, setValue]);
-
 
   const { onChange: rStatusOnChange, ...rStatusRest } = register('status');
 
@@ -587,9 +560,8 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
               )}
             </div>
 
-            {/* SECCIÓN DE PUBLICACIÓN CONDICIONAL */}
-            {currentStatus === 'DISPONIBLE' && (
-              <div id="datos-publicacion" className="bg-blue-50/30 p-5 rounded-2xl border border-blue-200 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+            {/* SECCIÓN DE PUBLICACIÓN: Título y Descripción (obligatorios solo en DISPONIBLE) */}
+            <div id="datos-publicacion" className="bg-blue-50/30 p-5 rounded-2xl border border-blue-200 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
                    <h3 className="text-sm font-jakarta font-bold text-blue-900 flex items-center gap-2">
                       <Tag className="h-4 w-4" /> Datos de Publicación (Landing Page)
@@ -635,7 +607,7 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1.5">
-                     <label className="text-sm font-semibold text-blue-900">Título Atractivo <span className="text-red-500">*</span></label>
+                     <label className="text-sm font-semibold text-blue-900">Título Atractivo {currentStatus === 'DISPONIBLE' ? <span className="text-red-500">*</span> : <span className="text-blue-400/70 font-normal text-xs">(opcional)</span>}</label>
                      <input 
                        {...register('titulo')} 
                        className={cn("w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-1 transition-all text-renta-950 font-semibold", errors.titulo ? "border-red-400" : "border-blue-200 focus:border-blue-400 focus:ring-blue-100")} 
@@ -644,7 +616,7 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
                      {errors.titulo && <p className="text-xs text-red-500 font-medium">{errors.titulo.message}</p>}
                   </div>
                   <div className="space-y-1.5">
-                     <label className="text-sm font-semibold text-blue-900">Descripción Detallada <span className="text-red-500">*</span></label>
+                     <label className="text-sm font-semibold text-blue-900">Descripción Detallada {currentStatus === 'DISPONIBLE' ? <span className="text-red-500">*</span> : <span className="text-blue-400/70 font-normal text-xs">(opcional)</span>}</label>
                      <textarea 
                        {...register('descripcion')} 
                        rows={4} 
@@ -654,8 +626,7 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
                      {errors.descripcion && <p className="text-xs text-red-500 font-medium">{errors.descripcion.message}</p>}
                   </div>
                 </div>
-              </div>
-            )}
+            </div>
 
             <div className="bg-renta-50/30 p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent space-y-4">
               <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2 mb-3">
@@ -976,10 +947,6 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
               {Object.entries(errors).map(([field, err]: [string, any]) => (
                 <li key={field}><strong>{field}:</strong> {err?.message?.toString() || "Error de validación"}</li>
               ))}
-              {/* Campos ocultos por status no-DISPONIBLE */}
-              {(errors.titulo || errors.descripcion) && currentStatus !== 'DISPONIBLE' && (
-                <li className="text-amber-700 font-semibold">⚠️ La propiedad está en estado "{currentStatus}" pero tiene errores en Título/Descripción. Cambia el estado a "Disponible" para verlos y corregirlos, o guarda primero en estado actual.</li>
-              )}
             </ul>
           </div>
         )}

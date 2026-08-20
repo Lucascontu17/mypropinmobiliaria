@@ -41,11 +41,17 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
       
       toast.info('Procesando Cierre Maestro en Búnker...');
       // @ts-expect-error - Eden Treaty dynamic path - Triggering Master Rollover (v2.0.1 Integrity Fix)
-      const { error } = await eden.admin.pagos['cierre-maestro'].post(payload);
+      const res = await eden.admin.pagos['cierre-maestro'].post(payload);
 
-      if (error) throw new Error('Error al ejecutar el cierre maestro.');
+      if (res.error) throw new Error('Error al ejecutar el cierre maestro.');
 
-      toast.success('Cierre de periodo y Rollover completados con éxito.');
+      // @ts-expect-error - Eden Treaty dynamic response shape
+      const procesados: number = res.data?.data?.procesados ?? res.data?.procesados ?? -1;
+      if (procesados === 0) {
+        toast.success(`No había pagos pendientes; se avanzó el periodo a ${nextPeriodo}.`);
+      } else {
+        toast.success('Cierre de periodo y Rollover completados con éxito.');
+      }
       if (onSuccess) onSuccess(nextPeriodo);
       onClose();
     } catch (e: any) {
