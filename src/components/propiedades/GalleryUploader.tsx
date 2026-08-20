@@ -5,6 +5,7 @@ import { useFormContext } from 'react-hook-form';
 import { useRegion } from '@/hooks/useRegion';
 
 import { BASE_URL } from '@/services/eden';
+import { compressImage } from '@/lib/imageCompression';
 
 interface GalleryUploaderProps {
   name: string;
@@ -33,16 +34,21 @@ export function GalleryUploader({ name }: GalleryUploaderProps) {
     };
   }, [files]);
 
-  const handleFiles = (newFiles: File[]) => {
+  const handleFiles = async (newFiles: File[]) => {
+    // Comprimir las imágenes en paralelo antes de guardarlas.
+    // Reduce 10-20x el peso → la subida a R2 es mucho más rápida.
+    const compressed = await Promise.all(newFiles.map(compressImage));
 
     // Prevent adding more than 60
-    const totalFiles = [...files, ...newFiles].slice(0, 60);
+    const totalFiles = [...files, ...compressed].slice(0, 60);
     setValue(name, totalFiles, { shouldValidate: true });
   };
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       handleFiles(Array.from(e.target.files));
+      // Permitir volver a seleccionar el mismo archivo luego de quitarlo
+      e.target.value = '';
     }
   };
 
