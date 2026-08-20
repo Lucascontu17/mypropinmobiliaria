@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useApi } from './useApi';
-import { useAuth } from '@/mock/clerk-react';
+import { useAuth } from '@clerk/clerk-react';
 
 /**
  * useActiveAddons — Fetches and caches the list of active add-on names
