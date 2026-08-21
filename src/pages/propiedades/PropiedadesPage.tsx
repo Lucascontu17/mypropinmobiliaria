@@ -9,11 +9,21 @@ import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShe
 import { CloseSaleModal } from '@/components/propiedades/CloseSaleModal';
 import { toast } from 'sonner';
 
+// Formatea el valor de una propiedad mostrando el código de moneda explícito (ej. "USD 250.000")
+function formatValor(value: unknown, moneda?: string, locale: string = 'es-AR'): string {
+  const num = Number(value || 0);
+  const formatted = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(isNaN(num) ? 0 : num);
+  return moneda ? `${moneda} ${formatted}` : formatted;
+}
+
 export function PropiedadesPage() {
   const { hasPermission, role } = useInmobiliaria();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTipo, setFilterTipo] = useState<string>('todos');
-  const { t, formatCurrency } = useRegion();
+  const { t, config } = useRegion();
   const navigate = useNavigate();
   const { client: eden, isReady } = useEden();
 
@@ -282,9 +292,10 @@ export function PropiedadesPage() {
                         </div>
                       </td>
                      <td className="px-6 py-4 text-renta-900 font-bold">
-                        {formatCurrency(
-                          Number((p?.operacion === 'venta' ? p?.valor_venta : p?.valor_alquiler) || 0),
-                          p?.moneda
+                        {formatValor(
+                          p?.operacion === 'venta' ? p?.valor_venta : p?.valor_alquiler,
+                          p?.moneda,
+                          config.currency_locale
                         )}
                      </td>
                      <td className="px-6 py-4 text-right">
