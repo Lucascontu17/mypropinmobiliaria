@@ -141,14 +141,14 @@ export const MOCK_COBRANZAS = Array.from({ length: 65 }, (_, i) => {
 
 // ─── EQUIPO (forma que consume EquipoPage: data.data) ───
 export const MOCK_EQUIPO = [
-  { id: "u1", nombre: "Martín Gutiérrez", role: "superadmin", email: "martin@propdelplata.com", estado: "activo" },
-  { id: "u2", nombre: "Carolina Mendez", role: "admin", email: "caro@propdelplata.com", estado: "activo" },
-  { id: "u3", nombre: "Alejandro Paz", role: "admin", email: "ale@propdelplata.com", estado: "activo" },
-  { id: "u4", nombre: "Laura Esquivel", role: "vendedor", email: "laura@propdelplata.com", estado: "activo" },
-  { id: "u5", nombre: "Diego Ramírez", role: "vendedor", email: "diego@propdelplata.com", estado: "activo" },
-  { id: "u6", nombre: "Sofía Castellano", role: "vendedor", email: "sofi@propdelplata.com", estado: "activo" },
-  { id: "u7", nombre: "Germán Oliva", role: "vendedor", email: "ger@propdelplata.com", estado: "activo" },
-  { id: "u8", nombre: "Marcela Duarte", role: "contador", email: "marce@propdelplata.com", estado: "activo" },
+  { id: "u1", nombre: "Martín Gutiérrez", role: "superadmin", email: "martin@propdelplata.com", celular: "+54 11 4500-0001", estado: "activo", fecha_alta: "2022-03-15" },
+  { id: "u2", nombre: "Carolina Mendez", role: "admin", email: "caro@propdelplata.com", celular: "+54 11 4500-0002", estado: "activo", fecha_alta: "2022-06-01" },
+  { id: "u3", nombre: "Alejandro Paz", role: "admin", email: "ale@propdelplata.com", celular: "+54 11 4500-0003", estado: "activo", fecha_alta: "2022-09-20" },
+  { id: "u4", nombre: "Laura Esquivel", role: "vendedor", email: "laura@propdelplata.com", celular: "+54 11 4500-0004", estado: "activo", fecha_alta: "2023-01-10" },
+  { id: "u5", nombre: "Diego Ramírez", role: "vendedor", email: "diego@propdelplata.com", celular: "+54 11 4500-0005", estado: "activo", fecha_alta: "2023-04-05" },
+  { id: "u6", nombre: "Sofía Castellano", role: "vendedor", email: "sofi@propdelplata.com", celular: "+54 11 4500-0006", estado: "activo", fecha_alta: "2023-07-22" },
+  { id: "u7", nombre: "Germán Oliva", role: "vendedor", email: "ger@propdelplata.com", celular: "+54 11 4500-0007", estado: "activo", fecha_alta: "2024-02-14" },
+  { id: "u8", nombre: "Marcela Duarte", role: "vendedor", email: "marce@propdelplata.com", celular: "+54 11 4500-0008", estado: "inactivo", fecha_alta: "2024-11-01" },
 ];
 
 // ─── VISITAS (forma Visita de VisitasPage) ───
