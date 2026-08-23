@@ -74,6 +74,11 @@ export default defineConfig({
       "@elysiajs/eden": path.resolve(__dirname, "./src/mock/empty.ts"),
     },
   },
+  optimizeDeps: {
+    // Evita que Vite pre-bundlee los paquetes mockeados, para que el alias
+    // apunte a src/mock/* en lugar de a node_modules (solo rama mock).
+    exclude: ["@clerk/clerk-react", "@elysiajs/eden"],
+  },
   base: '/',
   build: {
     outDir: 'dist',
