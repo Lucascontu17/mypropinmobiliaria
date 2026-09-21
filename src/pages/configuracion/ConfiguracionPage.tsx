@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useClerk } from '@clerk/clerk-react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
 import { toast } from 'sonner';
-import { Settings, BellRing, Mail, MessageSquare, Save, ShieldAlert, Globe, RotateCcw, Building2, Lock, Image as ImageIcon, ExternalLink, UploadCloud, X, Loader2, AlertCircle } from 'lucide-react';
+import { Settings, BellRing, Mail, MessageSquare, Save, ShieldAlert, Globe, RotateCcw, Building2, Lock, Image as ImageIcon, ExternalLink, UploadCloud, X, Loader2, AlertCircle, Trash2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
 import { useSWRConfig } from 'swr';
@@ -34,6 +35,7 @@ export function ConfiguracionPage() {
   const { client, token, isReady } = useEden();
   const { mutate } = useSWRConfig();
   const { hasAddon } = useActiveAddons();
+  const { signOut } = useClerk();
 
   const isSuperadmin = role === 'superadmin';
   const isAdmin = role === 'admin';
@@ -54,6 +56,11 @@ export function ConfiguracionPage() {
   const [emailActivo, setEmailActivo] = useState(false);
   const [telefono, setTelefono] = useState(config.phone_prefix);
   const [errorTelefono, setErrorTelefono] = useState('');
+
+  // ── Eliminar cuenta (Zona de Peligro) ──
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Cargar configuración de notificaciones desde la API
   useEffect(() => {
@@ -214,6 +221,37 @@ export function ConfiguracionPage() {
          setLogoError(e.message || 'Error inesperado');
        }
        setIsSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText.trim() !== (nombreInmoActual ?? '').trim()) return;
+
+    setIsDeleting(true);
+    try {
+      // @ts-expect-error - Eden Treaty dynamic path
+      const { error } = await client.admin.cuenta.delete();
+
+      if (error) {
+        let errorMsg = 'Error desconocido';
+        if (typeof error.value === 'string') {
+          errorMsg = error.value;
+        } else if (error.value && typeof error.value === 'object') {
+          const ev = error.value as any;
+          errorMsg = ev.error || ev.message || ev.detail || JSON.stringify(ev);
+        }
+        console.error('[DELETE-CUENTA] Error:', error);
+        toast.error('No se pudo eliminar la cuenta', { description: errorMsg });
+        setIsDeleting(false);
+        return;
+      }
+
+      toast.success('Cuenta eliminada correctamente');
+      await signOut({ redirectUrl: 'https://zonatia.com' });
+    } catch (err: any) {
+      console.error('[DELETE-CUENTA] Error inesperado:', err);
+      toast.error('Error inesperado', { description: err?.message || 'No se pudo eliminar la cuenta' });
+      setIsDeleting(false);
     }
   };
 
@@ -585,6 +623,80 @@ export function ConfiguracionPage() {
             </button>
           </div>
       </div>
+
+      {/* ── Zona de Peligro ── */}
+      {isSuperadmin && (
+        <div className="rounded-2xl ring-1 ring-inset ring-red-200 border border-transparent bg-red-50/40 p-6">
+          <div className="flex items-start justify-between gap-6">
+            <div className="space-y-1 flex-1">
+              <h3 className="text-sm font-bold text-red-700 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                {t('config_zona_peligro', 'Zona de Peligro')}
+              </h3>
+              <p className="text-xs text-renta-600 leading-relaxed max-w-xl">
+                {t('config_zona_peligro_desc', 'Eliminar la cuenta borrará la inmobiliaria, todo su equipo de trabajo y toda la información asociada (propiedades, contratos, cobranzas, etc.). Esta acción es irreversible.')}
+              </p>
+            </div>
+            <button
+              onClick={() => { setDeleteConfirmText(''); setIsDeleteModalOpen(true); }}
+              className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition-colors hover:bg-red-500"
+            >
+              <Trash2 className="h-4 w-4" />
+              {t('config_eliminar_cuenta', 'Eliminar cuenta')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Eliminar Cuenta ── */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-renta-950/40 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-renta-950">
+                  {t('config_eliminar_titulo', 'Eliminar cuenta')}
+                </h3>
+                <p className="text-xs text-renta-600 leading-relaxed">
+                  {t('config_eliminar_confirmacion', 'Para confirmar, escribí el nombre de tu inmobiliaria:')} <strong className="text-renta-950">{nombreInmoActual}</strong>
+                </p>
+              </div>
+            </div>
+
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={nombreInmoActual ?? ''}
+              className="mt-4 w-full rounded-xl border border-admin-border px-3 py-2.5 text-sm outline-none focus:border-red-400 focus:ring-1 focus:ring-red-200 transition-all"
+            />
+
+            <div className="mt-5 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                disabled={isDeleting}
+                className="px-4 py-2.5 text-sm font-semibold text-renta-600 rounded-xl hover:bg-renta-50 transition-colors disabled:opacity-50"
+              >
+                {t('config_cancelar', 'Cancelar')}
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeleting || deleteConfirmText.trim() !== (nombreInmoActual ?? '').trim()}
+                className="flex items-center gap-2 bg-red-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-red-500 transition-colors shadow-lg shadow-red-600/20 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> {t('config_eliminando', 'Eliminando...')}</>
+                ) : (
+                  <><Trash2 className="h-4 w-4" /> {t('config_eliminar_confirmar', 'Eliminar definitivamente')}</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

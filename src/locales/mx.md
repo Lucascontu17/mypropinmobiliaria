@@ -88,6 +88,14 @@ config_region_titulo: Modo Auditoría Regional
 config_region_desc: Simule la experiencia de usuario para diferentes países. Este cambio solo afecta la capa de presentación (textos, moneda, formato). No altera el Master Filter ni los datos reales.
 config_region_actual: Región Activa
 config_region_reset: Restablecer a TLD Real
+config_zona_peligro: Zona de Peligro
+config_zona_peligro_desc: Eliminar la cuenta borrará la inmobiliaria, todo su equipo de trabajo y toda la información asociada (propiedades, contratos, cobranzas, etc.). Esta acción es irreversible.
+config_eliminar_cuenta: Eliminar cuenta
+config_eliminar_titulo: Eliminar cuenta
+config_eliminar_confirmacion: Para confirmar, escribe el nombre de tu inmobiliaria:
+config_cancelar: Cancelar
+config_eliminando: Eliminando...
+config_eliminar_confirmar: Eliminar definitivamente
 
 # Onboarding
 tour_btn_next: Siguiente

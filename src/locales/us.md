@@ -88,6 +88,14 @@ config_region_titulo: Regional Audit Mode
 config_region_desc: Simulate user experience for different countries. This change only affects the presentation layer (text, currency, format). It does not alter the Master Filter or actual data.
 config_region_actual: Active Region
 config_region_reset: Reset to Real TLD
+config_zona_peligro: Danger Zone
+config_zona_peligro_desc: Deleting the account will remove the real estate agency, its entire team and all associated data (properties, contracts, collections, etc.). This action is irreversible.
+config_eliminar_cuenta: Delete account
+config_eliminar_titulo: Delete account
+config_eliminar_confirmacion: To confirm, type the name of your agency:
+config_cancelar: Cancel
+config_eliminando: Deleting...
+config_eliminar_confirmar: Delete permanently
 
 # Onboarding
 tour_btn_next: Next

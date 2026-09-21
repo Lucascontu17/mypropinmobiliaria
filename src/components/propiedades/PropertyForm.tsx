@@ -171,7 +171,8 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
 
       if (onSubmitSuccess) onSubmitSuccess();
     } catch (error) {
-      toast.error("Error de conectividad con el servidor.");
+      const msg = error instanceof Error ? error.message : 'Error al guardar la propiedad';
+      toast.error(msg);
       console.error('Error al guardar propiedad:', error);
     }
   };
