@@ -62,7 +62,10 @@ export const propertySchema = z.object({
   has_expensas: z.boolean().default(false),
   valor_expensas: z.coerce.string().optional(),
   has_abl: z.boolean().default(false),
-  tipo_abl: z.enum(["fijo", "variable"]).optional().nullable(),
+  tipo_abl: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.enum(["fijo", "variable"]).nullable().optional()
+  ),
   valor_abl: z.coerce.string().optional(),
   
   status: z.enum(["DISPONIBLE", "ALQUILADA", "VENTA", "RESERVADA", "VENDIDA"]).default("DISPONIBLE"),
