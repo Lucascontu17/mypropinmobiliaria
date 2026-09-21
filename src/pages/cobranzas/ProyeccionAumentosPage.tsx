@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRegion } from '@/hooks/useRegion';
 import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
-import { TrendingUp, ArrowUpRight, Percent, BarChart3, AlertCircle, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { TrendingUp, ArrowUpRight, Percent, BarChart3, AlertCircle, ChevronLeft, ChevronRight, RefreshCw, Pencil, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type TipoAumento = 'PORCENTAJE_MANUAL' | 'MONTO_FIJO' | 'INDICE_IPC' | 'INDICE_ICL';
@@ -22,6 +22,8 @@ interface ProyeccionItem {
   indice_usado: string | null;
   periodicidad: string;
   meses_transcurridos: number;
+  monto_original?: number;
+  ajustado?: boolean;
 }
 
 interface ProyeccionData {
@@ -68,6 +70,8 @@ export function ProyeccionAumentosPage() {
   const [data, setData] = useState<ProyeccionData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [periodo, setPeriodo] = useState(nextMonthPeriodo());
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
 
   const fetchData = async (p: string) => {
     setIsLoading(true);
@@ -91,6 +95,58 @@ export function ProyeccionAumentosPage() {
   useEffect(() => {
     if (isReady) fetchData(periodo);
   }, [isReady, periodo]);
+
+  const startEdit = (p: ProyeccionItem) => {
+    setEditingId(p.contrato_id);
+    setEditValue(String(p.monto_proyectado));
+  };
+
+  const handleSaveAjuste = async (p: ProyeccionItem) => {
+    const valor = parseFloat(editValue);
+    if (isNaN(valor) || valor <= 0) {
+      toast.error('Ingresá un monto válido mayor a 0');
+      return;
+    }
+    try {
+      // @ts-expect-error - Eden Treaty dynamic path
+      const { error } = await eden.admin['cobranzas']['proyeccion-aumentos']['ajustar'].post({
+        contrato_id: p.contrato_id,
+        periodo: p.periodo_proyectado,
+        monto_ajustado: valor,
+        monto_original: p.monto_original ?? p.monto_proyectado,
+      });
+      if (error) {
+        toast.error('No se pudo guardar el ajuste');
+        return;
+      }
+
+      setData((prev) => {
+        if (!prev) return prev;
+        const proyecciones = prev.proyecciones.map((item) => {
+          if (item.contrato_id === p.contrato_id) {
+            const diferencia = valor - item.monto_actual;
+            const porcentaje = item.monto_actual > 0 ? ((valor - item.monto_actual) / item.monto_actual) * 100 : 0;
+            return {
+              ...item,
+              monto_original: p.monto_original ?? item.monto_proyectado,
+              monto_proyectado: valor,
+              diferencia: parseFloat(diferencia.toFixed(2)),
+              porcentaje_aplicado: parseFloat(porcentaje.toFixed(4)),
+              ajustado: true,
+            };
+          }
+          return item;
+        });
+        const total = proyecciones.reduce((acc, item) => acc + (isNaN(item.diferencia) ? 0 : item.diferencia), 0);
+        return { ...prev, proyecciones, total_incremento_recaudacion: parseFloat(total.toFixed(2)) };
+      });
+
+      setEditingId(null);
+      toast.success('Monto ajustado correctamente');
+    } catch {
+      toast.error('Error al conectar con el servidor');
+    }
+  };
 
   const proyecciones = data?.proyecciones ?? [];
 
@@ -272,7 +328,7 @@ export function ProyeccionAumentosPage() {
 
                       {/* Porcentaje Aplicado */}
                       <td className="px-6 py-4 text-right">
-                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' && p.tipo_aumento !== 'MONTO_FIJO' ? (
+                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' && p.tipo_aumento !== 'MONTO_FIJO' && !p.ajustado ? (
                           <div className="flex flex-col items-end gap-0.5" title="El índice oficial para este periodo aún no ha sido publicado.">
                             <span className="font-bold text-orange-600 text-xs flex items-center gap-1">
                               <AlertCircle className="w-3.5 h-3.5" /> Pendiente
@@ -287,16 +343,59 @@ export function ProyeccionAumentosPage() {
 
                       {/* Monto Proyectado */}
                       <td className="px-6 py-4 text-right font-bold text-renta-950">
-                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' && p.tipo_aumento !== 'MONTO_FIJO' ? (
-                          <span className="text-renta-400 italic font-medium text-sm" title="Se calculará cuando el índice sea publicado">A confirmar</span>
+                        {editingId === p.contrato_id ? (
+                          <div className="flex items-center justify-end gap-1.5">
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveAjuste(p);
+                                if (e.key === 'Escape') setEditingId(null);
+                              }}
+                              autoFocus
+                              className="w-28 rounded-lg border border-renta-300 px-2 py-1 text-right text-sm font-bold text-renta-950 focus:outline-none focus:ring-2 focus:ring-renta-500"
+                            />
+                            <button
+                              onClick={() => handleSaveAjuste(p)}
+                              className="p-1 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                              title="Guardar"
+                            >
+                              <Check className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => setEditingId(null)}
+                              className="p-1 rounded-md bg-renta-50 text-renta-500 hover:bg-renta-100 transition-colors"
+                              title="Cancelar"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
                         ) : (
-                          formatCurrency(p.monto_proyectado)
+                          <div className="flex items-center justify-end gap-1.5">
+                            <span className={cn(p.ajustado && 'text-amber-700')} title={p.ajustado ? 'Monto ajustado manualmente' : undefined}>
+                              {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' && p.tipo_aumento !== 'MONTO_FIJO' && !p.ajustado ? (
+                                <span className="text-renta-400 italic font-medium text-sm" title="Se calculará cuando el índice sea publicado">A confirmar</span>
+                              ) : (
+                                formatCurrency(p.monto_proyectado)
+                              )}
+                            </span>
+                            <button
+                              onClick={() => startEdit(p)}
+                              className="p-1 rounded-md text-renta-300 hover:text-renta-700 hover:bg-renta-50 transition-colors"
+                              title="Editar monto"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         )}
                       </td>
 
                       {/* Diferencia */}
                       <td className="px-6 py-4 text-right">
-                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' && p.tipo_aumento !== 'MONTO_FIJO' ? (
+                        {p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' && p.tipo_aumento !== 'MONTO_FIJO' && !p.ajustado ? (
                           <span className="text-renta-400 font-medium text-sm">—</span>
                         ) : (
                           <span className="font-bold text-emerald-600">
@@ -326,7 +425,7 @@ export function ProyeccionAumentosPage() {
               <p className="text-xs text-renta-500 font-medium">
                 {proyecciones.length} contrato{proyecciones.length !== 1 ? 's' : ''} con aumento en {formatPeriodo(periodo)}
               </p>
-              {proyecciones.some(p => p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' && p.tipo_aumento !== 'MONTO_FIJO') && (
+              {proyecciones.some(p => p.porcentaje_aplicado === 0 && p.tipo_aumento !== 'PORCENTAJE_MANUAL' && p.tipo_aumento !== 'MONTO_FIJO' && !p.ajustado) && (
                 <p className="text-[11px] text-orange-600 font-medium flex items-center gap-1 mt-1">
                   <AlertCircle className="w-3 h-3" /> Hay proyecciones pendientes de publicación del índice oficial.
                 </p>
