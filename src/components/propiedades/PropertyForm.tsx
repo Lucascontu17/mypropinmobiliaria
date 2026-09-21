@@ -866,10 +866,10 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
                         <div className="pl-4 pr-3 py-1 animate-in fade-in slide-in-from-top-1 space-y-3">
                           <div className="space-y-1.5">
                             <label className="text-[10px] font-bold text-renta-700 uppercase tracking-wider mb-1 block">
-                              Modalidad de ABL <span className="text-red-500">*</span>
+                              Modalidad de ABL
                             </label>
                             <select
-                              {...register('tipo_abl', { required: watch('has_abl') ? "Seleccione la modalidad" : false })}
+                              {...register('tipo_abl')}
                               className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-renta-200 text-renta-950 font-bold"
                             >
                               <option value="">-- Seleccionar --</option>
