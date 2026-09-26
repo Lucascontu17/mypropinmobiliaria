@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phone, Rocket, X, Loader2, Trophy, Trash2 } from 'lucide-react';
+import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phone, Rocket, X, Loader2, Trophy, Trash2, Link2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { useEden } from '@/services/eden';
+import { useEden, BASE_URL } from '@/services/eden';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 import { CloseSaleModal } from '@/components/propiedades/CloseSaleModal';
 import { toast } from 'sonner';
@@ -332,6 +332,24 @@ export function PropiedadesPage() {
                          >
                            <Phone className="h-4 w-4" />
                          </button>
+                          {/* Copiar enlace de la ficha pública */}
+                          <button 
+                            onClick={async () => {
+                              const link = `${BASE_URL}/f/${p?.uid_prop}`;
+                              try {
+                                await navigator.clipboard.writeText(link);
+                                toast.success('Enlace copiado', { description: 'Ficha pública lista para compartir.' });
+                              } catch {
+                                toast.error('No se pudo copiar el enlace');
+                              }
+                            }}
+                            disabled={p?.is_public !== true}
+                            title={p?.is_public === true ? 'Copiar enlace de la ficha pública' : 'Completá título, descripción y al menos 4 fotos para publicar'}
+                            className="p-2 text-renta-500 hover:bg-renta-50 hover:text-renta-700 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                          >
+                            <Link2 className="h-4 w-4" />
+                          </button>
+
                          <button 
                            onClick={() => navigate(`/propiedades/${p?.uid_prop}`)}
                            className="p-2 text-renta-400 hover:text-renta-700 hover:bg-renta-50 rounded-lg transition-colors"
