@@ -68,7 +68,7 @@ export function SuscripcionPage() {
       // @ts-expect-error - Eden Treaty dynamic path
       const res = await eden.billing['create-preference'].post({
         monto: summary?.total_amount || 0,
-        moneda: 'ARS'
+        moneda: summary?.currency || 'ARS'
       });
       if (res.data?.success && res.data.preference?.id) {
         setPreferenceId(res.data.preference.id);
