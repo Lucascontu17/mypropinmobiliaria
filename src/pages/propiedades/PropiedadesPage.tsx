@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phone, Rocket, X, Loader2, Trophy, Trash2, Link2 } from 'lucide-react';
+import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phone, Rocket, X, Loader2, Trophy, Trash2, Link2, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useEden, BASE_URL } from '@/services/eden';
+import { useApi } from '@/hooks/useApi';
 import { LocalShepherd, type ShepherdStep } from '@/components/shepherd/LocalShepherd';
 import { CloseSaleModal } from '@/components/propiedades/CloseSaleModal';
 import { toast } from 'sonner';
@@ -26,10 +27,17 @@ export function PropiedadesPage() {
   const { t, config } = useRegion();
   const navigate = useNavigate();
   const { client: eden, isReady } = useEden();
+  const { apiFetch } = useApi();
 
   const [properties, setProperties] = useState<any[]>([]);
   const [owners, setOwners] = useState<{ id: string; nombre: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Borradores (autosave)
+  const [drafts, setDrafts] = useState<any[]>([]);
+  const [draftLimits, setDraftLimits] = useState<{ used: number; limit: number | null; unlimited: boolean }>({ used: 0, limit: 3, unlimited: false });
+  const [draftsLoading, setDraftsLoading] = useState(true);
+  const [deletingDraftId, setDeletingDraftId] = useState<string | null>(null);
 
   // CloseSale Modal State (acción rápida desde el listado)
   const [closeSaleModal, setCloseSaleModal] = useState<{ uid: string; moneda: string; valorVenta: number } | null>(null);
@@ -72,6 +80,26 @@ export function PropiedadesPage() {
     fetchInitialData();
   }, [eden, isReady]);
 
+  // Cargar borradores activos
+  useEffect(() => {
+    const fetchDrafts = async () => {
+      if (!isReady) return;
+      setDraftsLoading(true);
+      try {
+        const res = await apiFetch('/borradores');
+        if (res?.success) {
+          setDrafts(res.borradores ?? []);
+          setDraftLimits(res.limits ?? { used: 0, limit: 3, unlimited: false });
+        }
+      } catch (err) {
+        console.error('[BORRADORES] Error fetching:', err);
+      } finally {
+        setDraftsLoading(false);
+      }
+    };
+    fetchDrafts();
+  }, [isReady, apiFetch]);
+
   const filteredProperties = properties.filter(p => {
     const matchesSearch = (p.direccion || '').toLowerCase().includes(searchTerm.toLowerCase()) || (p.titulo || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTipo = filterTipo === 'todos' || p.tipo_inmueble === filterTipo;
@@ -101,6 +129,28 @@ export function PropiedadesPage() {
       toast.error(err.message);
     } finally {
       setIsAssigning(false);
+    }
+  };
+
+  const handleResumeDraft = (draftId: string) => {
+    navigate(`/propiedades/nueva?borrador=${draftId}`);
+  };
+
+  const handleDeleteDraft = async (draftId: string) => {
+    setDeletingDraftId(draftId);
+    try {
+      const res = await apiFetch(`/borradores/${draftId}`, { method: 'DELETE' });
+      if (res?.success) {
+        toast.success('Borrador eliminado.');
+        setDrafts((prev) => prev.filter((d) => d.id !== draftId));
+        setDraftLimits((prev) => ({ ...prev, used: Math.max(0, (prev.used || 1) - 1) }));
+      } else {
+        toast.error(res?.error || 'No se pudo eliminar el borrador.');
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al eliminar el borrador.');
+    } finally {
+      setDeletingDraftId(null);
     }
   };
 
@@ -184,6 +234,53 @@ export function PropiedadesPage() {
           <option value="otro">❓ Otro</option>
         </select>
       </div>
+
+      {/* ── Borradores Activos ── */}
+      {!draftsLoading && drafts.length > 0 && (
+        <div className="rounded-2xl ring-1 ring-inset ring-amber-200 border-transparent bg-amber-50/60 p-5 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-amber-600" />
+              <h2 className="text-sm font-bold text-amber-900 font-jakarta uppercase tracking-wider">
+                Borradores en curso
+              </h2>
+              <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                {draftLimits.used}{draftLimits.limit ? `/${draftLimits.limit}` : ''} {draftLimits.unlimited ? '· Ilimitado' : ''}
+              </span>
+            </div>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {drafts.map((d) => (
+              <div key={d.id} className="flex items-center justify-between gap-3 bg-white rounded-xl ring-1 ring-inset ring-amber-100 border-transparent px-4 py-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-renta-950 truncate">{d.titulo || 'Borrador sin título'}</p>
+                  <p className="text-[10px] text-renta-400 flex items-center gap-1 mt-0.5">
+                    <Clock className="h-3 w-3" />
+                    {new Date(d.updated_at).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => handleResumeDraft(d.id)}
+                    className="p-2 rounded-lg text-renta-600 hover:bg-renta-50 hover:text-renta-900 transition-colors"
+                    title="Reanudar edición"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteDraft(d.id)}
+                    disabled={deletingDraftId === d.id}
+                    className="p-2 rounded-lg text-renta-400 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50"
+                    title="Eliminar borrador"
+                  >
+                    {deletingDraftId === d.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Data Table ── */}
       <div 

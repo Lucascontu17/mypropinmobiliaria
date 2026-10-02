@@ -22,13 +22,14 @@ interface ProveedorOpcion {
 
 interface PropertyFormProps {
   initialData?: Partial<PropertyFormData>;
+  initialDraftId?: string | null;
   owners: ProveedorOpcion[];
   tenantId: string;
   onSubmitSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, onCancel }: PropertyFormProps) {
+export function PropertyForm({ initialData, initialDraftId, owners, tenantId, onSubmitSuccess, onCancel }: PropertyFormProps) {
   const { currency_code } = useRegion();
   const { hasAddon, getAddonPrice } = useActiveAddons();
   const { apiFetch } = useApi();
@@ -169,6 +170,18 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
         icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
       });
 
+      // Liberar el slot del borrador si existía (la propiedad ya quedó publicada)
+      if (draftId) {
+        try {
+          await apiFetch(`/borradores/${draftId}`, { method: 'DELETE' });
+          setDraftId(null);
+          setDraftSaveState('idle');
+          setDraftSavedAt(null);
+        } catch (e) {
+          console.error('[BORRADOR-DELETE]', e);
+        }
+      }
+
       if (onSubmitSuccess) onSubmitSuccess();
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Error al guardar la propiedad';
@@ -197,6 +210,108 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
   const [closeSaleModalOpen, setCloseSaleModalOpen] = useState(false);
   // Se abre automáticamente al marcar VENDIDA
   const [lastStatusChange, setLastStatusChange] = useState<string | null>(null);
+
+  // ─── Borradores: Autosave en segundo plano ───
+  const isCreation = !initialData?.uid_prop;
+  const [draftId, setDraftId] = useState<string | null>(initialDraftId || null);
+  const [draftSaveState, setDraftSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isPersistingRef = useRef(false);
+
+  // Lista local de propietarios (refleja el "Crear Propietario Rápido" sin recargar)
+  const [ownerList, setOwnerList] = useState<ProveedorOpcion[]>(owners);
+  useEffect(() => { setOwnerList(owners); }, [owners]);
+
+  // ─── Crear Propietario Rápido ───
+  const [quickOwnerOpen, setQuickOwnerOpen] = useState(false);
+  const [quickOwnerName, setQuickOwnerName] = useState('');
+  const [quickOwnerPhone, setQuickOwnerPhone] = useState('');
+  const [isCreatingOwner, setIsCreatingOwner] = useState(false);
+
+  const persistDraft = useCallback(async (values: any) => {
+    if (!isCreation) return;
+    const hasMinimum =
+      (values?.direccion && String(values.direccion).trim().length > 0) ||
+      (values?.titulo && String(values.titulo).trim().length > 0) ||
+      values?.tipo_inmueble;
+    if (!hasMinimum) return;
+
+    // Evitar POST/PUT concurrentes (previene borradores duplicados durante el debounce)
+    if (isPersistingRef.current) return;
+    isPersistingRef.current = true;
+
+    setDraftSaveState('saving');
+    try {
+      const payload = {
+        titulo: values?.titulo || values?.direccion || 'Borrador sin título',
+        data: values,
+      };
+      let res: any;
+      if (draftId) {
+        res = await apiFetch(`/borradores/${draftId}`, { method: 'PUT', body: JSON.stringify(payload) });
+      } else {
+        res = await apiFetch('/borradores', { method: 'POST', body: JSON.stringify(payload) });
+        if (res?.success && res?.data?.id) setDraftId(res.data.id);
+      }
+      setDraftSaveState('saved');
+      setDraftSavedAt(new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }));
+    } catch (err: any) {
+      console.error('[AUTOSAVE-BORRADOR]', err);
+      setDraftSaveState('error');
+      if (err?.message?.includes('Borradores Ilimitados')) {
+        toast.error('Alcanzaste el límite de borradores.', {
+          description: 'Activa "Borradores Ilimitados" desde el Marketplace para guardar más.',
+          action: { label: 'Marketplace', onClick: () => (window.location.href = '/marketplace') },
+        });
+      }
+    } finally {
+      isPersistingRef.current = false;
+    }
+  }, [apiFetch, draftId, isCreation]);
+
+  // Debounce de 2.5s sobre cualquier cambio del formulario (solo en creación)
+  useEffect(() => {
+    if (!isCreation) return;
+    const subscription = watch((values) => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+      draftTimerRef.current = setTimeout(() => {
+        persistDraft(values);
+      }, 2500);
+    });
+    return () => {
+      subscription.unsubscribe();
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+  }, [watch, persistDraft, isCreation]);
+
+  const handleCreateQuickOwner = async () => {
+    if (!quickOwnerName.trim() || !quickOwnerPhone.trim()) {
+      toast.error('Completá nombre y teléfono para crear el propietario.');
+      return;
+    }
+    setIsCreatingOwner(true);
+    try {
+      const res = await apiFetch('/admin/owners', {
+        method: 'POST',
+        body: JSON.stringify({ nombre: quickOwnerName.trim(), celular: quickOwnerPhone.trim(), sin_cuenta: true }),
+      });
+      if (res?.success && res?.data?.id) {
+        toast.success('Propietario creado y asignado.');
+        setValue('owner_id', res.data.id, { shouldValidate: true });
+        setOwnerList((prev) => [...prev, { id: res.data.id, nombre: res.data.nombre || quickOwnerName.trim() }]);
+        setQuickOwnerOpen(false);
+        setQuickOwnerName('');
+        setQuickOwnerPhone('');
+      } else {
+        toast.error(res?.error || 'No se pudo crear el propietario.');
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al crear el propietario.');
+    } finally {
+      setIsCreatingOwner(false);
+    }
+  };
 
 
   // --- Google Maps Autocomplete (Legacy Places API) ---
@@ -393,13 +508,20 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
                   )}
                 >
                   <option value="">-- Seleccionar Propietario Vidu --</option>
-                  {owners?.map(owner => (
+                  {ownerList?.map(owner => (
                     <option key={owner.id} value={owner.id}>
                       {owner.nombre || 'Sin nombre'}
                     </option>
                   ))}
                 </select>
                 {errors.owner_id && <p className="text-xs text-red-500 font-medium">{errors.owner_id.message}</p>}
+                <button
+                  type="button"
+                  onClick={() => setQuickOwnerOpen(true)}
+                  className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-renta-600 hover:text-renta-900 transition-colors"
+                >
+                  <UserPlus className="h-3.5 w-3.5" /> Crear Propietario Rápido
+                </button>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -920,24 +1042,49 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-end gap-3 pt-5 border-t border-admin-border-subtle mt-4">
-          {onCancel && (
-            <button 
-              type="button" 
-              onClick={onCancel}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
-            >
-              <X className="h-4 w-4" /> Cancelar
-            </button>
+        <div className="flex items-center justify-between gap-3 pt-5 border-t border-admin-border-subtle mt-4">
+          {/* Indicador de autosave de borrador (solo en creación) */}
+          {isCreation && (
+            <div className="flex items-center gap-2 text-xs">
+              {draftSaveState === 'saving' && (
+                <span className="inline-flex items-center gap-1.5 text-renta-500">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Guardando borrador...
+                </span>
+              )}
+              {draftSaveState === 'saved' && (
+                <span className="inline-flex items-center gap-1.5 text-emerald-600">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Borrador guardado a las {draftSavedAt}
+                </span>
+              )}
+              {draftSaveState === 'error' && (
+                <span className="inline-flex items-center gap-1.5 text-amber-600">
+                  <Tag className="h-3.5 w-3.5" /> No se pudo guardar el borrador
+                </span>
+              )}
+              {draftSaveState === 'idle' && (
+                <span className="text-renta-400">Los cambios se guardan automáticamente</span>
+              )}
+            </div>
           )}
-          <button 
-            type="submit" 
-            disabled={isSubmitting}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-renta-950 text-white text-sm font-semibold hover:bg-renta-800 disabled:opacity-50 transition-colors shadow-lg shadow-renta-950/20"
-          >
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} 
-            {initialData ? 'Guardar Cambios' : 'Ingresar Propiedad'}
-          </button>
+          <div className="flex items-center gap-3">
+            {onCancel && (
+              <button 
+                type="button" 
+                onClick={onCancel}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm font-semibold text-renta-700 hover:bg-renta-50 transition-colors"
+              >
+                <X className="h-4 w-4" /> Cancelar
+              </button>
+            )}
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-renta-950 text-white text-sm font-semibold hover:bg-renta-800 disabled:opacity-50 transition-colors shadow-lg shadow-renta-950/20"
+            >
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} 
+              {initialData ? 'Guardar Cambios' : 'Ingresar Propiedad'}
+            </button>
+          </div>
         </div>
 
         {/* Debug UI feedback for User Architect */}
@@ -1022,6 +1169,67 @@ export function PropertyForm({ initialData, owners, tenantId, onSubmitSuccess, o
           setCloseSaleModalOpen(false);
         }}
       />
+
+      {/* Modal: Crear Propietario Rápido */}
+      {quickOwnerOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-renta-950/60 backdrop-blur-sm animate-fade-in p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
+            <div className="px-6 py-5 border-b border-admin-border flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-renta-50 flex items-center justify-center">
+                  <UserPlus className="h-5 w-5 text-renta-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold font-jakarta text-renta-950">Crear Propietario Rápido</h3>
+                  <p className="text-xs text-renta-500">Sin salir del formulario de la propiedad</p>
+                </div>
+              </div>
+              <button onClick={() => setQuickOwnerOpen(false)} className="text-renta-400 hover:text-renta-900 transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-renta-600 uppercase tracking-wider">Nombre y Apellido <span className="text-red-500">*</span></label>
+                <input
+                  value={quickOwnerName}
+                  onChange={(e) => setQuickOwnerName(e.target.value)}
+                  placeholder="Ej: Juan Pérez"
+                  className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-renta-300 text-renta-950"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-renta-600 uppercase tracking-wider">Teléfono / WhatsApp <span className="text-red-500">*</span></label>
+                <input
+                  value={quickOwnerPhone}
+                  onChange={(e) => setQuickOwnerPhone(e.target.value)}
+                  placeholder="Ej: +54 11 1234 5678"
+                  className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-renta-300 text-renta-950"
+                />
+                <p className="text-[10px] text-renta-400">Se creará como "Solo Ficha" y se asignará automáticamente a esta propiedad.</p>
+              </div>
+            </div>
+            <div className="px-6 pb-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setQuickOwnerOpen(false)}
+                className="flex-1 py-2.5 rounded-xl ring-1 ring-inset ring-admin-border border-transparent text-sm font-semibold text-renta-600 hover:bg-renta-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateQuickOwner}
+                disabled={isCreatingOwner}
+                className="flex-[2] py-2.5 rounded-xl bg-renta-950 text-white text-sm font-bold hover:bg-renta-800 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              >
+                {isCreatingOwner ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+                {isCreatingOwner ? 'Creando...' : 'Crear y Asignar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </FormProvider>
   );
