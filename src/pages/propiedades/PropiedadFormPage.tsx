@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { PropertyForm } from '@/components/propiedades/PropertyForm';
 import { ArrowLeft, Loader2, AlertTriangle } from 'lucide-react';
 import { useEden } from '@/services/eden';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
+import { useApi } from '@/hooks/useApi';
 import { toast } from 'sonner';
 
 export function PropiedadFormPage() {
@@ -11,6 +12,9 @@ export function PropiedadFormPage() {
   const { id } = useParams();
   const { client, isReady } = useEden();
   const { inmobiliaria_id } = useInmobiliaria();
+  const { apiFetch } = useApi();
+  const [searchParams] = useSearchParams();
+  const borradorId = searchParams.get('borrador');
   
   const [owners, setOwners] = useState<any[]>([]);
   const [property, setProperty] = useState<any>(null);
@@ -83,6 +87,19 @@ export function PropiedadFormPage() {
           return;
         }
       }
+
+      // 2.5 Reanudar desde un borrador (query param ?borrador=ID)
+      if (!isEditing && borradorId) {
+        try {
+          const res = await apiFetch(`/borradores/${borradorId}`);
+          if (res?.success && res?.data?.data) {
+            setProperty(res.data.data);
+          }
+        } catch (err) {
+          console.error('[PropiedadFormPage] Failed to load draft:', err);
+          toast.error('No se pudo cargar el borrador.');
+        }
+      }
     } catch (err) {
       console.error('[PropiedadFormPage] Fetch failed:', err);
       toast.error('Error de conectividad al cargar los datos.');
@@ -142,6 +159,7 @@ export function PropiedadFormPage() {
 
       <PropertyForm 
         initialData={property}
+        initialDraftId={borradorId}
         owners={owners}
         tenantId={inmobiliaria_id}  // garantizado no-undefined por el guard de arriba
         onCancel={() => navigate('/propiedades')}
