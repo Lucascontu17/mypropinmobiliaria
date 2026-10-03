@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useEden, BASE_URL } from '@/services/eden';
 import { toast } from 'sonner';
-import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info, Search, Link as LinkIcon, UserCheck, UserX, UploadCloud, CheckCircle2, Loader2, Check, Pencil } from 'lucide-react';
-import { useForm, FormProvider, useWatch, Controller } from 'react-hook-form';
+import { Save, X, FileText, Calendar, Building, User, TrendingUp, AlertTriangle, Info, Search, Link as LinkIcon, UserCheck, UserX, UploadCloud, CheckCircle2, Loader2, Check, Pencil, Shield, ShieldCheck, Plus, Trash2 } from 'lucide-react';
+import { useForm, FormProvider, useWatch, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { contratoSchema, type ContratoFormData } from '@/types/contrato';
+import { contratoSchema, type ContratoFormData, GarantiaTipo } from '@/types/contrato';
 import { useInmobiliaria } from '../../hooks/useInmobiliaria';
 import { CountryPhoneSelector } from '../common/CountryPhoneSelector';
 import { useRegion } from '@/hooks/useRegion';
@@ -79,11 +79,21 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
         aplicar_mora: false,
         dias_gracia: 5,
         periodicidad: 'diario'
-      }
+      },
+      garantia_tipo: '',
+      empresa_proveedora: '',
+      garantes: []
     }
   });
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, control, setValue, watch } = methods;
+
+  const { fields: garantesFields, append: appendGarante, remove: removeGarante } = useFieldArray({
+    control,
+    name: 'garantes',
+  });
+
+  const garantiaTipo = useWatch({ control, name: 'garantia_tipo' });
 
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
 
@@ -180,6 +190,25 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
          finalContratoUrl = await uploadFile(data.contrato_url, 'contratos');
       }
 
+      // ── Subir Escritura y DNI de garantes (Información de la Garantía) ──
+      let finalEscrituraUrl = null;
+      if (data.garantia_tipo === GarantiaTipo.PROPIETARIA && (data.escritura_url as any)?.length) {
+        finalEscrituraUrl = await uploadFile(data.escritura_url, 'escritura');
+      }
+
+      const garantesUploaded: { nombre: string; dni: string; telefono: string; dni_url: string | null }[] = [];
+      if (data.garantia_tipo === GarantiaTipo.PROPIETARIA && data.garantes?.length) {
+        for (const garante of data.garantes) {
+          const dniUrl = (garante.dni_url as any)?.length ? await uploadFile(garante.dni_url, 'garantes') : null;
+          garantesUploaded.push({
+            nombre: garante.nombre,
+            dni: garante.dni,
+            telefono: garante.telefono,
+            dni_url: dniUrl,
+          });
+        }
+      }
+
       setIsUploadingFiles(false);
 
       if (data.is_nuevo_inquilino && data.nuevo_inquilino) {
@@ -252,6 +281,10 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
         monto_actual: retroMontoManual.current ? String(retroMontoEditado) : data.monto_inicial,
         retro_monto_editado: retroMontoManual.current,
         contrato_url: finalContratoUrl,
+        garantia_tipo: data.garantia_tipo,
+        empresa_proveedora: data.garantia_tipo === GarantiaTipo.FIANZA ? data.empresa_proveedora : null,
+        escritura_url: finalEscrituraUrl,
+        garantes: garantesUploaded,
         inmobiliaria_id: inmobiliaria_id!
       };
       
@@ -1143,6 +1176,136 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
              </div>
 
           </div>
+        </div>
+
+        {/* ── Información de la Garantía ── */}
+        <div className="p-5 rounded-2xl ring-1 ring-inset ring-admin-border border-transparent bg-white space-y-4">
+          <div className="flex items-center justify-between border-b border-admin-border-subtle pb-3">
+            <h3 className="text-sm font-jakarta font-bold text-renta-900 flex items-center gap-2">
+              <Shield className="h-4 w-4 text-renta-600" />
+              Información de la Garantía <span className="text-red-500">*</span>
+            </h3>
+          </div>
+
+          {/* Selector de modalidad */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className={cn(
+              "cursor-pointer rounded-2xl border p-4 flex items-start gap-3 transition-all",
+              garantiaTipo === GarantiaTipo.PROPIETARIA ? "border-renta-500 bg-renta-50/50 ring-2 ring-renta-200" : "border-admin-border bg-slate-50 hover:bg-slate-100"
+            )}>
+              <input type="radio" value={GarantiaTipo.PROPIETARIA} {...register('garantia_tipo')} className="sr-only" />
+              <ShieldCheck className={cn("w-5 h-5 shrink-0", garantiaTipo === GarantiaTipo.PROPIETARIA ? "text-renta-600" : "text-slate-400")} />
+              <div>
+                <p className="text-sm font-bold text-renta-950">Garantía Propietaria</p>
+                <p className="text-[11px] text-renta-500">Escritura de la propiedad + garantes</p>
+              </div>
+            </label>
+
+            <label className={cn(
+              "cursor-pointer rounded-2xl border p-4 flex items-start gap-3 transition-all",
+              garantiaTipo === GarantiaTipo.FIANZA ? "border-renta-500 bg-renta-50/50 ring-2 ring-renta-200" : "border-admin-border bg-slate-50 hover:bg-slate-100"
+            )}>
+              <input type="radio" value={GarantiaTipo.FIANZA} {...register('garantia_tipo')} className="sr-only" />
+              <Shield className={cn("w-5 h-5 shrink-0", garantiaTipo === GarantiaTipo.FIANZA ? "text-renta-600" : "text-slate-400")} />
+              <div>
+                <p className="text-sm font-bold text-renta-950">Seguro de Fianza / Caución</p>
+                <p className="text-[11px] text-renta-500">Empresa proveedora de la garantía</p>
+              </div>
+            </label>
+          </div>
+          {errors.garantia_tipo && <p className="text-[10px] text-red-500 font-medium">{(errors.garantia_tipo as any).message}</p>}
+
+          {/* Flujo B: Seguro de Fianza / Caución */}
+          {garantiaTipo === GarantiaTipo.FIANZA && (
+            <div className="space-y-1.5 animate-fade-in">
+              <label className="text-xs font-semibold text-renta-900">Empresa proveedora de la garantía <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                {...register('empresa_proveedora')}
+                placeholder="Ej: Finaer, Caución, etc."
+                className="w-full rounded-xl border border-admin-border bg-white px-3 py-2 text-sm outline-none focus:border-renta-400 text-renta-950"
+              />
+              {errors.empresa_proveedora && <p className="text-[10px] text-red-500 font-medium">{(errors.empresa_proveedora as any).message}</p>}
+            </div>
+          )}
+
+          {/* Flujo A: Garantía Propietaria */}
+          {garantiaTipo === GarantiaTipo.PROPIETARIA && (
+            <div className="space-y-4 animate-fade-in">
+              <FileUploadField
+                label="Escritura de la Propiedad (PDF)"
+                registerProps={register('escritura_url')}
+                watchValue={watch('escritura_url')}
+                accept="application/pdf"
+                hint="Subir escritura (PDF)"
+              />
+              {errors.escritura_url && <p className="text-[10px] text-red-500 font-medium">{(errors.escritura_url as any).message}</p>}
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-renta-900">Garantes <span className="text-red-500">*</span></label>
+                  <button
+                    type="button"
+                    onClick={() => appendGarante({ nombre: '', dni: '', telefono: '', dni_url: undefined })}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-renta-950 text-white text-xs font-bold rounded-lg hover:bg-renta-800 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Agregar garante
+                  </button>
+                </div>
+
+                {garantesFields.length === 0 && (
+                  <p className="text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-2.5 font-medium">
+                    Debe cargar al menos un garante con su nombre, DNI, teléfono y foto del DNI.
+                  </p>
+                )}
+
+                {garantesFields.map((field, index) => (
+                  <div key={field.id} className="p-4 rounded-2xl border border-admin-border bg-slate-50/50 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-renta-500 uppercase tracking-widest">Garante #{index + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeGarante(index)}
+                        className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
+                        title="Eliminar garante"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-renta-600 uppercase tracking-widest">Nombre completo <span className="text-red-500">*</span></label>
+                        <input type="text" {...register(`garantes.${index}.nombre` as any)} placeholder="Ej: Juan Pérez" className="w-full rounded-xl border border-admin-border bg-white px-3 py-2 text-sm outline-none focus:border-renta-400 text-renta-950" />
+                        {(errors.garantes as any)?.[index]?.nombre?.message && <p className="text-[10px] text-red-500 font-medium">{(errors.garantes as any)[index].nombre.message}</p>}
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-renta-600 uppercase tracking-widest">DNI <span className="text-red-500">*</span></label>
+                        <input type="text" {...register(`garantes.${index}.dni` as any)} placeholder="Ej: 30123456" className="w-full rounded-xl border border-admin-border bg-white px-3 py-2 text-sm outline-none focus:border-renta-400 text-renta-950" />
+                        {(errors.garantes as any)?.[index]?.dni?.message && <p className="text-[10px] text-red-500 font-medium">{(errors.garantes as any)[index].dni.message}</p>}
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-renta-600 uppercase tracking-widest">Número de teléfono <span className="text-red-500">*</span></label>
+                        <input type="tel" {...register(`garantes.${index}.telefono` as any)} placeholder="Ej: +54 9 11 1234-5678" className="w-full rounded-xl border border-admin-border bg-white px-3 py-2 text-sm outline-none focus:border-renta-400 text-renta-950" />
+                        {(errors.garantes as any)?.[index]?.telefono?.message && <p className="text-[10px] text-red-500 font-medium">{(errors.garantes as any)[index].telefono.message}</p>}
+                      </div>
+                    </div>
+
+                    <FileUploadField
+                      label="Foto/Imagen del DNI (PNG, JPG, WEBP)"
+                      registerProps={register(`garantes.${index}.dni_url` as any)}
+                      watchValue={watch(`garantes.${index}.dni_url` as any)}
+                      accept="image/png,image/jpeg,image/webp"
+                      hint="Subir foto del DNI"
+                    />
+                    {(errors.garantes as any)?.[index]?.dni_url?.message && <p className="text-[10px] text-red-500 font-medium">{(errors.garantes as any)[index].dni_url.message}</p>}
+                  </div>
+                ))}
+
+                {(errors.garantes as any)?.message && <p className="text-[10px] text-red-500 font-medium">{(errors.garantes as any).message}</p>}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Debug Global Errors */}
