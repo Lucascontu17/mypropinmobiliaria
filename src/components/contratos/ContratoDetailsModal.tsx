@@ -1,4 +1,4 @@
-import { X, Calendar, User, Home, AlertTriangle, MessageSquare, Loader2, TrendingUp, ShieldCheck, Key, Clock, Percent } from 'lucide-react';
+import { X, Calendar, User, Home, AlertTriangle, MessageSquare, Loader2, TrendingUp, ShieldCheck, Key, Clock, Percent, Shield, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -27,6 +27,16 @@ interface Contrato {
   };
   contrato_url?: string;
   dni_url?: string;
+  garantia_tipo?: string;
+  empresa_proveedora?: string;
+  escritura_url?: string;
+  garantes?: {
+    id: string;
+    nombre: string;
+    dni: string;
+    telefono: string;
+    dni_url: string;
+  }[];
 }
 
 interface ContratoDetailsModalProps {
@@ -229,6 +239,73 @@ export function ContratoDetailsModal({ contrato, onClose, onFinalizar, onReunion
                   </a>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Información de la Garantía */}
+          {contrato.garantia_tipo && (
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-renta-900 uppercase tracking-widest flex items-center gap-2 border-b border-admin-border-subtle pb-2">
+                <Shield className="w-3.5 h-3.5" /> Información de la Garantía
+              </h3>
+
+              {contrato.garantia_tipo === 'SEGURO_FIANZA' ? (
+                <div className="p-4 rounded-2xl border border-renta-100 bg-renta-50/30 space-y-2">
+                  <div className="flex items-center gap-2 text-renta-700">
+                    <Shield className="w-4 h-4" />
+                    <span className="text-xs font-bold uppercase">Seguro de Fianza / Caución</span>
+                  </div>
+                  <p className="text-[11px] text-renta-800 font-medium">
+                    Empresa proveedora: <span className="font-bold">{contrato.empresa_proveedora || '—'}</span>
+                  </p>
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl border border-renta-100 bg-renta-50/30 space-y-3">
+                  <div className="flex items-center gap-2 text-renta-700">
+                    <Shield className="w-4 h-4" />
+                    <span className="text-xs font-bold uppercase">Garantía Propietaria</span>
+                  </div>
+
+                  {contrato.escritura_url && (
+                    <a
+                      href={contrato.escritura_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3 bg-white ring-1 ring-inset ring-renta-200 rounded-2xl hover:bg-renta-50 transition-colors group"
+                    >
+                      <div className="h-9 w-9 rounded-xl bg-renta-100 flex items-center justify-center text-renta-600 shrink-0 group-hover:bg-renta-200 transition-colors">
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold text-renta-500 uppercase tracking-tighter">Escritura de la Propiedad</p>
+                        <p className="text-sm font-bold text-renta-950 truncate">Ver / Descargar PDF</p>
+                      </div>
+                    </a>
+                  )}
+
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-renta-500 uppercase tracking-tighter">Garantes ({(contrato.garantes || []).length})</p>
+                    {(contrato.garantes || []).length === 0 ? (
+                      <p className="text-[11px] text-renta-500 italic">Sin garantes registrados.</p>
+                    ) : (
+                      (contrato.garantes || []).map((g) => (
+                        <div key={g.id} className="p-3 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-2xl space-y-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm font-bold text-renta-950">{g.nombre}</p>
+                            {g.dni_url && (
+                              <a href={g.dni_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold text-renta-600 hover:text-renta-800 underline underline-offset-2 shrink-0">
+                                Ver DNI
+                              </a>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-renta-500 font-medium">DNI: <span className="text-renta-700">{g.dni}</span></p>
+                          <p className="text-[11px] text-renta-500 font-medium">Tel: <span className="text-renta-700">{g.telefono}</span></p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

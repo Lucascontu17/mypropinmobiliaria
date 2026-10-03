@@ -14,6 +14,20 @@ export const PenaltyPeriodEnum = z.enum([
 
 export const TipoAumentoEnum = z.enum(['PORCENTAJE_MANUAL', 'MONTO_FIJO', 'INDICE_IPC', 'INDICE_ICL'], { invalid_type_error: "Seleccione un tipo de aumento válido" });
 
+export const GarantiaTipo = {
+  PROPIETARIA: 'GARANTIA_PROPIETARIA',
+  FIANZA: 'SEGURO_FIANZA',
+} as const;
+export type GarantiaTipoValue = typeof GarantiaTipo[keyof typeof GarantiaTipo];
+
+export const garanteSchema = z.object({
+  nombre: z.string(),
+  dni: z.string(),
+  telefono: z.string(),
+  dni_url: z.any(),
+});
+export type GaranteFormData = z.infer<typeof garanteSchema>;
+
 /**
  * Zod Schema para Contratos (Transacción Atómica de Alquiler)
  * Garantiza integridad antes de enviar al Endpoint `POST /api/v1/contratos`.
@@ -70,7 +84,13 @@ export const contratoSchema = z.object({
     periodicidad: PenaltyPeriodEnum.optional().or(z.literal('')),
     porcentaje: z.coerce.number({ invalid_type_error: "Porcentaje de mora inválido" }).min(0.1, "Debe especificar un porcentaje válido").optional().or(z.literal('')),
     dias_gracia: z.coerce.number({ invalid_type_error: "Días de gracia inválido" }).min(0, "Los días de gracia no pueden ser negativos").default(5)
-  })
+  }),
+
+  // Información de la Garantía (obligatoria)
+  garantia_tipo: z.string(),
+  empresa_proveedora: z.string().optional().or(z.literal('')),
+  escritura_url: z.any().optional(),
+  garantes: z.array(garanteSchema).default([])
 }).superRefine((data, ctx) => {
   // Validaciones custom condicionales
   if (data.is_nuevo_inquilino) {
@@ -126,6 +146,41 @@ export const contratoSchema = z.object({
       path: ['fecha_fin'],
       message: "La fecha de finalización debe ser posterior a la de inicio."
     });
+  }
+
+  // Validación: Información de la Garantía
+  if (!data.garantia_tipo) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['garantia_tipo'], message: "Debe seleccionar el tipo de garantía." });
+  } else if (data.garantia_tipo === GarantiaTipo.FIANZA) {
+    if (!data.empresa_proveedora || !String(data.empresa_proveedora).trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['empresa_proveedora'], message: "Indique la empresa proveedora de la garantía." });
+    }
+  } else if (data.garantia_tipo === GarantiaTipo.PROPIETARIA) {
+    const escritura = data.escritura_url as any;
+    if (!escritura || !escritura.length) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['escritura_url'], message: "Debe adjuntar la escritura de la propiedad (PDF)." });
+    }
+
+    const garantes = data.garantes ?? [];
+    if (garantes.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['garantes'], message: "Debe cargar al menos un garante." });
+    } else {
+      garantes.forEach((g, i) => {
+        if (!g.nombre || !String(g.nombre).trim()) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['garantes', i, 'nombre'], message: "El nombre es obligatorio." });
+        }
+        if (!g.dni || !String(g.dni).trim()) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['garantes', i, 'dni'], message: "El DNI es obligatorio." });
+        }
+        if (!g.telefono || !String(g.telefono).trim()) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['garantes', i, 'telefono'], message: "El teléfono es obligatorio." });
+        }
+        const dniUrl = g.dni_url as any;
+        if (!dniUrl || !dniUrl.length) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['garantes', i, 'dni_url'], message: "Debe adjuntar la foto del DNI." });
+        }
+      });
+    }
   }
 });
 
