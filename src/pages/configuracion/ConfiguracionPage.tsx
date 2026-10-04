@@ -57,6 +57,14 @@ export function ConfiguracionPage() {
   const [telefono, setTelefono] = useState(config.phone_prefix);
   const [errorTelefono, setErrorTelefono] = useState('');
 
+  // Perfil Público
+  const [slug, setSlug] = useState('');
+  const [descripcionPublica, setDescripcionPublica] = useState('');
+  const [emailPublico, setEmailPublico] = useState('');
+  const [telefonoPublico, setTelefonoPublico] = useState('');
+  const [direccionPublica, setDireccionPublica] = useState('');
+  const [slugError, setSlugError] = useState('');
+
   // ── Eliminar cuenta (Zona de Peligro) ──
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -73,6 +81,11 @@ export function ConfiguracionPage() {
           setWhatsappActivo(d.enviar_whatsapp_rollover ?? false);
           setEmailActivo(d.enviar_email_onboarding ?? false);
           setTelefono(d.twilio_phone || config.phone_prefix);
+          setSlug(d.slug || '');
+          setDescripcionPublica(d.descripcion_publica || '');
+          setEmailPublico(d.email_publico || '');
+          setTelefonoPublico(d.telefono || '');
+          setDireccionPublica(d.direccion || '');
         }
       } catch (err) {
         console.warn('[Config] Error cargando configuración:', err);
@@ -142,6 +155,13 @@ export function ConfiguracionPage() {
       
       setIsSaving(true);
       setLogoError(null);
+      setSlugError('');
+      
+      if (slug && !/^[a-z0-9-]+$/.test(slug)) {
+          setSlugError('El slug solo puede contener letras minúsculas, números y guiones.');
+          setIsSaving(false);
+          return;
+      }
       
       // Si hay un logo nuevo seleccionado, subirlo a R2 primero
       let newLogoUrl = logoUrl;
@@ -175,6 +195,12 @@ export function ConfiguracionPage() {
       
       if (nombreAgencia !== nombreInmoActual) payload.nombre = nombreAgencia;
       if (newLogoUrl !== logoInmoActual) payload.logo_url = newLogoUrl || null;
+      
+      payload.slug = slug;
+      payload.descripcion_publica = descripcionPublica;
+      payload.email_publico = emailPublico;
+      payload.telefono = telefonoPublico;
+      payload.direccion = direccionPublica;
       
       // Siempre enviar las preferencias de notificación (vienen de los toggles)
       payload.enviar_whatsapp_rollover = whatsappActivo;
@@ -539,6 +565,92 @@ export function ConfiguracionPage() {
                </div>
             </div>
 
+         </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════
+          PERFIL PÚBLICO (SEO & Branding)
+          ══════════════════════════════════════════════════════════════════ */}
+      <div className="bg-white rounded-2xl ring-1 ring-inset ring-admin-border border-transparent shadow-sm">
+         <div className="bg-renta-50/50 px-6 py-4 flex items-center justify-between border-b border-admin-border-subtle rounded-t-2xl">
+            <h2 className="text-sm font-bold text-renta-950 font-jakarta flex items-center gap-2">
+               <Globe className="h-4 w-4 text-renta-600" />
+               Perfil Público (SEO & Branding)
+            </h2>
+         </div>
+         
+         <div className="p-6 space-y-6 font-inter">
+            {/* Slug */}
+            <div className="space-y-2">
+               <label className="text-sm font-bold text-renta-950">
+                 URL Personalizada (Slug)
+               </label>
+               <div className="flex items-center w-full max-w-md h-10 px-4 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white focus-within:ring-2 focus-within:ring-renta-500/20 overflow-hidden">
+                 <span className="text-renta-400 text-sm whitespace-nowrap">zonatia.com/profile/</span>
+                 <input
+                   type="text"
+                   value={slug}
+                   onChange={(e) => {
+                     setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
+                     setSlugError('');
+                   }}
+                   placeholder="mi-inmobiliaria"
+                   className="w-full h-full bg-transparent text-sm text-renta-900 focus:outline-none"
+                 />
+               </div>
+               {slugError && <p className="text-[10px] text-red-500 font-medium">{slugError}</p>}
+               <p className="text-[10px] text-renta-500">
+                 Identificador único para tu página pública. Solo minúsculas, números y guiones.
+               </p>
+            </div>
+
+            {/* Descripción */}
+            <div className="space-y-2">
+               <label className="text-sm font-bold text-renta-950">
+                 Descripción Breve
+               </label>
+               <textarea
+                 value={descripcionPublica}
+                 onChange={(e) => setDescripcionPublica(e.target.value)}
+                 placeholder="Breve presentación de la inmobiliaria para visitantes y buscadores (SEO)..."
+                 rows={3}
+                 className="w-full max-w-2xl px-4 py-3 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm text-renta-900 focus:outline-none focus:ring-2 focus:ring-renta-500/20 resize-none"
+               />
+            </div>
+
+            {/* Datos de Contacto Público */}
+            <div className="border-t border-admin-border-subtle pt-6 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl">
+                <div className="space-y-2">
+                   <label className="text-sm font-bold text-renta-950">Email de Contacto</label>
+                   <input
+                     type="email"
+                     value={emailPublico}
+                     onChange={(e) => setEmailPublico(e.target.value)}
+                     placeholder="contacto@mi-inmo.com"
+                     className="w-full h-10 px-4 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm text-renta-900 focus:outline-none focus:ring-2 focus:ring-renta-500/20"
+                   />
+                </div>
+                <div className="space-y-2">
+                   <label className="text-sm font-bold text-renta-950">Teléfono Público</label>
+                   <input
+                     type="text"
+                     value={telefonoPublico}
+                     onChange={(e) => setTelefonoPublico(e.target.value)}
+                     placeholder="Ej: +54 9 11 1234-5678"
+                     className="w-full h-10 px-4 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm text-renta-900 focus:outline-none focus:ring-2 focus:ring-renta-500/20"
+                   />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                   <label className="text-sm font-bold text-renta-950">Dirección de Oficina</label>
+                   <input
+                     type="text"
+                     value={direccionPublica}
+                     onChange={(e) => setDireccionPublica(e.target.value)}
+                     placeholder="Av. Libertador 1234, CABA"
+                     className="w-full h-10 px-4 rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white text-sm text-renta-900 focus:outline-none focus:ring-2 focus:ring-renta-500/20"
+                   />
+                </div>
+            </div>
          </div>
       </div>
 
