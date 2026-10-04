@@ -167,7 +167,9 @@ equipo_th_acciones: Actions
 equipo_vacio: No team members found.
 equipo_estado_activo: Active
 equipo_estado_inactivo: Inactive
+equipo_estado_pendiente: Pending
 equipo_filtro_todos: All
+equipo_filtro_superadmins: Superadmins
 equipo_filtro_admins: Admins
 equipo_filtro_vendedores: Sellers
 equipo_permisos_titulo: Permission Matrix by Role

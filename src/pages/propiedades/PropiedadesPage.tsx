@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
-import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phone, Rocket, X, Loader2, Trophy, Trash2, Link2, Clock } from 'lucide-react';
+import { Plus, Search, Home, Edit2, MapPin, Zap, Flame, Droplets, FileText, Phone, Rocket, X, Loader2, Trophy, Trash2, Link2, Clock, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useEden, BASE_URL } from '@/services/eden';
@@ -48,6 +48,12 @@ export function PropiedadesPage() {
   const [boosterModal, setBoosterModal] = useState<{ uid: string; direccion: string } | null>(null);
   const [boosterPuntos, setBoosterPuntos] = useState(5);
   const [isAssigning, setIsAssigning] = useState(false);
+
+  // Asignación de vendedor a una propiedad (1 solo vendedor por propiedad)
+  const [assignModal, setAssignModal] = useState<{ uid: string; direccion: string; vendedor_id: string | null } | null>(null);
+  const [vendedores, setVendedores] = useState<{ id: string; nombre: string }[]>([]);
+  const [assignVendedorId, setAssignVendedorId] = useState('');
+  const [isAssigningVendedor, setIsAssigningVendedor] = useState(false);
   
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -100,6 +106,29 @@ export function PropiedadesPage() {
     fetchDrafts();
   }, [isReady, apiFetch]);
 
+  // Cargar vendedores del equipo (solo admin/superadmin) para poder asignar propiedades
+  useEffect(() => {
+    if (!isReady) return;
+    if (role !== 'admin' && role !== 'superadmin') return;
+    const fetchVendedores = async () => {
+      try {
+        // @ts-expect-error - Eden Treaty dynamic path
+        const { data, error } = await eden.admin.equipo.get();
+        if (!error && data) {
+          const miembros = (data as any)?.miembros ?? [];
+          setVendedores(
+            miembros
+              .filter((m: any) => m.role === 'vendedor')
+              .map((m: any) => ({ id: m.id, nombre: m.nombre }))
+          );
+        }
+      } catch (err) {
+        console.error('[PROPIEDADES] Error fetching vendedores:', err);
+      }
+    };
+    fetchVendedores();
+  }, [eden, isReady, role]);
+
   const filteredProperties = properties.filter(p => {
     const matchesSearch = (p.direccion || '').toLowerCase().includes(searchTerm.toLowerCase()) || (p.titulo || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTipo = filterTipo === 'todos' || p.tipo_inmueble === filterTipo;
@@ -129,6 +158,35 @@ export function PropiedadesPage() {
       toast.error(err.message);
     } finally {
       setIsAssigning(false);
+    }
+  };
+
+  const handleAssignVendedor = async () => {
+    if (!assignModal) return;
+    setIsAssigningVendedor(true);
+    try {
+      const sel = vendedores.find((v) => v.id === assignVendedorId);
+      // @ts-expect-error - Eden Treaty dynamic path
+      const { data, error } = await eden.admin.propiedades[assignModal.uid].vendedor.patch({
+        vendedor_id: sel?.id ?? null,
+        vendedor_nombre: sel?.nombre ?? null,
+      });
+
+      if (error) throw new Error((error as any)?.value?.error || 'Error al asignar vendedor');
+
+      setProperties((prev) =>
+        prev.map((p) =>
+          p.uid_prop === assignModal.uid
+            ? { ...p, vendedor_id: sel?.id ?? null, vendedor_nombre: sel?.nombre ?? null }
+            : p
+        )
+      );
+      toast.success('Vendedor asignado correctamente');
+      setAssignModal(null);
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsAssigningVendedor(false);
     }
   };
 
@@ -342,6 +400,9 @@ export function PropiedadesPage() {
                            <Home className="h-4 w-4 text-renta-400" /> {p?.direccion || p?.titulo || 'Sin dirección'}
                         </div>
                         <div className="text-[10px] text-renta-500 mt-0.5 uppercase tracking-wider">{p?.propietario_nombre || 'Sin propietario'}</div>
+                        <div className="text-[10px] text-blue-600 mt-0.5 flex items-center gap-1">
+                          {p?.vendedor_nombre ? (<><Users className="h-3 w-3" /> {p?.vendedor_nombre}</>) : 'Sin vendedor asignado'}
+                        </div>
                      </td>
                      
                      <td className="px-6 py-4">
@@ -447,6 +508,15 @@ export function PropiedadesPage() {
                             <Link2 className="h-4 w-4" />
                           </button>
 
+                         {hasPermission(['superadmin', 'admin']) && (
+                           <button
+                             onClick={() => { setAssignModal({ uid: p?.uid_prop, direccion: p?.direccion || p?.titulo || 'Sin dirección', vendedor_id: p?.vendedor_id ?? null }); setAssignVendedorId(p?.vendedor_id ?? ''); }}
+                             title="Asignar vendedor"
+                             className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                           >
+                             <Users className="h-4 w-4" />
+                           </button>
+                         )}
                          <button 
                            onClick={() => navigate(`/propiedades/${p?.uid_prop}`)}
                            className="p-2 text-renta-400 hover:text-renta-700 hover:bg-renta-50 rounded-lg transition-colors"
@@ -582,6 +652,70 @@ export function PropiedadesPage() {
                 {isAssigning ? 'Asignando...' : (
                   <><Rocket className="h-4 w-4" /> Aplicar Booster</>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: Asignar Vendedor ── */}
+      {assignModal && (
+        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in overflow-y-auto p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md my-auto overflow-hidden animate-fade-in-up">
+            <div className="bg-gradient-to-r from-renta-950 to-renta-800 px-6 py-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-blue-400 flex items-center justify-center shadow-lg">
+                  <Users className="h-5 w-5 text-blue-950" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold font-jakarta">Asignar Vendedor</h3>
+                  <p className="text-white/60 text-[10px] uppercase tracking-wider">Responsable de la propiedad</p>
+                </div>
+              </div>
+              <button onClick={() => setAssignModal(null)} className="text-white/50 hover:text-white transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="bg-renta-50 rounded-xl p-4 ring-1 ring-inset ring-admin-border border-transparent">
+                <p className="text-[10px] font-bold text-renta-400 uppercase tracking-widest mb-1">Propiedad Seleccionada</p>
+                <p className="text-sm font-bold text-renta-950 flex items-center gap-2">
+                  <Home className="h-4 w-4 text-renta-400" /> {assignModal.direccion}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-renta-600 uppercase tracking-widest">Vendedor</label>
+                <select
+                  value={assignVendedorId}
+                  onChange={(e) => setAssignVendedorId(e.target.value)}
+                  className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent px-4 py-3 text-sm font-bold text-renta-950 outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                >
+                  <option value="">Sin asignar (disponible para todo el equipo)</option>
+                  {vendedores.map((v) => (
+                    <option key={v.id} value={v.id}>{v.nombre}</option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-renta-400">
+                  Las visitas a esta propiedad se asignarán automáticamente al vendedor elegido.
+                </p>
+              </div>
+            </div>
+
+            <div className="px-6 pb-6 flex gap-3">
+              <button
+                onClick={() => setAssignModal(null)}
+                className="flex-1 py-3 rounded-xl ring-1 ring-inset ring-admin-border border-transparent text-sm font-bold text-renta-600 hover:bg-renta-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleAssignVendedor}
+                disabled={isAssigningVendedor}
+                className="flex-1 py-3 rounded-xl bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isAssigningVendedor ? 'Asignando...' : (<><Users className="h-4 w-4" /> Guardar</>)}
               </button>
             </div>
           </div>

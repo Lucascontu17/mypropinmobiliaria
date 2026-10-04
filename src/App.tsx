@@ -48,7 +48,7 @@ function App() {
                 <Route 
                   path="/propietarios" 
                   element={
-                    <ProtectedRoute allowedRoles={['superadmin', 'admin', 'vendedor']}>
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
                       <PropietariosPage />
                     </ProtectedRoute>
                   } 
@@ -75,7 +75,7 @@ function App() {
                 <Route 
                   path="/contratos" 
                   element={
-                    <ProtectedRoute allowedRoles={['superadmin', 'admin', 'vendedor']}>
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
                       <ContratosPage />
                     </ProtectedRoute>
                   } 
@@ -93,7 +93,7 @@ function App() {
                 <Route 
                   path="/contratos/nuevo" 
                   element={
-                    <ProtectedRoute allowedRoles={['superadmin', 'admin', 'vendedor']}>
+                    <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
                       <ContratoFormPage />
                     </ProtectedRoute>
                   } 

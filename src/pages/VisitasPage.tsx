@@ -10,17 +10,21 @@ import {
   XCircle, 
   MessageSquare,
   MoreVertical,
-  Loader2
+  Loader2,
+  UserCheck
 } from 'lucide-react';
 import { useEden } from '@/services/eden';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 
 interface Visita {
   id: string;
   fecha_programada: string;
   status: 'PENDIENTE' | 'PROGRAMADA' | 'REALIZADA' | 'CANCELADA';
   mensaje_visitante: string | null;
+  vendedor_id: string | null;
+  vendedor_nombre: string | null;
   created_at: string;
   propiedad: {
     id: string;
@@ -38,10 +42,16 @@ interface Visita {
 
 export function VisitasView({ 
   getVisitasFn, 
-  onUpdateVisita 
+  onUpdateVisita,
+  onReassign,
+  vendedores = [],
+  canReassign = false,
 }: { 
   getVisitasFn: () => Promise<Visita[]>,
-  onUpdateVisita: (id: string, status: string, date?: string) => Promise<void>
+  onUpdateVisita: (id: string, status: string, date?: string) => Promise<void>,
+  onReassign?: (id: string, vendedorId: string | null, vendedorNombre: string | null) => Promise<void>,
+  vendedores?: { id: string; nombre: string }[],
+  canReassign?: boolean,
 }) {
   const [visitas, setVisitas] = useState<Visita[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,6 +174,9 @@ export function VisitasView({
                     visita={visita} 
                     onUpdate={handleUpdateStatus}
                     updatingId={updatingId}
+                    onReassign={onReassign}
+                    vendedores={vendedores}
+                    canReassign={canReassign}
                   />
                 ))}
               </div>
@@ -196,6 +209,9 @@ export function VisitasView({
                     visita={visita} 
                     onUpdate={handleUpdateStatus}
                     updatingId={updatingId}
+                    onReassign={onReassign}
+                    vendedores={vendedores}
+                    canReassign={canReassign}
                   />
                 ))}
               </div>
@@ -245,7 +261,7 @@ export function VisitasView({
 }
 
 // ── COMPONENTE AUXILIAR PARA LA CARD ──
-function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate: any, updatingId: string | null }) {
+function VisitaCard({ visita, onUpdate, updatingId, onReassign, vendedores = [], canReassign = false }: { visita: Visita, onUpdate: any, updatingId: string | null, onReassign?: (id: string, vendedorId: string | null, vendedorNombre: string | null) => Promise<void>, vendedores?: { id: string; nombre: string }[], canReassign?: boolean }) {
   const [isEditing, setIsEditing] = useState(false);
   const [newDate, setNewDate] = useState(visita?.fecha_programada?.split('.')[0] || ''); 
 
@@ -334,6 +350,34 @@ function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate
                 <span className="text-sm font-jakarta font-bold text-renta-900 truncate max-w-[200px]">{visita?.propiedad?.direccion}</span>
               </div>
             </div>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
+                <UserCheck className="w-4 h-4 text-slate-400" />
+              </div>
+              <div className="flex flex-col flex-1">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Vendedor</span>
+                {canReassign ? (
+                  <select
+                    value={visita?.vendedor_id ?? ''}
+                    onChange={(e) => {
+                      const id = e.target.value || null;
+                      const sel = vendedores.find((v) => v.id === id);
+                      onReassign?.(visita?.id, sel?.id ?? null, sel?.nombre ?? null);
+                    }}
+                    className="text-sm font-jakarta font-bold text-renta-900 bg-transparent outline-none cursor-pointer"
+                  >
+                    <option value="">Sin asignar</option>
+                    {vendedores.map((v) => (
+                      <option key={v.id} value={v.id}>{v.nombre}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="text-sm font-jakarta font-bold text-renta-900">
+                    {visita?.vendedor_nombre || 'Sin asignar'}
+                  </span>
+                )}
+              </div>
+            </div>
             {visita?.mensaje_visitante && (
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center shrink-0">
@@ -415,6 +459,30 @@ function VisitaCard({ visita, onUpdate, updatingId }: { visita: Visita, onUpdate
 
 export default function VisitasPage() {
   const { client, isReady } = useEden();
+  const { hasPermission } = useInmobiliaria();
+  const canReassign = hasPermission(['superadmin', 'admin']);
+  const [vendedores, setVendedores] = useState<{ id: string; nombre: string }[]>([]);
+
+  useEffect(() => {
+    if (!isReady || !canReassign) return;
+    const fetchVendedores = async () => {
+      try {
+        // @ts-expect-error - Eden Treaty dynamic path
+        const { data, error } = await client.admin.equipo.get();
+        if (!error && data) {
+          const miembros = (data as any)?.miembros ?? [];
+          setVendedores(
+            miembros
+              .filter((m: any) => m.role === 'vendedor')
+              .map((m: any) => ({ id: m.id, nombre: m.nombre }))
+          );
+        }
+      } catch (err) {
+        console.error('[VISITAS] Error fetching vendedores:', err);
+      }
+    };
+    fetchVendedores();
+  }, [client, isReady, canReassign]);
 
   const getVisitasFn = async () => {
     if (!isReady) return [];
@@ -449,5 +517,25 @@ export default function VisitasPage() {
     toast.success('Visita actualizada correctamente');
   };
 
-  return <VisitasView getVisitasFn={getVisitasFn} onUpdateVisita={onUpdateVisita} />;
+  const onReassign = async (id: string, vendedorId: string | null, vendedorNombre: string | null) => {
+    if (!isReady) {
+      toast.error('Cliente no disponible');
+      return;
+    }
+
+    const { error } = await client.admin.visitas({ id }).patch({
+      vendedor_id: vendedorId,
+      vendedor_nombre: vendedorNombre,
+    });
+
+    if (error) {
+      console.error('[VISITAS] Error reasignando vendedor:', error);
+      toast.error('Error al reasignar el vendedor');
+      throw new Error((error as any)?.value?.error || 'Error al reasignar');
+    }
+
+    toast.success('Vendedor actualizado');
+  };
+
+  return <VisitasView getVisitasFn={getVisitasFn} onUpdateVisita={onUpdateVisita} onReassign={onReassign} vendedores={vendedores} canReassign={canReassign} />;
 }
