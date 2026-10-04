@@ -12,6 +12,7 @@ export interface InmobiliariaMetadata {
   role: UserRole;
   country_code: CountryCode;
   requires_logo_upload?: boolean;
+  slug?: string;
   suscripcion?: {
     status: 'activa' | 'gracia' | 'vencida';
     isBlocked: boolean;
@@ -66,6 +67,7 @@ export function useInmobiliaria() {
   const nombre = dbData?.nombre ?? metadata.nombre ?? 'Mi Inmobiliaria';
   const logo_url = dbData?.logo_url ?? metadata.logo_url ?? undefined;
   const requires_logo_upload = dbData?.requires_logo_upload ?? metadata.requires_logo_upload ?? false;
+  const slug = dbData?.slug ?? metadata.slug ?? undefined;
 
   /**
    * Valida jerarquías de roles contra la UI para componentes que necesitan ocultarse o 
@@ -84,6 +86,7 @@ export function useInmobiliaria() {
     nombre,
     logo_url,
     requires_logo_upload,
+    slug,
     country_code: metadata.country_code ?? undefined,
     role,
     isLoaded,

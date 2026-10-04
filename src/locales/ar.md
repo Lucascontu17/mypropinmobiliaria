@@ -167,7 +167,9 @@ equipo_th_acciones: Acciones
 equipo_vacio: No se encontraron miembros del equipo.
 equipo_estado_activo: Activo
 equipo_estado_inactivo: Inactivo
+equipo_estado_pendiente: Pendiente
 equipo_filtro_todos: Todos
+equipo_filtro_superadmins: Superadmins
 equipo_filtro_admins: Admins
 equipo_filtro_vendedores: Vendedores
 equipo_permisos_titulo: Matriz de Permisos por Rol

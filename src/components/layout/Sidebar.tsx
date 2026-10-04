@@ -45,10 +45,10 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { dialectKey: 'nav_dashboard', fallbackLabel: 'Dashboard', href: '/', icon: LayoutDashboard, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
-  { dialectKey: 'nav_propietarios', fallbackLabel: 'Propietarios', href: '/propietarios', icon: UserCheck, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
+  { dialectKey: 'nav_propietarios', fallbackLabel: 'Propietarios', href: '/propietarios', icon: UserCheck, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_propiedades', fallbackLabel: 'Propiedades', href: '/propiedades', icon: Building2, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
   { dialectKey: 'nav_visitas', fallbackLabel: 'Visitas', href: '/visitas', icon: Calendar, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
-  { dialectKey: 'nav_contratos', fallbackLabel: 'Contratos', href: '/contratos', icon: Handshake, allowedRoles: ['superadmin', 'admin', 'vendedor'] },
+  { dialectKey: 'nav_contratos', fallbackLabel: 'Contratos', href: '/contratos', icon: Handshake, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_inquilinos', fallbackLabel: 'Inquilinos', href: '/inquilinos', icon: Users, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_cobranzas', fallbackLabel: 'Cobranzas', href: '/cobranzas', icon: Wallet, allowedRoles: ['superadmin', 'admin'] },
   { dialectKey: 'nav_proyeccion_aumentos', fallbackLabel: 'Proyección de Aumentos', href: '/cobranzas/aumentos', icon: TrendingUp, allowedRoles: ['superadmin', 'admin'] },

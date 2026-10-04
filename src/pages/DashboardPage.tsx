@@ -16,6 +16,10 @@ import {
   ChevronRight,
   Eye,
   Sparkles,
+  Copy,
+  Check,
+  Link,
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
@@ -91,13 +95,23 @@ interface StatDef {
 }
 
 export function DashboardPage() {
-  const { role, hasPermission } = useInmobiliaria();
+  const { role, hasPermission, slug } = useInmobiliaria();
   const { t, formatCurrency } = useRegion();
   const [metrics, setMetrics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
   const { client: eden, isReady } = useEden();
   const navigate = useNavigate();
+
+  const publicUrl = slug ? `https://zonatia.com/profile/${slug}` : '';
+
+  const handleCopy = () => {
+    if (!publicUrl) return;
+    navigator.clipboard.writeText(publicUrl);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -209,18 +223,57 @@ export function DashboardPage() {
     <div className="space-y-8 pb-12">
       <LocalShepherd steps={shepherdSteps} storageKey={`enjoy_local_dashboard_${role}`} />
 
-      {/* ── Page Header ── */}
-      <div className="opacity-0 animate-fade-in-up">
-        <h1 className="text-2xl font-bold text-renta-950 lg:text-3xl font-jakarta">
-
-          {t('panel_titulo', 'Panel de Control')}
-        </h1>
-        <p className="mt-1 text-sm text-renta-600 font-inter">
-          {t('panel_subtitulo', 'Resumen estratégico de tu inmobiliaria.')}{' '}
-          <span className="text-renta-400 font-bold ml-1">
-             {role.toUpperCase()} MODE
-          </span>
-        </p>
+      {/*  Page Header  */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 opacity-0 animate-fade-in-up">
+        <div>
+          <h1 className="text-2xl font-bold text-renta-950 lg:text-3xl font-jakarta">
+            {t('panel_titulo', 'Panel de Control')}
+          </h1>
+          <p className="mt-1 text-sm text-renta-600 font-inter">
+            {t('panel_subtitulo', 'Resumen estratégico de tu inmobiliaria.')}{' '}
+            <span className="text-renta-400 font-bold ml-1">
+               {role.toUpperCase()} MODE
+            </span>
+          </p>
+        </div>
+        
+        {/* Public URL Share Block */}
+        {slug && (
+          <div className="bg-white border border-renta-200 shadow-sm rounded-xl p-3 flex flex-col gap-2 max-w-sm w-full md:w-auto shrink-0">
+            <div className="flex items-center gap-1.5">
+              <Link className="h-4 w-4 text-renta-500" />
+              <span className="text-xs font-bold text-renta-700 uppercase tracking-wide">
+                URL Pública de Perfil
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-renta-50 text-renta-600 text-xs py-1.5 px-3 rounded-lg border border-renta-100 truncate font-mono select-all">
+                {publicUrl}
+              </div>
+              <button
+                onClick={handleCopy}
+                className={cn(
+                  "p-2 rounded-lg transition-all flex items-center justify-center border",
+                  isCopied 
+                    ? "bg-emerald-50 text-emerald-600 border-emerald-200" 
+                    : "bg-white text-renta-600 border-renta-200 hover:bg-renta-50 hover:text-renta-900"
+                )}
+                title="Copiar URL"
+              >
+                {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </button>
+              <a
+                href={publicUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-lg bg-white border border-renta-200 text-renta-600 hover:bg-renta-50 hover:text-renta-900 transition-all flex items-center justify-center"
+                title="Abrir perfil"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── ALERTA PERIODO DE GRACIA ── */}

@@ -16,6 +16,7 @@ import {
   UserX,
   UserCheck as UserCheckIcon,
   Loader2,
+  Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MiembroForm, type MiembroData } from '@/components/equipo/MiembroForm';
@@ -62,7 +63,7 @@ export function EquipoPage() {
         if (error || !data) {
             console.error('[EQUIPO] Error fetching:', error);
         } else {
-            setMiembros((data as any)?.data ?? []);
+            setMiembros((data as any)?.miembros ?? []);
         }
     } catch (err) {
         console.error('[EQUIPO] Connection error:', err);
@@ -74,6 +75,52 @@ export function EquipoPage() {
   useEffect(() => {
     fetchEquipo();
   }, [eden, isReady]);
+
+  const handleToggleEstado = async (m: MiembroData) => {
+    if (!m.id) return;
+    const nuevoEstado = m.estado === 'inactivo' ? 'activo' : 'inactivo';
+    try {
+      const { error } = await (eden.admin.equipo as any)({ id: m.id }).estado.patch({ estado: nuevoEstado });
+      if (error) {
+        toast.error(error.value?.error || 'Error al cambiar estado');
+      } else {
+        toast.success(nuevoEstado === 'activo' ? 'Cuenta reactivada' : 'Cuenta desactivada');
+        fetchEquipo();
+      }
+    } catch (err) {
+      toast.error('Error crítico al conectar con el Búnker');
+    }
+  };
+
+  const handleResend = async (m: MiembroData) => {
+    if (!m.id) return;
+    try {
+      const { error } = await (eden.admin.equipo as any)({ id: m.id }).reenviar.post();
+      if (error) {
+        toast.error(error.value?.error || 'Error al reenviar invitación');
+      } else {
+        toast.success('Invitación reenviada correctamente');
+      }
+    } catch (err) {
+      toast.error('Error crítico al conectar con el Búnker');
+    }
+  };
+
+  const handleDelete = async (m: MiembroData) => {
+    if (!m.id) return;
+    if (!window.confirm(`¿Eliminar a ${m.nombre || 'este miembro'}? Esta acción es irreversible.`)) return;
+    try {
+      const { error } = await (eden.admin.equipo as any)({ id: m.id }).delete();
+      if (error) {
+        toast.error(error.value?.error || 'Error al eliminar miembro');
+      } else {
+        toast.success('Miembro eliminado correctamente');
+        fetchEquipo();
+      }
+    } catch (err) {
+      toast.error('Error crítico al conectar con el Búnker');
+    }
+  };
 
   const equipo = miembros.filter((m) => {
     const matchesSearch =
@@ -203,7 +250,7 @@ export function EquipoPage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          {(['todos', 'admin', 'vendedor'] as const).map((filter) => (
+          {(['todos', 'superadmin', 'admin', 'vendedor'] as const).map((filter) => (
             <button
               key={filter}
               onClick={() => setFilterRole(filter)}
@@ -216,9 +263,11 @@ export function EquipoPage() {
             >
               {filter === 'todos'
                 ? t('equipo_filtro_todos', 'Todos')
-                : filter === 'admin'
-                  ? t('equipo_filtro_admins', 'Admins')
-                  : t('equipo_filtro_vendedores', 'Vendedores')}
+                : filter === 'superadmin'
+                  ? t('equipo_filtro_superadmins', 'Superadmins')
+                  : filter === 'admin'
+                    ? t('equipo_filtro_admins', 'Admins')
+                    : t('equipo_filtro_vendedores', 'Vendedores')}
             </button>
           ))}
         </div>
@@ -311,20 +360,26 @@ export function EquipoPage() {
                       <td className="px-6 py-4">
                         <span
                           className={cn(
-                            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold',
+                            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border',
                             m?.estado === 'activo'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-gray-50 text-gray-500 border border-gray-200'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : m?.estado === 'pendiente'
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-gray-50 text-gray-500 border-gray-200'
                           )}
                         >
                           {m?.estado === 'activo' ? (
                             <UserCheckIcon className="h-3 w-3" />
+                          ) : m?.estado === 'pendiente' ? (
+                            <Clock className="h-3 w-3" />
                           ) : (
                             <UserX className="h-3 w-3" />
                           )}
                           {m?.estado === 'activo'
                             ? t('equipo_estado_activo', 'Activo')
-                            : t('equipo_estado_inactivo', 'Inactivo')}
+                            : m?.estado === 'pendiente'
+                              ? t('equipo_estado_pendiente', 'Pendiente')
+                              : t('equipo_estado_inactivo', 'Inactivo')}
                         </span>
                       </td>
 
@@ -355,11 +410,7 @@ export function EquipoPage() {
 
                           {hasPermission(['superadmin']) && (
                             <button
-                              onClick={() => {
-                                toast.error('Función no disponible', {
-                                  description: 'La eliminación de miembros se gestiona desde Clerk Console.'
-                                });
-                              }}
+                              onClick={() => handleDelete(m)}
                               className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                               title={t('equipo_accion_eliminar', 'Eliminar')}
                             >
@@ -380,15 +431,11 @@ export function EquipoPage() {
                               <button
                                 onClick={() => {
                                   setContextMenu(null);
-                                  toast.error('Función no disponible', {
-                                    description: m?.estado === 'activo'
-                                      ? 'La desactivación de cuentas se gestiona desde Clerk Console.'
-                                      : 'La reactivación de cuentas se gestiona desde Clerk Console.'
-                                  });
+                                  handleToggleEstado(m);
                                 }}
                                 className="w-full flex items-center gap-2 px-4 py-2 text-xs text-renta-700 hover:bg-renta-50 transition-colors"
                               >
-                                {m?.estado === 'activo' ? (
+                                {m?.estado !== 'inactivo' ? (
                                   <>
                                     <UserX className="h-3.5 w-3.5" />
                                     {t('equipo_accion_desactivar', 'Desactivar Cuenta')}
@@ -403,9 +450,7 @@ export function EquipoPage() {
                               <button
                                 onClick={() => {
                                   setContextMenu(null);
-                                  toast.error('Función no disponible', {
-                                    description: 'El reenvío de invitaciones se gestiona desde Clerk Console.'
-                                  });
+                                  handleResend(m);
                                 }}
                                 className="w-full flex items-center gap-2 px-4 py-2 text-xs text-renta-700 hover:bg-renta-50 transition-colors"
                               >
@@ -480,6 +525,7 @@ export function EquipoPage() {
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <MiembroForm
               initialData={editingData}
+              isSuperadmin={currentRole === 'superadmin'}
               onCancel={() => setIsFormOpen(false)}
               onSuccess={() => {
                 setIsFormOpen(false);

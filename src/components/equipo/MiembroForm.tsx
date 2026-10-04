@@ -12,7 +12,7 @@ const miembroSchema = z.object({
   nombre: z.string().min(2, 'Nombre debe tener al menos 2 caracteres.'),
   email: z.string().email('Email inválido.'),
   celular: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Formato E.164 requerido (Ej: +5491112345678)'),
-  role: z.enum(['admin', 'vendedor']),
+  role: z.enum(['admin', 'vendedor', 'superadmin']),
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres.').optional(),
 });
 
@@ -22,7 +22,7 @@ export interface MiembroData {
   email: string;
   celular: string;
   role: UserRole;
-  estado?: 'activo' | 'inactivo';
+  estado?: 'activo' | 'inactivo' | 'pendiente';
   fecha_alta?: string;
 }
 
@@ -30,6 +30,7 @@ interface MiembroFormProps {
   initialData?: MiembroData | null;
   onCancel: () => void;
   onSuccess: () => void;
+  isSuperadmin?: boolean;
 }
 
 const ROLE_OPTIONS: { value: UserRole; label: string; description: string; icon: React.ElementType; color: string }[] = [
@@ -49,14 +50,22 @@ const ROLE_OPTIONS: { value: UserRole; label: string; description: string; icon:
   },
 ];
 
-export function MiembroForm({ initialData, onCancel, onSuccess }: MiembroFormProps) {
+const SUPERADMIN_OPTION = {
+  value: 'superadmin' as UserRole,
+  label: 'Superadmin',
+  description: 'Acceso total: configuración técnica, API keys, marketplace y gestión completa del equipo.',
+  icon: Shield,
+  color: 'text-purple-600 bg-purple-50 border-purple-200',
+};
+
+export function MiembroForm({ initialData, onCancel, onSuccess, isSuperadmin = false }: MiembroFormProps) {
   const { t, config } = useRegion();
   const { client: eden } = useEden();
   const isEditing = !!initialData?.id;
 
   const [nombre, setNombre] = useState(initialData?.nombre ?? '');
   const [email, setEmail] = useState(initialData?.email ?? '');
-  const [celular, setCelular] = useState(initialData?.celular ?? config.phone_prefix);
+  const [celular, setCelular] = useState(initialData?.celular || config.phone_prefix);
   const [role, setRole] = useState<UserRole>(initialData?.role ?? 'vendedor');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -88,14 +97,25 @@ export function MiembroForm({ initialData, onCancel, onSuccess }: MiembroFormPro
     
     try {
         if (isEditing) {
-            // Edit logic not yet fully implemented in backend for Team
-            toast.error('La edición de miembros estará disponible pronto.');
+            const { error } = await (eden.admin.equipo as any)({ id: initialData?.id }).put({
+                nombre,
+                role,
+                celular
+            });
+
+            if (error) {
+                toast.error(error.value?.error || 'Error al actualizar miembro');
+            } else {
+                toast.success('Miembro actualizado correctamente');
+                onSuccess();
+            }
         } else {
             const { data, error } = await eden.admin.equipo.post({
                 nombre,
                 email,
                 role,
-                password
+                password,
+                celular
             });
 
             if (error) {
@@ -138,7 +158,7 @@ export function MiembroForm({ initialData, onCancel, onSuccess }: MiembroFormPro
             {t('equipo_form_rol', 'Rol / Jerarquía')}
           </label>
           <div className="grid grid-cols-2 gap-3">
-            {ROLE_OPTIONS.map((opt) => {
+            {(isSuperadmin ? [SUPERADMIN_OPTION, ...ROLE_OPTIONS] : ROLE_OPTIONS).map((opt) => {
               const Icon = opt.icon;
               const isSelected = role === opt.value;
               return (
