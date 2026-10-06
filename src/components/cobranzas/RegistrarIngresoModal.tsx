@@ -1,17 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { transaccionSchema, type TransaccionFormData, type PagoEnCuenta } from '@/types/cobranzas';
 import { useInmobiliaria } from '@/hooks/useInmobiliaria';
 import { useRegion } from '@/hooks/useRegion';
 import { NumericInput } from '@/components/common/NumericInput';
-import { X, Save, Wallet, AlertCircle } from 'lucide-react';
+import { X, Save, Wallet, AlertCircle, Wand2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEden, BASE_URL } from '@/services/eden';
 import { toast } from 'sonner';
 import { generateReceiptPDF } from '@/utils/receiptGenerator';
 import { numeroALetras } from '@/utils/numberToWords';
-import { CheckCircle2, Loader2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 interface RegistrarIngresoModalProps {
   pagoDestino: PagoEnCuenta;
@@ -23,11 +23,40 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
   const { inmobiliaria_id, nombre: nombreInmobiliaria } = useInmobiliaria();
   const { config, formatCurrency, country_code } = useRegion();
   const { client: eden, token } = useEden();
-  const [montoAblVariable, setMontoAblVariable] = useState<number | ''>('');
+  type ConceptoKey = 'alquiler' | 'expensas' | 'abl' | 'luz' | 'gas' | 'agua';
+
+  const conceptosActivos = useMemo(() => {
+    const list: { key: ConceptoKey; label: string; esperado: number }[] = [];
+    list.push({
+      key: 'alquiler',
+      label: 'Alquiler',
+      esperado: Number(pagoDestino.desglose_esperado?.alquiler ?? pagoDestino.monto_alquiler_base ?? 0),
+    });
+    if (pagoDestino.has_expensas === true || Number(pagoDestino.monto_expensas || 0) > 0) {
+      list.push({
+        key: 'expensas',
+        label: 'Expensas',
+        esperado: Number(pagoDestino.desglose_esperado?.expensas ?? pagoDestino.monto_expensas ?? 0),
+      });
+    }
+    if (pagoDestino.has_abl === true || !!pagoDestino.tipo_abl) {
+      list.push({
+        key: 'abl',
+        label: 'ABL',
+        esperado: Number(pagoDestino.desglose_esperado?.abl ?? pagoDestino.monto_abl ?? 0),
+      });
+    }
+    if (pagoDestino.has_luz === true) list.push({ key: 'luz', label: 'Luz', esperado: 0 });
+    if (pagoDestino.has_gas === true) list.push({ key: 'gas', label: 'Gas', esperado: 0 });
+    if (pagoDestino.has_agua === true) list.push({ key: 'agua', label: 'Agua', esperado: 0 });
+    return list;
+  }, [pagoDestino]);
+
+  const [desglose, setDesglose] = useState<Record<ConceptoKey, number>>({
+    alquiler: 0, expensas: 0, abl: 0, luz: 0, gas: 0, agua: 0,
+  });
   
-  const ablDinamico = Number(montoAblVariable) || 0;
-  const totalConImpuestos = pagoDestino.monto_a_abonar + (pagoDestino.tipo_abl === 'variable' ? ablDinamico : 0);
-  const saldoRestante = totalConImpuestos - pagoDestino.monto_abonado;
+  const saldoRestante = (pagoDestino.monto_a_abonar || 0) - (pagoDestino.monto_abonado || 0);
   
   const { control, register, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<TransaccionFormData>({
     resolver: zodResolver(transaccionSchema),
@@ -40,15 +69,55 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
     }
   });
 
-  const montoIngresado = watch('monto');
+  const montoIngresado = Number(watch('monto') ?? 0);
+
+  const sumaDesglose = conceptosActivos.reduce((acc, c) => acc + (desglose[c.key] || 0), 0);
+  const restantePorDistribuir = Math.round((montoIngresado - sumaDesglose) * 100) / 100;
+
+  const setConcepto = (key: ConceptoKey, val: number) => {
+    const v = Number(val) || 0;
+    setDesglose(prev => ({ ...prev, [key]: Math.round(v * 100) / 100 }));
+  };
+
+  const autocompletar = () => {
+    const total = montoIngresado;
+    const exp = conceptosActivos.find(c => c.key === 'expensas');
+    const abl = conceptosActivos.find(c => c.key === 'abl');
+    const otrosMonto = (exp?.esperado || 0) + (abl?.esperado || 0);
+    const alquiler = Math.max(0, Math.round((total - otrosMonto) * 100) / 100);
+    setDesglose({
+      alquiler,
+      expensas: exp?.esperado || 0,
+      abl: abl?.esperado || 0,
+      luz: 0, gas: 0, agua: 0,
+    });
+  };
   const generaSaldoAFavor = montoIngresado > saldoRestante && saldoRestante > 0;
 
   const onSubmit = async (data: TransaccionFormData) => {
+    const total = Number(data.monto);
+    const suma = conceptosActivos.reduce((acc, c) => acc + (desglose[c.key] || 0), 0);
+    if (Math.abs(suma - total) > 0.01) {
+      toast.error(`La suma del desglose (${formatCurrency(suma)}) no coincide con el monto total (${formatCurrency(total)}).`);
+      return;
+    }
+
+    const desglosePayload = {
+      alquiler: desglose.alquiler || 0,
+      expensas: desglose.expensas || 0,
+      abl: desglose.abl || 0,
+      luz: desglose.luz || 0,
+      gas: desglose.gas || 0,
+      agua: desglose.agua || 0,
+      otros: 0,
+    };
+
     try {
       // 1. Registrar la Transacción en la DB
       const payload = {
         ...data,
-        inmobiliaria_id: inmobiliaria_id || undefined
+        inmobiliaria_id: inmobiliaria_id || undefined,
+        desglose: desglosePayload
       };
       
       const { data: transResponse, error: transError } = await eden.admin.transacciones.post(payload);
@@ -69,12 +138,15 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
         periodo: pagoDestino.periodo,
         inquilino: pagoDestino.nombre_inquilino,
         propiedad: pagoDestino.detalle_propiedad,
-        monto_total: Number(data.monto),
-        monto_letras: numeroALetras(Number(data.monto)),
+        monto_total: total,
+        monto_letras: numeroALetras(total),
         desglose: {
-          alquiler: pagoDestino.monto_alquiler_base || 0,
-          expensas: pagoDestino.monto_expensas || 0,
-          abl: pagoDestino.tipo_abl === 'fijo' ? (pagoDestino.monto_abl || 0) : ablDinamico
+          alquiler: desglosePayload.alquiler,
+          expensas: desglosePayload.expensas,
+          abl: desglosePayload.abl,
+          luz: desglosePayload.luz,
+          gas: desglosePayload.gas,
+          agua: desglosePayload.agua,
         },
         metodo_pago: data.metodo,
         fecha_pago: data.fecha
@@ -149,55 +221,59 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
                <span className="text-[9px] font-bold text-renta-400 uppercase tracking-widest bg-white px-2 py-0.5 rounded ring-1 ring-inset ring-admin-border border-transparent">{pagoDestino.periodo}</span>
              </div>
 
-             <div className="border-t border-admin-border-subtle pt-2 space-y-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-renta-500">Alquiler</span>
-                  <span className="font-medium text-renta-800">{formatCurrency(pagoDestino.monto_alquiler_base || pagoDestino.monto_a_abonar)}</span>
+             <div className="border-t border-admin-border-subtle pt-2 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-renta-600 uppercase tracking-wider">Distribuir el pago</span>
+                  <button
+                    type="button"
+                    onClick={autocompletar}
+                    className="flex items-center gap-1 text-[10px] font-bold text-renta-600 bg-white ring-1 ring-inset ring-admin-border border-transparent hover:bg-renta-50 px-2 py-1 rounded-lg transition-colors"
+                  >
+                    <Wand2 className="h-3 w-3" /> Autocompletar
+                  </button>
                 </div>
 
-                {pagoDestino.monto_expensas ? (
-                  <div className="flex justify-between">
-                    <span className="text-renta-500">Expensas</span>
-                    <span className="font-medium text-renta-800">{formatCurrency(pagoDestino.monto_expensas)}</span>
-                  </div>
-                ) : null}
-
-                {pagoDestino.tipo_abl === 'fijo' && pagoDestino.monto_abl ? (
-                  <div className="flex justify-between">
-                    <span className="text-renta-500">ABL</span>
-                    <span className="font-medium text-renta-800">{formatCurrency(pagoDestino.monto_abl)}</span>
-                  </div>
-                ) : null}
-
-                {pagoDestino.tipo_abl === 'variable' && (
-                  <div className="flex justify-between items-center bg-renta-50 p-1.5 rounded-lg border border-renta-100 -mx-1 px-1.5">
-                    <span className="text-renta-700 font-medium flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3 text-renta-400" />
-                      ABL Mes
-                    </span>
-                    <div className="relative w-24">
+                {conceptosActivos.map((concepto) => (
+                  <div key={concepto.key} className="flex items-center justify-between">
+                    <span className="text-renta-500">{concepto.label}</span>
+                    <div className="relative w-28">
                       <span className="absolute left-1.5 top-0.5 text-renta-400 font-bold text-[8px]">{config.currency_code}</span>
-                      <NumericInput 
+                      <NumericInput
                         placeholder="0"
-                        value={montoAblVariable}
-                        onChange={(val) => setMontoAblVariable(val)}
+                        value={desglose[concepto.key] || ''}
+                        onChange={(val) => setConcepto(concepto.key, val)}
                         className="w-full text-right pl-4 pr-1.5 py-0.5 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded text-[10px] font-bold focus:outline-none focus:border-renta-400"
                       />
                     </div>
                   </div>
-                )}
+                ))}
+
+                <div className={cn(
+                  "flex justify-between items-center text-[10px] px-2 py-1 rounded-lg border",
+                  restantePorDistribuir === 0
+                    ? "bg-emerald-50 border-emerald-100 text-emerald-700"
+                    : restantePorDistribuir > 0
+                      ? "bg-amber-50 border-amber-100 text-amber-700"
+                      : "bg-red-50 border-red-100 text-red-600"
+                )}>
+                  <span className="font-semibold">
+                    {restantePorDistribuir === 0
+                      ? 'Desglose completo'
+                      : restantePorDistribuir > 0
+                        ? 'Restante por distribuir'
+                        : 'Excedente en el desglose'}
+                  </span>
+                  <span className="font-bold">{formatCurrency(Math.abs(restantePorDistribuir))}</span>
+                </div>
              </div>
 
              <div className="border-t border-admin-border-subtle pt-2 flex justify-between items-center text-xs">
-               <span className="font-bold text-renta-900">Total</span>
-               <span className="font-black text-renta-950 text-sm">{formatCurrency(totalConImpuestos)}</span>
+               <span className="font-bold text-renta-900">Total a cobrar</span>
+               <span className="font-black text-renta-950 text-sm">{formatCurrency(pagoDestino.monto_a_abonar)}</span>
              </div>
              
-             {saldoRestante !== totalConImpuestos && (
-               <div className={cn(
-                 "flex justify-between items-center text-[10px] px-2 py-1 rounded-lg",
-                 pagoDestino.monto_abonado > 0 ? "bg-emerald-50 border border-emerald-100" : "bg-renta-50 border border-renta-100"
-               )}>
+             {pagoDestino.monto_abonado > 0 && (
+               <div className="flex justify-between items-center text-[10px] px-2 py-1 rounded-lg bg-renta-50 border border-renta-100">
                  <span className="font-medium">Saldo Pendiente</span>
                  <span className="font-bold">{formatCurrency(saldoRestante)}</span>
                </div>
