@@ -212,34 +212,74 @@ export function PropiedadesPage() {
     }
   };
 
-  const shepherdSteps: ShepherdStep[] = role === 'superadmin' || role === 'admin' 
+  const shepherdSteps: ShepherdStep[] = role === 'superadmin' || role === 'admin'
     ? [
         {
           target: '[data-shepherd="assigned-catalog"]',
-          title: t('tour_prop_catalog_title', 'Catálogo de Propiedades'),
-          content: t('tour_prop_catalog_desc', 'Aquí se listan todas las propiedades dadas de alta. Si eres Vendedor, el sistema aplica automáticamente el Master Filter para que solo veas las asignadas a ti.'),
+          title: '🏘️ Catálogo de Propiedades',
+          content: `
+            <div class="zt-row">
+              <span class="zt-row-icon">📋</span>
+              <span class="zt-row-text">Aquí se listan <strong>todas las propiedades</strong> dadas de alta, con dirección, tipo, valor y estado actual.</span>
+            </div>
+            <div class="zt-row">
+              <span class="zt-row-icon">⚡</span>
+              <span class="zt-row-text">Use los <strong>filtros de tipo y búsqueda</strong> para localizar inmuebles rápidamente en carteras grandes.</span>
+            </div>
+            <div class="zt-row">
+              <span class="zt-row-icon">🌐</span>
+              <span class="zt-row-text">Cada propiedad publicada genera una <strong>URL pública</strong> visible en el Marketplace y el perfil de la inmobiliaria.</span>
+            </div>
+            <div class="zt-hint">💡 Como Admin ves la cartera completa. Los Vendedores solo ven sus propiedades asignadas.</div>
+          `,
           placement: 'bottom',
         },
         {
           target: '[data-shepherd="booster-action"]',
-          title: t('tour_prop_booster_title', 'Asignar Puntos Booster 🚀'),
-          content: t('tour_prop_booster_desc', 'Use este botón para inyectarle puntos a una propiedad que esté "Disponible" o "En Venta". Los puntos mejoran su ranking dentro del ecosistema.'),
+          title: '🚀 Asignar Puntos Booster',
+          content: `
+            <div class="zt-row">
+              <span class="zt-row-icon">📈</span>
+              <span class="zt-row-text">Los <strong>Booster Points</strong> mejoran el ranking de la propiedad dentro del ecosistema Zonatia y en el Marketplace.</span>
+            </div>
+            <div class="zt-row">
+              <span class="zt-row-icon">🎯</span>
+              <span class="zt-row-text">Solo aplica a propiedades en estado <strong>Disponible</strong> o <strong>En Venta</strong>.</span>
+            </div>
+            <div class="zt-hint">✨ Los puntos se descuentan de su balance mensual de créditos Zonatia.</div>
+          `,
           placement: 'left',
-        }
+        },
       ]
     : [
         {
           target: '[data-shepherd="assigned-catalog"]',
-          title: t('tour_prop_catalog_title', 'Tu Catálogo Asignado'),
-          content: t('tour_prop_catalog_ven_desc', 'Como vendedor, solo ves las propiedades que te fueron asignadas. Este es tu espacio de trabajo principal.'),
+          title: '🏘️ Tu Catálogo Asignado',
+          content: `
+            <div class="zt-row">
+              <span class="zt-row-icon">🔒</span>
+              <span class="zt-row-text">Como <strong>Vendedor</strong>, el sistema aplica el Master Filter automáticamente — solo ves las propiedades que te fueron asignadas.</span>
+            </div>
+            <div class="zt-row">
+              <span class="zt-row-icon">📤</span>
+              <span class="zt-row-text">Desde aquí podés <strong>ver detalles</strong>, generar links para compartir y consultar el historial de cada inmueble.</span>
+            </div>
+            <div class="zt-hint">💡 Si no ves una propiedad que esperás, pedile al Admin que te la asigne.</div>
+          `,
           placement: 'bottom',
         },
         {
           target: '[data-shepherd="service-icons"]',
-          title: t('tour_prop_services_title', 'Indicadores de Servicios'),
-          content: t('tour_prop_services_desc', 'Estos íconos te muestran rápidamente qué servicios tiene activos la propiedad (luz, gas, agua).'),
+          title: '💡 Indicadores de Servicios',
+          content: `
+            <div class="zt-row">
+              <span class="zt-row-icon">⚡</span>
+              <span class="zt-row-text"><strong>Luz, Gas, Agua</strong> — un vistazo rápido a los servicios públicos activos en cada propiedad.</span>
+            </div>
+            <div class="zt-hint">🏠 Estos indicadores se configuran al cargar o editar la propiedad.</div>
+          `,
           placement: 'bottom',
-        }
+        },
       ];
 
   return (

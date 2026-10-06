@@ -5,6 +5,23 @@ export const MetodoPagoEnum = z.enum([
 ]);
 
 /**
+ * Desglose de un cobro por concepto.
+ * Cada campo representa cuánto del monto total corresponde a ese ítem.
+ * Solo se contemplan los conceptos que la propiedad tiene activos.
+ */
+export const desgloseSchema = z.object({
+  alquiler: z.coerce.number().min(0).optional(),
+  expensas: z.coerce.number().min(0).optional(),
+  abl: z.coerce.number().min(0).optional(),
+  luz: z.coerce.number().min(0).optional(),
+  gas: z.coerce.number().min(0).optional(),
+  agua: z.coerce.number().min(0).optional(),
+  otros: z.coerce.number().min(0).optional(),
+});
+
+export type DesgloseConceptos = z.infer<typeof desgloseSchema>;
+
+/**
  * Zod Schema para Registrar Ingresos (Transacciones de pago)
  * Frontend -> POST /api/v1/transacciones
  */
@@ -17,7 +34,9 @@ export const transaccionSchema = z.object({
   
   fecha: z.string()
     .min(10, "Fecha inválida")
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Debe ser YYYY-MM-DD")
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Debe ser YYYY-MM-DD"),
+
+  desglose: desgloseSchema.optional(),
 });
 
 export type TransaccionFormData = z.infer<typeof transaccionSchema>;
@@ -51,6 +70,17 @@ export interface PagoEnCuenta {
   tipo_abl?: 'fijo' | 'variable' | null;
   monto_abl?: number;           // Desglose: ABL (Fijo si tipo='fijo')
   comision_administracion?: number; // Comisión de administración por período
+  
+  // Flags de la propiedad: determinan qué conceptos aparecen en el desglose
+  has_expensas?: boolean;
+  has_abl?: boolean;
+  has_luz?: boolean;
+  has_gas?: boolean;
+  has_agua?: boolean;
+
+  // Desglose esperado (lo que debería pagar por concepto) y pagado (lo ya cobrado)
+  desglose_esperado?: DesgloseConceptos;
+  desglose_pagado?: DesgloseConceptos;
   
   // Estado Dinámico:
   // 'PAGADO' (a_abonar <= abonado), 

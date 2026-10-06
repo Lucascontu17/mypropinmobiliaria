@@ -72,22 +72,56 @@ export function ContratosPage() {
   const shepherdSteps: ShepherdStep[] = [
     {
       target: '[data-shepherd="ctr-header"]',
-      title: t('tour_ctr_header_title', 'Contratos y Alquileres'),
-      content: t('tour_ctr_header_desc', 'Administre el ciclo de vida completo de sus contratos de alquiler: desde la creación inicial, pasando por la indexación de precios, hasta la finalización del contrato. Aquí podrá consultar el estado de cada contrato y acceder a las acciones de gestión.'),
+      title: '📄 Contratos y Alquileres',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">🔄</span>
+          <span class="zt-row-text"><strong>Ciclo de vida completo</strong> — creación, indexación de precios, gestión de mora y finalización del contrato.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">📆</span>
+          <span class="zt-row-text"><strong>Vencimientos automáticos</strong> — el sistema alerta cuando un contrato está próximo a renovarse o vencer.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">📬</span>
+          <span class="zt-row-text"><strong>Notificaciones</strong> — envíe avisos de reunión o actualización a inquilinos y propietarios desde aquí.</span>
+        </div>
+        <div class="zt-hint">💡 Use "Nuevo contrato" para iniciar el asistente de alta guiado paso a paso.</div>
+      `,
       placement: 'bottom',
     },
     {
       target: '[data-shepherd="ctr-buscador"]',
-      title: t('tour_ctr_buscador_title', 'Buscador de Contratos'),
-      content: t('tour_ctr_buscador_desc', 'Busque contratos por el nombre de la propiedad o del inquilino. El listado se filtra automáticamente mientras escribe.'),
+      title: '🔍 Buscador de Contratos',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">🏠</span>
+          <span class="zt-row-text">Busque por <strong>nombre de propiedad</strong> — ej. "Av. Corrientes 1234".</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">👤</span>
+          <span class="zt-row-text">O busque por <strong>nombre del inquilino</strong> para ver todos sus contratos activos o finalizados.</span>
+        </div>
+        <div class="zt-hint">⚡ El filtrado se aplica en tiempo real sobre todos los contratos cargados.</div>
+      `,
       placement: 'bottom',
     },
     {
       target: '[data-shepherd="ctr-tabla"]',
-      title: t('tour_ctr_tabla_title', 'Listado de Contratos'),
-      content: t('tour_ctr_tabla_desc', 'Cada fila contiene la propiedad alquilada, el inquilino asociado, las fechas de inicio y finalización, y el estado actual del contrato. Use el botón "Gestionar" para finalizar el contrato o enviar notificaciones de reunión a las partes.'),
+      title: '📋 Listado de Contratos',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">📅</span>
+          <span class="zt-row-text">Cada fila muestra <strong>propiedad, inquilino, fechas de inicio y fin</strong>, y el estado del contrato (Activo / Finalizado).</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">⚙️</span>
+          <span class="zt-row-text">El botón <strong>Gestionar</strong> abre el panel de acciones: finalizar contrato, enviar notificación de reunión o ajustar valores.</span>
+        </div>
+        <div class="zt-hint">⚠️ Finalizar un contrato es irreversible. El historial queda registrado como referencia.</div>
+      `,
       placement: 'top',
-    }
+    },
   ];
 
   return (

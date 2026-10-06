@@ -94,16 +94,44 @@ export function SuscripcionPage() {
   const shepherdSteps: ShepherdStep[] = [
     {
       target: '[data-shepherd="sub-desglose"]',
-      title: t('tour_sub_desglose_title', 'Desglose de Facturación'),
-      content: t('tour_sub_desglose_desc', 'Aquí verá el total de su próxima cuota: Plan Base más las funciones extra que haya adquirido. Las funciones nuevas se cobran a partir del ciclo siguiente a su activación.'),
+      title: '🧾 Desglose de Facturación',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">📋</span>
+          <span class="zt-row-text"><strong>Plan Base</strong> — el costo fijo mensual de su tier de suscripción (Starter, Pro o VIP).</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">➕</span>
+          <span class="zt-row-text"><strong>Funciones Extra</strong> — los add-ons activados desde el Marketplace que se suman al plan base.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">💳</span>
+          <span class="zt-row-text"><strong>Total próximo pago</strong> — la suma de plan base + extras, a abonar en la fecha de vencimiento de su ciclo.</span>
+        </div>
+        <div class="zt-hint">⏰ Las funciones nuevas se cobran a partir del ciclo siguiente a su activación.</div>
+      `,
       placement: 'bottom',
     },
     {
       target: '[data-shepherd="sub-historial"]',
-      title: t('tour_sub_historial_title', 'Historial de Transacciones'),
-      content: t('tour_sub_historial_desc', 'Registro cronológico de todas las operaciones realizadas en el Marketplace: compras de puntos, activación de funciones y distribución de puntos a propiedades.'),
+      title: '📜 Historial de Transacciones',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">🪙</span>
+          <span class="zt-row-text"><strong>Compras de puntos</strong> — registro de cada adquisición de créditos de visibilidad.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">⭐</span>
+          <span class="zt-row-text"><strong>Activaciones</strong> — funciones extra que activó en el Marketplace y desde qué ciclo aplican.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">🏠</span>
+          <span class="zt-row-text"><strong>Distribución de puntos</strong> — movimientos de créditos asignados a propiedades con Booster.</span>
+        </div>
+        <div class="zt-hint">📊 Use este historial para auditar el gasto y optimizar su inversión en visibilidad.</div>
+      `,
       placement: 'left',
-    }
+    },
   ];
 
   const isNotDueYet = summary?.period ? isBefore(startOfDay(new Date()), startOfDay(new Date(summary.period))) : false;

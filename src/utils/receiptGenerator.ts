@@ -17,6 +17,9 @@ interface ReceiptData {
     alquiler: number;
     expensas: number;
     abl: number;
+    luz?: number;
+    gas?: number;
+    agua?: number;
   };
   metodo_pago: string;
   fecha_pago: string;
@@ -81,12 +84,19 @@ export const generateReceiptPDF = async (data: ReceiptData, locale: string = 'es
 
   y += 15;
   
-  // Table
+  // Table: desglose dinámico (solo conceptos con monto > 0)
+  const conceptos = [
+    ["Alquiler Base", data.desglose.alquiler],
+    ["Expensas Comunes", data.desglose.expensas],
+    ["Impuesto ABL / Municipal", data.desglose.abl],
+    ["Luz / Electricidad", data.desglose.luz || 0],
+    ["Gas Natural", data.desglose.gas || 0],
+    ["Agua Corriente", data.desglose.agua || 0],
+  ].filter(([, monto]) => (monto as number) > 0);
+
   const tableData = [
-    ["Concepto del Periodo", "Monto Total"],
-    ["Alquiler Base", `$ ${data.desglose.alquiler.toLocaleString(locale)}`],
-    ["Expensas Comunes", `$ ${data.desglose.expensas.toLocaleString(locale)}`],
-    ["Impuesto ABL / Municipal", `$ ${data.desglose.abl.toLocaleString(locale)}`],
+    ["Concepto del Periodo", "Monto"],
+    ...conceptos.map(([label, monto]) => [label as string, `$ ${(monto as number).toLocaleString(locale)}`]),
   ];
 
   const tableResult = autoTable(doc, {
