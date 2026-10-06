@@ -215,16 +215,40 @@ export function MarketplacePage() {
   const shepherdSteps: ShepherdStep[] = [
     {
       target: '[data-shepherd="mkt-balance"]',
-      title: t('tour_mkt_balance_title', 'Balance de Puntos'),
-      content: t('tour_mkt_balance_desc', 'Este es el saldo global de puntos de su inmobiliaria. Puede comprar puntos por paquetes o de forma personalizada y luego distribuirlos en las propiedades que desee destacar.'),
+      title: '💎 Balance de Puntos',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">🪙</span>
+          <span class="zt-row-text">Este es el <strong>saldo global de puntos</strong> de su inmobiliaria, disponible para distribuir entre sus propiedades.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">📦</span>
+          <span class="zt-row-text">Compre puntos por <strong>paquetes predefinidos</strong> o en la cantidad exacta que necesite.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">🚀</span>
+          <span class="zt-row-text">Los puntos se asignan desde <strong>Propiedades → Booster</strong> para destacar inmuebles en el ranking.</span>
+        </div>
+        <div class="zt-hint">🎁 Las nuevas cuentas reciben 50 puntos de bienvenida para comenzar a usar el sistema.</div>
+      `,
       placement: 'left',
     },
     {
       target: '[data-shepherd="mkt-tabs"]',
-      title: t('tour_mkt_tabs_title', 'Secciones del Marketplace'),
-      content: t('tour_mkt_tabs_desc', 'El Marketplace tiene dos secciones: "Funciones Extra" le permite agregar herramientas premium a su suscripción mensual, y "Comprar Puntos" le permite adquirir créditos de visibilidad para sus propiedades.'),
+      title: '🛒 Secciones del Marketplace',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">⭐</span>
+          <span class="zt-row-text"><strong>Funciones Extra</strong> — herramientas premium que se suman a su suscripción mensual: IA avanzada, reportes, cobranzas automáticas y más.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">🪙</span>
+          <span class="zt-row-text"><strong>Comprar Puntos</strong> — adquiera créditos de visibilidad para destacar sus propiedades en el ecosistema Zonatia.</span>
+        </div>
+        <div class="zt-hint">💡 Las funciones extra activadas se cobran a partir del ciclo de facturación siguiente.</div>
+      `,
       placement: 'bottom',
-    }
+    },
   ];
 
   return (

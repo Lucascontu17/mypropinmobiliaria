@@ -43,22 +43,56 @@ export function InquilinosPage() {
   const shepherdSteps: ShepherdStep[] = [
     {
       target: '[data-shepherd="inq-header"]',
-      title: t('tour_inq_header_title', 'Gestión de Inquilinos'),
-      content: t('tour_inq_header_desc', 'Administre aquí todos los locatarios de sus propiedades. Puede consultar su información de contacto, documentos y estado de cuenta. Desde esta sección podrá registrar nuevos inquilinos, editarlos y darles seguimiento.'),
+      title: '👥 Gestión de Inquilinos',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">📇</span>
+          <span class="zt-row-text"><strong>Ficha completa</strong> — nombre, DNI/CUIT, email, teléfono y estado de cuenta de cada locatario.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">✏️</span>
+          <span class="zt-row-text"><strong>Alta y edición</strong> — registre nuevos inquilinos o actualice sus datos en cualquier momento.</span>
+        </div>
+        <div class="zt-hint">💡 Los inquilinos aquí registrados estarán disponibles para vincular a contratos.</div>
+      `,
       placement: 'bottom',
     },
     {
       target: '[data-shepherd="inq-buscador"]',
-      title: t('tour_inq_buscador_title', 'Buscador de Inquilinos'),
-      content: t('tour_inq_buscador_desc', 'Utilice este campo para buscar rápidamente inquilinos por nombre o DNI. A medida que escribe, la tabla se filtra automáticamente para mostrar los resultados coincidentes.'),
+      title: '🔍 Buscador Inteligente',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">🔎</span>
+          <span class="zt-row-text">Busque por <strong>nombre completo</strong> o <strong>número de documento</strong> (DNI / CUIT).</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">⚡</span>
+          <span class="zt-row-text">El filtrado es <strong>instantáneo</strong> — la tabla se actualiza a medida que escribe, sin necesidad de presionar Enter.</span>
+        </div>
+        <div class="zt-hint">✏️ Deje el campo vacío para volver a ver el listado completo.</div>
+      `,
       placement: 'bottom',
     },
     {
       target: '[data-shepherd="inq-tabla"]',
-      title: t('tour_inq_tabla_title', 'Listado y Acciones'),
-      content: t('tour_inq_tabla_desc', 'Cada fila representa un inquilino con su ID de plataforma, datos personales y contacto telefónico. Desde la columna de acciones puede editar sus datos o, si tiene permisos de superadministrador, eliminar el registro.'),
+      title: '📋 Listado y Acciones',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">🆔</span>
+          <span class="zt-row-text"><strong>ID de plataforma</strong> — identificador único del inquilino en el sistema Zonatia.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">📞</span>
+          <span class="zt-row-text">Acceda a <strong>email y celular</strong> directamente desde cada fila.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">🗑️</span>
+          <span class="zt-row-text">El botón <strong>Eliminar</strong> solo está disponible para roles Superadministrador.</span>
+        </div>
+        <div class="zt-hint">🔒 La eliminación de un inquilino con contratos activos no está permitida.</div>
+      `,
       placement: 'top',
-    }
+    },
   ];
 
   return (

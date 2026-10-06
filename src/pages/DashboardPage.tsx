@@ -201,22 +201,68 @@ export function DashboardPage() {
   const shepherdSteps: ShepherdStep[] = [
     {
       target: '[data-shepherd="dash-kpis"]',
-      title: t('tour_dash_kpis_title', 'KPIs Estratégicos'),
-      content: t('tour_dash_kpis_desc', 'Este panel le ofrece una vista rápida del estado general de su negocio: propiedades activas, recaudación, morosidad, tasa de ocupación y comisiones. Cada indicador se actualiza en tiempo real.'),
+      title: '📊 KPIs Estratégicos',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">🏠</span>
+          <span class="zt-row-text"><strong>Propiedades activas</strong> — total de inmuebles en gestión actualmente.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">💰</span>
+          <span class="zt-row-text"><strong>Recaudación del mes</strong> — total cobrado en el período actual.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">⚠️</span>
+          <span class="zt-row-text"><strong>Morosidad</strong> — deuda pendiente de inquilinos con cuotas vencidas.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">📈</span>
+          <span class="zt-row-text"><strong>Ocupación · Comisiones · Vencimientos</strong> — el pulso operativo completo de su cartera.</span>
+        </div>
+        <div class="zt-hint">💡 Los indicadores se actualizan en tiempo real cada vez que inicia sesión.</div>
+      `,
       placement: 'bottom',
     },
     {
       target: '[data-shepherd="dash-suscripcion"]',
-      title: t('tour_dash_suscripcion_title', 'Resumen de Suscripción'),
-      content: t('tour_dash_suscripcion_desc', 'Aquí se muestra el estado de su suscripción MyProp, el consumo de servicios de IA acumulado y el total a abonar en su próximo pago mensual. Si es miembro VIP, todas las funciones premium están bonificadas.'),
+      title: '🔑 Resumen de Suscripción',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">📋</span>
+          <span class="zt-row-text"><strong>Plan activo</strong> — el tier de su suscripción Zonatia (Starter, Pro o VIP).</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">🤖</span>
+          <span class="zt-row-text"><strong>Consumo de IA</strong> — créditos utilizados en el mes para generación de documentos, descripciones y asistente.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">💳</span>
+          <span class="zt-row-text"><strong>Próximo pago</strong> — total estimado a abonar en la fecha de facturación.</span>
+        </div>
+        <div class="zt-hint">✨ En el plan VIP todas las funciones premium están incluidas sin costo adicional.</div>
+      `,
       placement: 'bottom',
     },
     {
       target: '[data-shepherd="dash-acciones"]',
-      title: t('tour_dash_acciones_title', 'Acciones Rápidas'),
-      content: t('tour_dash_acciones_desc', 'Accesos directos a las tareas más frecuentes: visite su agenda de visitas, gestione cobranzas pendientes o cree un nuevo contrato con un solo clic.'),
+      title: '⚡ Acciones Rápidas',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">📅</span>
+          <span class="zt-row-text"><strong>Visitas agendadas</strong> — acceda de un clic a las visitas programadas para hoy.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">🧾</span>
+          <span class="zt-row-text"><strong>Cobranzas pendientes</strong> — revise y gestione los pagos sin procesar.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">📝</span>
+          <span class="zt-row-text"><strong>Nuevo contrato</strong> — inicie el flujo de alta de contrato en segundos.</span>
+        </div>
+        <div class="zt-hint">🚀 Desde aquí también puede acceder al Marketplace y al asistente Zonatia AI.</div>
+      `,
       placement: 'top',
-    }
+    },
   ];
 
   return (

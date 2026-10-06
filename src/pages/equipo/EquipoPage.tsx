@@ -138,22 +138,52 @@ export function EquipoPage() {
   const shepherdSteps: ShepherdStep[] = [
     {
       target: '[data-shepherd="equipo-header"]',
-      title: t('tour_equipo_header_title', 'Su Equipo'),
-      content: t('tour_equipo_header_desc', 'Desde aquí podrá gestionar todos los agentes inmobiliarios y administradores afiliados a su franquicia. Tenga en cuenta que un Vendedor de la sucursal 1 NO verá data de la sucursal 2 (Master Filter).'),
+      title: '👥 Gestión de Equipo',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">🏢</span>
+          <span class="zt-row-text">Administre todos los <strong>agentes y administradores</strong> afiliados a su franquicia desde un solo lugar.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">🔒</span>
+          <span class="zt-row-text"><strong>Master Filter</strong> — un Vendedor de la sucursal 1 no verá datos de la sucursal 2. El aislamiento es automático.</span>
+        </div>
+        <div class="zt-hint">💡 Cada miembro accede solo a la información de la sucursal a la que pertenece.</div>
+      `,
       placement: 'bottom',
     },
     {
       target: '[data-shepherd="equipo-kpis"]',
-      title: t('tour_equipo_kpis_title', 'Estado de la Fuerza de Ventas'),
-      content: t('tour_equipo_kpis_desc', 'Métricas rápidas que muestran cuántos colaboradores tienen acceso activo a su plataforma, divididos por el rol asignado.'),
+      title: '📊 Fuerza de Ventas',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">✅</span>
+          <span class="zt-row-text"><strong>Activos</strong> — miembros con acceso habilitado a la plataforma en este momento.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">🎖️</span>
+          <span class="zt-row-text"><strong>Admins vs Vendedores</strong> — distribución de roles en su organización.</span>
+        </div>
+        <div class="zt-hint">📈 Un equipo bien configurado maximiza el uso del Master Filter y la segmentación de datos.</div>
+      `,
       placement: 'bottom',
     },
     {
       target: '[data-shepherd="btn-nuevo-miembro"]',
-      title: t('tour_equipo_invite_title', 'Reclutamiento Rápido'),
-      content: t('tour_equipo_invite_desc', 'Haga clic aquí para enviar una invitación de onboarding por email a su nuevo vendedor o administrador. Ellos cargarán sus propios datos y contraseña.'),
+      title: '✉️ Reclutamiento Rápido',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">📧</span>
+          <span class="zt-row-text">Haga clic aquí para enviar una <strong>invitación de onboarding</strong> por email a su nuevo agente o administrador.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">🔑</span>
+          <span class="zt-row-text">El invitado recibirá un link seguro para <strong>cargar sus datos y definir su contraseña</strong> sin intervención suya.</span>
+        </div>
+        <div class="zt-hint">🚀 El proceso de onboarding completo toma menos de 2 minutos para el nuevo miembro.</div>
+      `,
       placement: 'left',
-    }
+    },
   ];
 
   return (

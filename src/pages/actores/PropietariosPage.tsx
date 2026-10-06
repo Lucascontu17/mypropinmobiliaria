@@ -47,22 +47,48 @@ export function PropietariosPage() {
   const shepherdSteps: ShepherdStep[] = [
     {
       target: '[data-shepherd="own-header"]',
-      title: t('tour_own_header_title', 'Gestión de Propietarios'),
-      content: t('tour_own_header_desc', 'Administre aquí los dueños de los inmuebles gestionados por su inmobiliaria. Podrá registrar nuevos propietarios, consultar sus datos de contacto y configurar el tipo de comisión (fija o porcentual) que perciben por cada alquiler.'),
+      title: '🏢 Gestión de Propietarios',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">👤</span>
+          <span class="zt-row-text"><strong>Ficha del propietario</strong> — nombre, DNI/CUIT, email y teléfono de cada dueño de inmueble.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">💼</span>
+          <span class="zt-row-text"><strong>Comisión pactada</strong> — defina si percibe una comisión <em>fija</em> o <em>porcentual</em> por cada contrato.</span>
+        </div>
+        <div class="zt-hint">💡 Los propietarios aquí registrados se vinculan a las propiedades en la sección correspondiente.</div>
+      `,
       placement: 'bottom',
     },
     {
       target: '[data-shepherd="own-buscador"]',
-      title: t('tour_own_buscador_title', 'Buscador de Propietarios'),
-      content: t('tour_own_buscador_desc', 'Busque propietarios por nombre o documento. El sistema filtra la tabla en tiempo real a medida que escribe para localizar rápidamente al titular deseado.'),
+      title: '🔍 Buscador de Propietarios',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">🔎</span>
+          <span class="zt-row-text">Filtre por <strong>nombre</strong> o <strong>documento</strong> (DNI / CUIT) para localizar al titular de un inmueble rápidamente.</span>
+        </div>
+        <div class="zt-hint">⚡ El filtrado es instantáneo — no necesita presionar Enter.</div>
+      `,
       placement: 'bottom',
     },
     {
       target: '[data-shepherd="own-tabla"]',
-      title: t('tour_own_tabla_title', 'Listado de Propietarios'),
-      content: t('tour_own_tabla_desc', 'Cada registro incluye el nombre del propietario, su DNI/CUIT, información de contacto (email y celular), y la comisión pactada. Desde la columna de acciones puede editar sus datos o eliminarlos si cuenta con permisos de superadministrador.'),
+      title: '📋 Listado de Propietarios',
+      content: `
+        <div class="zt-row">
+          <span class="zt-row-icon">📊</span>
+          <span class="zt-row-text">Cada fila muestra <strong>nombre, documento, contacto y comisión</strong> pactada con su inmobiliaria.</span>
+        </div>
+        <div class="zt-row">
+          <span class="zt-row-icon">✏️</span>
+          <span class="zt-row-text">Use <strong>Editar</strong> para actualizar datos. <strong>Eliminar</strong> requiere rol Superadministrador.</span>
+        </div>
+        <div class="zt-hint">🔒 No puede eliminar un propietario que tenga propiedades activas asignadas.</div>
+      `,
       placement: 'top',
-    }
+    },
   ];
 
   return (
