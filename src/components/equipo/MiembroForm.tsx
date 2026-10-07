@@ -12,7 +12,7 @@ const miembroSchema = z.object({
   nombre: z.string().min(2, 'Nombre debe tener al menos 2 caracteres.'),
   email: z.string().email('Email inválido.'),
   celular: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Formato E.164 requerido (Ej: +5491112345678)'),
-  role: z.enum(['admin', 'vendedor', 'superadmin']),
+  role: z.enum(['admin', 'vendedor']),
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres.').optional(),
 });
 
@@ -49,14 +49,6 @@ const ROLE_OPTIONS: { value: UserRole; label: string; description: string; icon:
     color: 'text-blue-600 bg-blue-50 border-blue-200',
   },
 ];
-
-const SUPERADMIN_OPTION = {
-  value: 'superadmin' as UserRole,
-  label: 'Superadmin',
-  description: 'Acceso total: configuración técnica, API keys, marketplace y gestión completa del equipo.',
-  icon: Shield,
-  color: 'text-purple-600 bg-purple-50 border-purple-200',
-};
 
 export function MiembroForm({ initialData, onCancel, onSuccess, isSuperadmin = false }: MiembroFormProps) {
   const { t, config } = useRegion();
@@ -158,7 +150,7 @@ export function MiembroForm({ initialData, onCancel, onSuccess, isSuperadmin = f
             {t('equipo_form_rol', 'Rol / Jerarquía')}
           </label>
           <div className="grid grid-cols-2 gap-3">
-            {(isSuperadmin ? [SUPERADMIN_OPTION, ...ROLE_OPTIONS] : ROLE_OPTIONS).map((opt) => {
+            {(isSuperadmin ? ROLE_OPTIONS : ROLE_OPTIONS.filter((opt) => opt.value === 'vendedor')).map((opt) => {
               const Icon = opt.icon;
               const isSelected = role === opt.value;
               return (

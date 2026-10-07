@@ -55,6 +55,12 @@ export function EquipoPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { client: eden, isReady } = useEden();
 
+  const canManageMiembro = (m: MiembroData) => {
+    if (currentRole === 'superadmin') return m.role === 'admin' || m.role === 'vendedor';
+    if (currentRole === 'admin') return m.role === 'vendedor';
+    return false;
+  };
+
   const fetchEquipo = async () => {
     if (!isReady) return;
     setIsLoading(true);
@@ -427,67 +433,69 @@ export function EquipoPage() {
                       {/* Acciones */}
                       <td className="px-6 py-4 text-right">
                         <div className="relative flex justify-end gap-1">
-                          <button
-                            onClick={() => {
-                              setEditingData(m);
-                              setIsFormOpen(true);
-                            }}
-                            className="p-2 text-renta-400 hover:text-renta-700 hover:bg-renta-50 rounded-lg transition-colors"
-                            title={t('equipo_accion_editar', 'Editar')}
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-
-                          {hasPermission(['superadmin']) && (
-                            <button
-                              onClick={() => handleDelete(m)}
-                              className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                              title={t('equipo_accion_eliminar', 'Eliminar')}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
-
-                          <button
-                            onClick={() => setContextMenu(contextMenu === m?.id ? null : m?.id || null)}
-                            className="p-2 text-renta-300 hover:text-renta-600 hover:bg-renta-50 rounded-lg transition-colors"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </button>
-
-                          {/* Context Menu */}
-                          {contextMenu === m?.id && (
-                            <div className="absolute right-0 top-full mt-1 z-10 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-xl shadow-lg py-1 min-w-[180px] animate-fade-in">
+                          {canManageMiembro(m) && (
+                            <>
                               <button
                                 onClick={() => {
-                                  setContextMenu(null);
-                                  handleToggleEstado(m);
+                                  setEditingData(m);
+                                  setIsFormOpen(true);
                                 }}
-                                className="w-full flex items-center gap-2 px-4 py-2 text-xs text-renta-700 hover:bg-renta-50 transition-colors"
+                                className="p-2 text-renta-400 hover:text-renta-700 hover:bg-renta-50 rounded-lg transition-colors"
+                                title={t('equipo_accion_editar', 'Editar')}
                               >
-                                {m?.estado !== 'inactivo' ? (
-                                  <>
-                                    <UserX className="h-3.5 w-3.5" />
-                                    {t('equipo_accion_desactivar', 'Desactivar Cuenta')}
-                                  </>
-                                ) : (
-                                  <>
-                                    <UserCheckIcon className="h-3.5 w-3.5" />
-                                    {t('equipo_accion_activar', 'Reactivar Cuenta')}
-                                  </>
-                                )}
+                                <Edit2 className="h-4 w-4" />
                               </button>
+
                               <button
-                                onClick={() => {
-                                  setContextMenu(null);
-                                  handleResend(m);
-                                }}
-                                className="w-full flex items-center gap-2 px-4 py-2 text-xs text-renta-700 hover:bg-renta-50 transition-colors"
+                                onClick={() => handleDelete(m)}
+                                className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                                title={t('equipo_accion_eliminar', 'Eliminar')}
                               >
-                                <Mail className="h-3.5 w-3.5" />
-                                {t('equipo_accion_reenviar', 'Reenviar Invitación')}
+                                <Trash2 className="h-4 w-4" />
                               </button>
-                            </div>
+
+                              <button
+                                onClick={() => setContextMenu(contextMenu === m?.id ? null : m?.id || null)}
+                                className="p-2 text-renta-300 hover:text-renta-600 hover:bg-renta-50 rounded-lg transition-colors"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </button>
+
+                              {/* Context Menu */}
+                              {contextMenu === m?.id && (
+                                <div className="absolute right-0 top-full mt-1 z-10 bg-white ring-1 ring-inset ring-admin-border border-transparent rounded-xl shadow-lg py-1 min-w-[180px] animate-fade-in">
+                                  <button
+                                    onClick={() => {
+                                      setContextMenu(null);
+                                      handleToggleEstado(m);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-4 py-2 text-xs text-renta-700 hover:bg-renta-50 transition-colors"
+                                  >
+                                    {m?.estado !== 'inactivo' ? (
+                                      <>
+                                        <UserX className="h-3.5 w-3.5" />
+                                        {t('equipo_accion_desactivar', 'Desactivar Cuenta')}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <UserCheckIcon className="h-3.5 w-3.5" />
+                                        {t('equipo_accion_activar', 'Reactivar Cuenta')}
+                                      </>
+                                    )}
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setContextMenu(null);
+                                      handleResend(m);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-4 py-2 text-xs text-renta-700 hover:bg-renta-50 transition-colors"
+                                  >
+                                    <Mail className="h-3.5 w-3.5" />
+                                    {t('equipo_accion_reenviar', 'Reenviar Invitación')}
+                                  </button>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       </td>
