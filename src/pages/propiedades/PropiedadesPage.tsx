@@ -294,7 +294,7 @@ export function PropiedadesPage() {
           </p>
         </div>
         
-        {hasPermission(['superadmin', 'admin', 'vendedor']) && (
+        {hasPermission(['superadmin', 'admin']) && (
           <button 
             onClick={() => navigate('/propiedades/nueva')}
             className="flex items-center gap-2 rounded-xl bg-renta-950 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-renta-950/20 transition-all hover:bg-renta-800"
@@ -557,12 +557,14 @@ export function PropiedadesPage() {
                              <Users className="h-4 w-4" />
                            </button>
                          )}
-                         <button 
-                           onClick={() => navigate(`/propiedades/${p?.uid_prop}`)}
-                           className="p-2 text-renta-400 hover:text-renta-700 hover:bg-renta-50 rounded-lg transition-colors"
-                         >
-                           <Edit2 className="h-4 w-4" />
-                         </button>
+                         {hasPermission(['superadmin', 'admin']) && (
+                           <button 
+                             onClick={() => navigate(`/propiedades/${p?.uid_prop}`)}
+                             className="p-2 text-renta-400 hover:text-renta-700 hover:bg-renta-50 rounded-lg transition-colors"
+                           >
+                             <Edit2 className="h-4 w-4" />
+                           </button>
+                         )}
                          {/* Botón Eliminar — Solo para superadmin */}
                          {hasPermission(['superadmin']) && (
                            <button
