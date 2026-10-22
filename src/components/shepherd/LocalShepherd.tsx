@@ -23,7 +23,7 @@ interface LocalShepherdProps {
  * Inyecta una barra de progreso con dots animados y etiqueta "Paso N de M"
  * directamente dentro del tooltip de Shepherd, antes del texto.
  */
-function injectProgress(tour: Shepherd.Tour, currentIndex: number, total: number) {
+function injectProgress(tour: any, currentIndex: number, total: number) {
   const stepEl = document.querySelector('.shepherd-content');
   if (!stepEl) return;
 
@@ -64,7 +64,7 @@ function injectProgress(tour: Shepherd.Tour, currentIndex: number, total: number
  */
 export function LocalShepherd({ steps, storageKey }: LocalShepherdProps) {
   const { t } = useRegion();
-  const tourRef = useRef<Shepherd.Tour | null>(null);
+  const tourRef = useRef<any>(null);
 
   useEffect(() => {
     const isSeen = localStorage.getItem(storageKey) === 'true';
@@ -86,7 +86,7 @@ export function LocalShepherd({ steps, storageKey }: LocalShepherdProps) {
         const isLast  = index === total - 1;
         const isFirst = index === 0;
 
-        const buttons: Shepherd.Step.StepOptionsButton[] = [];
+        const buttons: any[] = [];
 
         // Saltar (solo si no es el último)
         if (!isLast) {

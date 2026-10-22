@@ -6,13 +6,13 @@ import { z } from 'zod';
  */
 export const IncreasePeriodEnum = z.enum([
   'mensual', 'bimestral', 'trimestral', 'cuatrimestral', 'semestral', 'anual'
-], { invalid_type_error: "Seleccione una periodicidad válida para aumentos" });
+], { error: "Seleccione una periodicidad válida para aumentos" });
 
 export const PenaltyPeriodEnum = z.enum([
   'diario', 'semanal', 'mensual'
-], { invalid_type_error: "Seleccione una periodicidad válida para la mora" });
+], { error: "Seleccione una periodicidad válida para la mora" });
 
-export const TipoAumentoEnum = z.enum(['PORCENTAJE_MANUAL', 'MONTO_FIJO', 'INDICE_IPC', 'INDICE_ICL'], { invalid_type_error: "Seleccione un tipo de aumento válido" });
+export const TipoAumentoEnum = z.enum(['PORCENTAJE_MANUAL', 'MONTO_FIJO', 'INDICE_IPC', 'INDICE_ICL'], { error: "Seleccione un tipo de aumento válido" });
 
 export const GarantiaTipo = {
   PROPIETARIA: 'GARANTIA_PROPIETARIA',
@@ -57,14 +57,14 @@ export const contratoSchema = z.object({
   contrato_url: z.any().optional(),
   
   // Ciclo de Vida del Contrato
-  fecha_inicio: z.string({ required_error: "La fecha de inicio es requerida", invalid_type_error: "Formato de fecha de inicio inválido" })
+  fecha_inicio: z.string("La fecha de inicio es requerida")
     .min(10, "Fecha de inicio incompleta")
     .regex(/^\d{4}-\d{2}-\d{2}$/, "El formato debe ser YYYY-MM-DD"),
-  fecha_fin: z.string({ required_error: "La fecha de fin es requerida", invalid_type_error: "Formato de fecha de fin inválido" })
+  fecha_fin: z.string("La fecha de fin es requerida")
     .min(10, "Fecha de fin incompleta")
     .regex(/^\d{4}-\d{2}-\d{2}$/, "El formato debe ser YYYY-MM-DD"),
   
-  monto_inicial: z.coerce.number({ invalid_type_error: "Monto inválido" }).positive("El monto de alquiler base debe ser mayor a 0"),
+  monto_inicial: z.coerce.number({ error: "Monto inválido" }).positive("El monto de alquiler base debe ser mayor a 0"),
   
   // Condición de Inserción
   pago_mes_curso: z.boolean().default(false),
@@ -74,16 +74,16 @@ export const contratoSchema = z.object({
     aplicar_aumento: z.boolean().default(false),
     tipo_aumento: TipoAumentoEnum.optional().or(z.literal('')), // Switch entre Manual y Referencia IPC/ICL
     periodicidad: IncreasePeriodEnum.optional().or(z.literal('')),
-    porcentaje: z.coerce.number({ invalid_type_error: "Porcentaje inválido" }).min(0.1, "El porcentaje debe ser mayor a 0").optional().or(z.literal('')),
-    monto_fijo: z.coerce.number({ invalid_type_error: "Monto fijo inválido" }).positive("El monto fijo debe ser mayor a 0").optional().or(z.literal('')),
+    porcentaje: z.coerce.number({ error: "Porcentaje inválido" }).min(0.1, "El porcentaje debe ser mayor a 0").optional().or(z.literal('')),
+    monto_fijo: z.coerce.number({ error: "Monto fijo inválido" }).positive("El monto fijo debe ser mayor a 0").optional().or(z.literal('')),
   }),
 
   // Reglas de Rentabilidad: Intereses Morosos (Deuda)
   reglas_mora: z.object({
     aplicar_mora: z.boolean().default(false),
     periodicidad: PenaltyPeriodEnum.optional().or(z.literal('')),
-    porcentaje: z.coerce.number({ invalid_type_error: "Porcentaje de mora inválido" }).min(0.1, "Debe especificar un porcentaje válido").optional().or(z.literal('')),
-    dias_gracia: z.coerce.number({ invalid_type_error: "Días de gracia inválido" }).min(0, "Los días de gracia no pueden ser negativos").default(5)
+    porcentaje: z.coerce.number({ error: "Porcentaje de mora inválido" }).min(0.1, "Debe especificar un porcentaje válido").optional().or(z.literal('')),
+    dias_gracia: z.coerce.number({ error: "Días de gracia inválido" }).min(0, "Los días de gracia no pueden ser negativos").default(5)
   }),
 
   // Información de la Garantía (obligatoria)

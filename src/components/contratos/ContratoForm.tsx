@@ -56,7 +56,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
   const [sinCuenta, setSinCuenta] = useState(false);
 
   const methods = useForm<ContratoFormData>({
-    resolver: zodResolver(contratoSchema),
+    resolver: zodResolver(contratoSchema) as any,
     defaultValues: {
       inmobiliaria_id: inmobiliaria_id || '',
       uid_propiedad: '',
@@ -237,8 +237,8 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
           toast.success('Cliente vinculado con éxito');
         } else {
           console.log('🆕 Creando nuevo registro de inquilino local...', sinCuenta ? '(SOLO FICHA)' : '');
-          // @ts-expect-error - Eden Treaty dynamic path
           const password = (data.nuevo_inquilino as any)?.password || '';
+          // @ts-expect-error - Eden Treaty dynamic path
           const { data: response, error: inqError } = await eden.admin.inquilinos.post({
             nombre: data.nuevo_inquilino.nombre,
             dni: data.nuevo_inquilino.dni,
@@ -651,7 +651,7 @@ export function ContratoForm({ propiedadesDisponibles, inquilinosSeleccionables,
                              control={control}
                              render={({ field: { value, onChange } }) => (
                                <CountryPhoneSelector
-                                 value={value}
+                                 value={value ?? ''}
                                  onChange={onChange}
                                />
                              )}

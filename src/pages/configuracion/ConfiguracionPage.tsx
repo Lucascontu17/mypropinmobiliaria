@@ -75,6 +75,7 @@ export function ConfiguracionPage() {
     if (!isReady) return; // Esperar a que el token esté disponible
     const cargarConfig = async () => {
       try {
+        // @ts-expect-error - Eden Treaty dynamic path
         const { data: response } = await client.admin.me.get();
         if (response?.success && response.data) {
           const d = response.data;
@@ -207,6 +208,7 @@ export function ConfiguracionPage() {
       payload.enviar_email_onboarding = emailActivo;
       payload.twilio_phone = telefono;
       
+      // @ts-expect-error - Eden Treaty dynamic path
       const { error, data: putData } = await client.admin.me.put(payload);
 
       if (error) {

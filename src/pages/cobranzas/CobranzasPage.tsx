@@ -39,18 +39,16 @@ export function CobranzasPage() {
           queryParams.periodo = periodoOverride;
         }
 
+        // @ts-expect-error - Eden Treaty dynamic path
         const { data, error } = await eden.admin.pagos.get({
             query: queryParams
         });
         if (error) {
             toast.error('No se pudo cargar la cobranza');
         } else {
-            // @ts-expect-error - Eden Treaty dynamic path
             setPagos(data?.pagos ?? []);
             // Sincronizar el periodo activo desde el backend
-            // @ts-expect-error - Eden Treaty dynamic path
             if (data?.periodo_activo && (!periodoIniciado || forceSyncPeriodo)) {
-              // @ts-expect-error - Eden Treaty dynamic path
               const nuevoPeriodo = data.periodo_activo?.trim() ?? '';
               setPeriodoActual(nuevoPeriodo);
               setPeriodoIniciado(true);

@@ -119,11 +119,11 @@ export function DashboardPage() {
       setIsLoading(true);
       setError(null);
       try {
+        // @ts-expect-error - Eden Treaty dynamic path
         const { data, error } = await eden.admin.metrics.get();
         if (error || !data) {
           setError(t('error_dashboard', 'Servicio momentáneamente no disponible.'));
         } else {
-          // @ts-expect-error - Eden Treaty dynamic path
           setMetrics(data?.metrics);
         }
       } catch (err) {

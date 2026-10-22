@@ -22,11 +22,11 @@ export function PropietariosPage() {
     if (!isReady) return;
     try {
       setIsLoading(true);
+      // @ts-expect-error - Eden Treaty dynamic path
       const { data, error } = await eden.admin.owners.get();
       if (error) {
          console.error("Error fetching propietarios:", error);
       } else {
-         // @ts-expect-error - Eden Treaty dynamic path
          setPropietarios(data?.owners ?? []);
       }
     } catch (err) {

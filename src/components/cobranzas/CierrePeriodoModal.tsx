@@ -45,7 +45,6 @@ export function CierrePeriodoModal({ periodoActual, deudaEstimada, saldoAFavorEs
 
       if (res.error) throw new Error('Error al ejecutar el cierre maestro.');
 
-      // @ts-expect-error - Eden Treaty dynamic response shape
       const procesados: number = res.data?.data?.procesados ?? res.data?.procesados ?? -1;
       if (procesados === 0) {
         toast.success(`No había pagos pendientes; se avanzó el periodo a ${nextPeriodo}.`);

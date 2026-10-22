@@ -37,7 +37,7 @@ export const api = treaty<App>(FULL_API_URL, {
     fetch: {
         credentials: 'include'
     }
-});
+} as any);
 
 /**
  * useEden hook
