@@ -31,7 +31,7 @@ export function MapPicker({ direccionFieldName = 'direccion' }: MapPickerProps) 
     setGeocodeStatus('idle');
     
     try {
-      const result = await geocodeAddress(direccion, inmobiliaria_id);
+      const result = await geocodeAddress(direccion, inmobiliaria_id || '');
       if (result) {
         setValue('latitud', result.latitud, { shouldValidate: true });
         setValue('longitud', result.longitud, { shouldValidate: true });

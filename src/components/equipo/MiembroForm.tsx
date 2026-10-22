@@ -89,6 +89,7 @@ export function MiembroForm({ initialData, onCancel, onSuccess, isSuperadmin = f
     
     try {
         if (isEditing) {
+            // @ts-expect-error - Eden Treaty dynamic path
             const { error } = await (eden.admin.equipo as any)({ id: initialData?.id }).put({
                 nombre,
                 role,
@@ -102,6 +103,7 @@ export function MiembroForm({ initialData, onCancel, onSuccess, isSuperadmin = f
                 onSuccess();
             }
         } else {
+            // @ts-expect-error - Eden Treaty dynamic path
             const { data, error } = await eden.admin.equipo.post({
                 nombre,
                 email,
@@ -242,6 +244,9 @@ export function MiembroForm({ initialData, onCancel, onSuccess, isSuperadmin = f
                     )}
                 />
                 {errors.password && <p className="text-[10px] text-red-500 font-medium">{errors.password}</p>}
+                <p className="text-[10px] text-renta-400">
+                    Mínimo 8 caracteres. No uses contraseñas comunes ni filtradas: el sistema las rechaza.
+                </p>
             </div>
           )}
 

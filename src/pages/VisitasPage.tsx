@@ -506,6 +506,7 @@ export default function VisitasPage() {
       body.fecha_programada = newDate;
     }
 
+    // @ts-expect-error - Eden Treaty dynamic path
     const { error } = await client.admin.visitas({ id }).patch(body);
 
     if (error) {
@@ -523,6 +524,7 @@ export default function VisitasPage() {
       return;
     }
 
+    // @ts-expect-error - Eden Treaty dynamic path
     const { error } = await client.admin.visitas({ id }).patch({
       vendedor_id: vendedorId,
       vendedor_nombre: vendedorNombre,

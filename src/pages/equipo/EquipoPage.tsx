@@ -65,6 +65,7 @@ export function EquipoPage() {
     if (!isReady) return;
     setIsLoading(true);
     try {
+        // @ts-expect-error - Eden Treaty dynamic path
         const { data, error } = await eden.admin.equipo.get();
         if (error || !data) {
             console.error('[EQUIPO] Error fetching:', error);
@@ -86,6 +87,7 @@ export function EquipoPage() {
     if (!m.id) return;
     const nuevoEstado = m.estado === 'inactivo' ? 'activo' : 'inactivo';
     try {
+      // @ts-expect-error - Eden Treaty dynamic path
       const { error } = await (eden.admin.equipo as any)({ id: m.id }).estado.patch({ estado: nuevoEstado });
       if (error) {
         toast.error(error.value?.error || 'Error al cambiar estado');
@@ -101,6 +103,7 @@ export function EquipoPage() {
   const handleResend = async (m: MiembroData) => {
     if (!m.id) return;
     try {
+      // @ts-expect-error - Eden Treaty dynamic path
       const { error } = await (eden.admin.equipo as any)({ id: m.id }).reenviar.post();
       if (error) {
         toast.error(error.value?.error || 'Error al reenviar invitación');
@@ -116,6 +119,7 @@ export function EquipoPage() {
     if (!m.id) return;
     if (!window.confirm(`¿Eliminar a ${m.nombre || 'este miembro'}? Esta acción es irreversible.`)) return;
     try {
+      // @ts-expect-error - Eden Treaty dynamic path
       const { error } = await (eden.admin.equipo as any)({ id: m.id }).delete();
       if (error) {
         toast.error(error.value?.error || 'Error al eliminar miembro');

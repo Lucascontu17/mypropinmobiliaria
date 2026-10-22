@@ -251,7 +251,7 @@ export function CloseSaleModal({
                     <NumericInput
                       placeholder="0.00"
                       value={precioCierre}
-                      onChange={(val) => setPrecioCierre(val)}
+                      onChange={(val) => setPrecioCierre(String(val))}
                       className="w-full rounded-2xl border-2 border-emerald-200 bg-emerald-50/30 pl-12 pr-4 py-3 text-lg font-bold text-renta-950 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all"
                     />
                   </div>
@@ -419,7 +419,7 @@ export function CloseSaleModal({
                           <NumericInput
                             placeholder="0.00"
                             value={precioAlquiler}
-                            onChange={(val) => setPrecioAlquiler(val)}
+                            onChange={(val) => setPrecioAlquiler(String(val))}
                             className="w-full rounded-xl ring-1 ring-inset ring-admin-border border-transparent bg-white pl-10 pr-4 py-2.5 text-sm font-bold text-renta-950 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all"
                           />
                         </div>

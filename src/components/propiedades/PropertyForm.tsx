@@ -322,11 +322,9 @@ export function PropertyForm({ initialData, initialDraftId, owners, tenantId, on
   const addressInputRef = useRef<HTMLInputElement | null>(null);
 
   const initAutocomplete = useCallback((node: HTMLInputElement) => {
-    // @ts-expect-error - window.google puede no estar tipado
     if (!window.google?.maps?.places || autocompleteRef.current) return;
 
     try {
-      // @ts-expect-error - Legacy Places API
       const ac = new window.google.maps.places.Autocomplete(node, {
         types: ['address'],
         fields: ['formatted_address', 'geometry', 'address_components']
@@ -373,12 +371,10 @@ export function PropertyForm({ initialData, initialDraftId, owners, tenantId, on
     addressInputRef.current = node;
     if (!node) return;
 
-    // @ts-expect-error - window.google puede no estar tipado
     if (window.google?.maps?.places) {
       initAutocomplete(node);
     } else {
       const interval = setInterval(() => {
-        // @ts-expect-error - window.google puede no estar tipado
         if (window.google?.maps?.places) {
           initAutocomplete(node);
           clearInterval(interval);
@@ -392,7 +388,6 @@ export function PropertyForm({ initialData, initialDraftId, owners, tenantId, on
   useEffect(() => {
     return () => {
       if (autocompleteRef.current) {
-        // @ts-expect-error - window.google puede no estar tipado
         window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
         autocompleteRef.current = null;
       }

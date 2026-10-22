@@ -23,6 +23,7 @@ export function InquilinosPage() {
       if (!isReady) return;
       try {
         setIsLoading(true);
+        // @ts-expect-error - Eden Treaty dynamic path
         const res = await api.admin.inquilinos.get();
         // Defensive check for new backend structure
         const lista = res.data?.inquilinos ?? [];

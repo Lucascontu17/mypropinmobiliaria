@@ -61,11 +61,11 @@ export function PropiedadesPage() {
       setIsLoading(true);
       try {
         // Fetch properties
+        // @ts-expect-error - Eden Treaty dynamic path
         const { data: propsData, error: propsError } = await eden.admin.propiedades.get();
         if (propsError) {
           console.error('[PROPIEDADES] Error fetching:', propsError);
         } else {
-          // @ts-expect-error - Eden Treaty dynamic path
           setProperties(propsData?.propiedades ?? []);
         }
 
@@ -73,7 +73,6 @@ export function PropiedadesPage() {
         // @ts-expect-error - Eden Treaty dynamic path
         const { data: ownersData, error: ownersError } = await eden.admin.owners.get();
         if (!ownersError && ownersData) {
-          // @ts-expect-error - Eden Treaty dynamic path
           const ownerList = ownersData?.owners ?? [];
           setOwners(ownerList.map((o: any) => ({ id: o.id, nombre: o.nombre || 'Sin nombre' })));
         }

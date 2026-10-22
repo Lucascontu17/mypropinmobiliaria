@@ -59,7 +59,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
   const saldoRestante = (pagoDestino.monto_a_abonar || 0) - (pagoDestino.monto_abonado || 0);
   
   const { control, register, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<TransaccionFormData>({
-    resolver: zodResolver(transaccionSchema),
+    resolver: zodResolver(transaccionSchema) as any,
     defaultValues: {
       inmobiliaria_id: undefined,
       pago_id: pagoDestino.pago_id,
@@ -120,6 +120,7 @@ export function RegistrarIngresoModal({ pagoDestino, onClose, onSuccess }: Regis
         desglose: desglosePayload
       };
       
+      // @ts-expect-error - Eden Treaty dynamic path
       const { data: transResponse, error: transError } = await eden.admin.transacciones.post(payload);
 
       if (transError || !transResponse) {
